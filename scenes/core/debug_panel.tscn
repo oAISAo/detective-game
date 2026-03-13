@@ -56,3 +56,29 @@ text = "[b]Debug panel ready.[/b]
 Press F1 to refresh."
 fit_content = true
 scroll_active = true
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ActionsLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Debug Actions"
+
+[node name="ActionsContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="EvidenceIdInput" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/ActionsContainer"]
+layout_mode = 2
+placeholder_text = "Evidence ID (e.g., ev_fingerprint)"
+
+[node name="UnlockEvidenceButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ActionsContainer"]
+layout_mode = 2
+text = "Unlock Evidence by ID"
+
+[node name="UnlockAllButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ActionsContainer"]
+layout_mode = 2
+text = "Unlock All Evidence"
+
+[node name="ExportStateButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ActionsContainer"]
+layout_mode = 2
+text = "Export State to Console"

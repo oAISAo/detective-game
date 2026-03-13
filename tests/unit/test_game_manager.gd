@@ -241,14 +241,14 @@ func test_get_hints_remaining() -> void:
 
 func test_log_records_actions() -> void:
 	GameManager.discover_evidence("ev_test")
-	var log: Array[Dictionary] = GameManager.get_investigation_log()
-	assert_gt(log.size(), 0, "Log should have entries after actions")
+	var action_log: Array[Dictionary] = GameManager.get_investigation_log()
+	assert_gt(action_log.size(), 0, "Log should have entries after actions")
 
 
 func test_log_entries_have_correct_structure() -> void:
 	GameManager.discover_evidence("ev_test")
-	var log: Array[Dictionary] = GameManager.get_investigation_log()
-	var entry: Dictionary = log[log.size() - 1]
+	var action_log: Array[Dictionary] = GameManager.get_investigation_log()
+	var entry: Dictionary = action_log[action_log.size() - 1]
 	assert_has(entry, "day")
 	assert_has(entry, "time_slot")
 	assert_has(entry, "description")

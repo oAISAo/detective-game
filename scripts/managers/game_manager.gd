@@ -26,6 +26,7 @@ signal insight_discovered(insight_id: String)
 signal location_visited(location_id: String)
 
 ## Emitted when an interrogation is completed.
+@warning_ignore("unused_signal")
 signal interrogation_completed(person_id: String)
 
 ## Emitted when a mandatory action is completed.
