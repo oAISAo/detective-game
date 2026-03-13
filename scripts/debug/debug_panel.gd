@@ -13,6 +13,14 @@ extends CanvasLayer
 @onready var unlock_evidence_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/UnlockEvidenceButton
 @onready var unlock_all_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/UnlockAllButton
 @onready var export_state_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/ExportStateButton
+@onready var advance_day_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/AdvanceDayButton
+@onready var set_morning_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/SetMorningButton
+@onready var set_afternoon_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/SetAfternoonButton
+@onready var set_evening_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/SetEveningButton
+@onready var process_night_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/ProcessNightButton
+@onready var complete_mandatory_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/CompleteMandatoryButton
+@onready var day_spin_box: SpinBox = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/DaySelectContainer/DaySpinBox
+@onready var goto_day_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/DaySelectContainer/GotoDayButton
 
 
 var _is_visible: bool = false
@@ -26,6 +34,19 @@ func _ready() -> void:
 	unlock_all_button.pressed.connect(_on_unlock_all_pressed)
 	export_state_button.pressed.connect(_on_export_state_pressed)
 	evidence_id_input.text_submitted.connect(_on_evidence_id_submitted)
+
+	# Phase 2: Day/action debug controls
+	advance_day_button.pressed.connect(_on_advance_day_pressed)
+	set_morning_button.pressed.connect(func() -> void: debug_set_time_slot(Enums.TimeSlot.MORNING))
+	set_afternoon_button.pressed.connect(func() -> void: debug_set_time_slot(Enums.TimeSlot.AFTERNOON))
+	set_evening_button.pressed.connect(func() -> void: debug_set_time_slot(Enums.TimeSlot.EVENING))
+	process_night_button.pressed.connect(_on_process_night_pressed)
+	complete_mandatory_button.pressed.connect(_on_complete_mandatory_pressed)
+	day_spin_box.min_value = 1
+	day_spin_box.max_value = GameManager.TOTAL_DAYS
+	day_spin_box.value = 1
+	goto_day_button.pressed.connect(_on_goto_day_pressed)
+
 	print("[DebugPanel] Ready. Press F1 to toggle.")
 
 
@@ -80,7 +101,31 @@ func _refresh() -> void:
 	text += "[b]Mandatory Actions[/b]\n"
 	text += "  Required: %d\n" % GameManager.mandatory_actions_required.size()
 	text += "  Completed: %d\n" % GameManager.mandatory_actions_completed.size()
-	text += "  Remaining: %d\n\n" % remaining_mandatory.size()
+	text += "  Remaining: %d\n" % remaining_mandatory.size()
+	for m_id: String in remaining_mandatory:
+		text += "    ✗ %s\n" % m_id
+	text += "\n"
+
+	# Lab Requests
+	text += "[b]Lab Requests[/b]\n"
+	text += "  Active: %d\n" % GameManager.active_lab_requests.size()
+	for req in GameManager.active_lab_requests:
+		var r: Dictionary = req as Dictionary
+		text += "    ⏳ %s → Day %s\n" % [r.get("id", "?"), str(r.get("completion_day", "?"))]
+	text += "\n"
+
+	# Surveillance
+	text += "[b]Surveillance[/b]\n"
+	text += "  Active: %d\n" % GameManager.active_surveillance.size()
+	for surv in GameManager.active_surveillance:
+		var s: Dictionary = surv as Dictionary
+		text += "    👁 %s (%s days)\n" % [s.get("target_person", "?"), str(s.get("active_days", "?"))]
+	text += "\n"
+
+	# Action System
+	text += "[b]Action System[/b]\n"
+	text += "  Total Executed: %d\n" % ActionSystem.executed_actions.size()
+	text += "  Today: %d\n\n" % ActionSystem.actions_executed_today.size()
 
 	# Warrants
 	text += "[b]Warrants[/b]\n"
@@ -151,6 +196,27 @@ func _on_unlock_all_pressed() -> void:
 
 func _on_export_state_pressed() -> void:
 	debug_export_state()
+
+
+func _on_advance_day_pressed() -> void:
+	DaySystem.force_advance_day()
+	_refresh()
+	print("[Debug] Forced day advance.")
+
+
+func _on_process_night_pressed() -> void:
+	DaySystem.force_advance_day()
+	_refresh()
+	print("[Debug] Night processing triggered.")
+
+
+func _on_complete_mandatory_pressed() -> void:
+	debug_complete_mandatory_actions()
+
+
+func _on_goto_day_pressed() -> void:
+	var target_day: int = int(day_spin_box.value)
+	debug_set_day(target_day)
 
 
 ## Advances to the specified day.
