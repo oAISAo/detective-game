@@ -1,0 +1,172 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/evidence_detail.gd" id="1_script"]
+
+[node name="EvidenceDetail" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 24
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "← Back"
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Evidence Detail"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="PinButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📌 Pin"
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 600
+
+[node name="MainScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="MainContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="EvidenceImage" type="TextureRect" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(0, 300)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = "No description available."
+
+[node name="InfoSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent"]
+layout_mode = 2
+
+[node name="InfoHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/InfoSection"]
+layout_mode = 2
+text = "Details"
+theme_override_font_sizes/font_size = 18
+
+[node name="InfoGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/InfoSection"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 8
+
+[node name="TagsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent"]
+layout_mode = 2
+
+[node name="TagsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/TagsSection"]
+layout_mode = 2
+text = "Tags"
+theme_override_font_sizes/font_size = 18
+
+[node name="TagsContainer" type="HFlowContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/TagsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CompareSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CompareButton" type="Button" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🔍 Compare Evidence"
+
+[node name="ComparisonPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="ComparisonScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+
+[node name="ComparisonList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel/ComparisonScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RelationshipsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(300, 0)
+
+[node name="RelationshipsContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="PersonsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+layout_mode = 2
+
+[node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
+layout_mode = 2
+text = "Related Persons"
+theme_override_font_sizes/font_size = 18
+
+[node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatementsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+layout_mode = 2
+
+[node name="StatementsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+layout_mode = 2
+text = "Referenced Statements"
+theme_override_font_sizes/font_size = 18
+
+[node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LegalSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+layout_mode = 2
+
+[node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
+layout_mode = 2
+text = "Legal Categories"
+theme_override_font_sizes/font_size = 18
+
+[node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
+unique_name_in_owner = true
+layout_mode = 2

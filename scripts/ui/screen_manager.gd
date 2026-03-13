@@ -30,6 +30,7 @@ const SCREEN_SCENES: Dictionary = {
 	"timeline_board": "res://scenes/ui/timeline_board.tscn",
 	"location_map": "res://scenes/ui/location_map.tscn",
 	"investigation_log": "res://scenes/ui/investigation_log.tscn",
+	"evidence_detail": "res://scenes/ui/evidence_detail.tscn",
 }
 
 ## Registry of known modal scene paths, keyed by modal ID.
@@ -56,6 +57,9 @@ var _active_modals: Dictionary = {}
 ## Whether a screen transition is in progress (prevents double-nav).
 var _transitioning: bool = false
 
+## Data passed to the next screen during navigation.
+var navigation_data: Dictionary = {}
+
 
 # --- Lifecycle --- #
 
@@ -68,7 +72,7 @@ func _ready() -> void:
 ## Navigates to a screen by its registered ID.
 ## Pushes the current screen onto the history stack for back navigation.
 ## Returns true if navigation succeeded.
-func navigate_to(screen_id: String) -> bool:
+func navigate_to(screen_id: String, data: Dictionary = {}) -> bool:
 	if _transitioning:
 		push_warning("[ScreenManager] Navigation blocked — transition in progress.")
 		return false
@@ -92,6 +96,7 @@ func navigate_to(screen_id: String) -> bool:
 	if not current_screen.is_empty():
 		_nav_history.append(current_screen)
 
+	navigation_data = data
 	screen_changing.emit(old_screen, screen_id)
 
 	# Clear existing screen
@@ -138,6 +143,7 @@ func navigate_back() -> bool:
 	_transitioning = true
 	var old_screen: String = current_screen
 
+	navigation_data = {}
 	screen_changing.emit(old_screen, prev_screen)
 
 	var container: Node = game_root.get_node("ScreenContainer")
@@ -281,3 +287,4 @@ func reset() -> void:
 	_scene_cache.clear()
 	_active_modals.clear()
 	_transitioning = false
+	navigation_data = {}
