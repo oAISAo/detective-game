@@ -1,0 +1,15 @@
+{
+    "dirs": [
+        "res://tests/unit",
+        "res://tests/integration",
+        "res://tests/scenario"
+    ],
+    "include_subdirs": true,
+    "prefix": "test_",
+    "suffix": ".gd",
+    "color_output": true,
+    "log_level": 1,
+    "should_maximize": false,
+    "should_exit": true,
+    "should_exit_on_success": false
+}

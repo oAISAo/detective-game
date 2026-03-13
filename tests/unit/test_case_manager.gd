@@ -200,6 +200,7 @@ func test_load_nonexistent_case_fails() -> void:
 	var result: bool = CaseManager.load_case("nonexistent.json")
 	assert_false(result, "Should fail for nonexistent file")
 	assert_false(CaseManager.case_loaded_flag)
+	assert_push_error("Case file not found")
 
 
 func test_unload_case_clears_data() -> void:

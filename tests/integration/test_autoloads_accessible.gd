@@ -13,7 +13,8 @@ func test_game_manager_accessible() -> void:
 
 func test_case_manager_accessible() -> void:
 	assert_not_null(CaseManager, "CaseManager should be accessible")
-	# Verify it responds to a method call
+	# Verify it responds to method calls (don't assume initial state — other tests may have run)
+	CaseManager.unload_case()
 	assert_false(CaseManager.case_loaded_flag)
 
 

@@ -124,9 +124,9 @@ func test_get_save_info_with_save() -> void:
 	SaveManager.save_game(1)
 	var info: Dictionary = SaveManager.get_save_info(1)
 	assert_true(info.get("exists", false))
-	assert_eq(info.get("save_version", 0), SaveManager.SAVE_VERSION)
-	assert_eq(info.get("current_day", 0), 1)
-	assert_eq(info.get("evidence_count", 0), 1)
+	assert_eq(int(info.get("save_version", 0)), SaveManager.SAVE_VERSION)
+	assert_eq(int(info.get("current_day", 0)), 1)
+	assert_eq(int(info.get("evidence_count", 0)), 1)
 
 
 # --- Multiple Slots --- #
