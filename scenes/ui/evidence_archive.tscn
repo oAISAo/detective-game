@@ -25,7 +25,7 @@ theme_override_constants/margin_bottom = 24
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -43,35 +43,105 @@ text = "Evidence Archive"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ToolBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FilterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/ToolBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(160, 0)
+
+[node name="SearchBox" type="LineEdit" parent="MarginContainer/VBoxContainer/ToolBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search evidence..."
+clear_button_enabled = true
+
+[node name="TabSeparator" type="VSeparator" parent="MarginContainer/VBoxContainer/ToolBar"]
+layout_mode = 2
+
+[node name="TabEvidenceButton" type="Button" parent="MarginContainer/VBoxContainer/ToolBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📁 Evidence"
+
+[node name="TabTestimonyButton" type="Button" parent="MarginContainer/VBoxContainer/ToolBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "💬 Testimony"
+
+[node name="PinnedBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PinnedLabel" type="Label" parent="MarginContainer/VBoxContainer/PinnedBar"]
+layout_mode = 2
+text = "📌 Pinned:"
+theme_override_font_sizes/font_size = 14
+
+[node name="EvidenceContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer/EvidenceContent"]
 layout_mode = 2
 size_flags_vertical = 3
 split_offset = 350
 
-[node name="ListPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="ListPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 0)
 
-[node name="ListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/ListPanel"]
+[node name="ListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/ListPanel"]
 layout_mode = 2
 
-[node name="EvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/ListPanel/ListScroll"]
+[node name="EvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/ListPanel/ListScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="PreviewPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 visible = false
 
-[node name="DetailScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/DetailPanel"]
+[node name="PreviewScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel"]
 layout_mode = 2
 
-[node name="DetailLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/DetailPanel/DetailScroll"]
+[node name="PreviewContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel/PreviewScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="PreviewLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel/PreviewScroll/PreviewContent"]
 unique_name_in_owner = true
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 text = "Select an evidence item to view details."
+
+[node name="ViewDetailButton" type="Button" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel/PreviewScroll/PreviewContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "View Details →"
+
+[node name="TestimonyContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TestimonyScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TestimonyContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TestimonyList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TestimonyContent/TestimonyScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8

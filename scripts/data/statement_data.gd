@@ -22,6 +22,9 @@ extends Resource
 ## ID of the event this statement relates to (optional).
 @export var related_event: String = ""
 
+## IDs of evidence items that potentially contradict this statement.
+@export var contradicting_evidence: Array[String] = []
+
 
 ## Creates a StatementData from a JSON dictionary.
 static func from_dict(data: Dictionary) -> StatementData:
@@ -32,6 +35,7 @@ static func from_dict(data: Dictionary) -> StatementData:
 	res.day_given = int(data.get("day_given", 0))
 	res.related_evidence.assign(data.get("related_evidence", []))
 	res.related_event = data.get("related_event", "")
+	res.contradicting_evidence.assign(data.get("contradicting_evidence", []))
 	return res
 
 
@@ -56,4 +60,5 @@ func to_dict() -> Dictionary:
 		"day_given": day_given,
 		"related_evidence": related_evidence.duplicate(),
 		"related_event": related_event,
+		"contradicting_evidence": contradicting_evidence.duplicate(),
 	}

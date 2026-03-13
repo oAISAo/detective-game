@@ -160,6 +160,11 @@ func new_game() -> void:
 	if screen_mgr and screen_mgr.has_method("reset"):
 		screen_mgr.call("reset")
 
+	# Reset Phase 5 systems if available
+	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
+	if evidence_mgr and evidence_mgr.has_method("reset"):
+		evidence_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -395,6 +400,11 @@ func serialize() -> Dictionary:
 	if event_sys and event_sys.has_method("serialize"):
 		data["event_system"] = event_sys.call("serialize")
 
+	# Include Phase 5 system state if available
+	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
+	if evidence_mgr and evidence_mgr.has_method("serialize"):
+		data["evidence_manager"] = evidence_mgr.call("serialize")
+
 	return data
 
 
@@ -429,3 +439,8 @@ func deserialize(data: Dictionary) -> void:
 	var event_sys: Node = get_node_or_null("/root/EventSystem")
 	if event_sys and event_sys.has_method("deserialize") and data.has("event_system"):
 		event_sys.call("deserialize", data["event_system"])
+
+	# Restore Phase 5 system state if available
+	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
+	if evidence_mgr and evidence_mgr.has_method("deserialize") and data.has("evidence_manager"):
+		evidence_mgr.call("deserialize", data["evidence_manager"])

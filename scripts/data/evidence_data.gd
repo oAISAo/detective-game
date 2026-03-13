@@ -49,6 +49,9 @@ extends Resource
 ## How this evidence was discovered.
 @export var discovery_method: Enums.DiscoveryMethod = Enums.DiscoveryMethod.VISUAL
 
+## Optional hint text for the progressive hint system. If empty, a generic hint is generated.
+@export var hint_text: String = ""
+
 ## Legal categories this evidence supports (PRESENCE, MOTIVE, etc.).
 var legal_categories: Array[int] = []  # Enums.LegalCategory values
 
@@ -87,6 +90,7 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 		data.get("discovery_method", "VISUAL"),
 		Enums.DiscoveryMethod.VISUAL
 	) as Enums.DiscoveryMethod
+	res.hint_text = data.get("hint_text", "")
 	res.legal_categories = EnumHelper.parse_enum_array(
 		Enums.LegalCategory,
 		data.get("legal_categories", [])
@@ -124,5 +128,6 @@ func to_dict() -> Dictionary:
 		"weight": weight,
 		"importance_level": EnumHelper.enum_to_string(Enums.ImportanceLevel, importance_level),
 		"discovery_method": EnumHelper.enum_to_string(Enums.DiscoveryMethod, discovery_method),
+		"hint_text": hint_text,
 		"legal_categories": EnumHelper.enum_array_to_strings(Enums.LegalCategory, legal_categories),
 	}
