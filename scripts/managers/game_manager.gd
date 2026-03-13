@@ -147,6 +147,14 @@ func new_game() -> void:
 	if action_sys and action_sys.has_method("reset"):
 		action_sys.call("reset")
 
+	# Reset Phase 3 systems if available
+	var event_sys: Node = get_node_or_null("/root/EventSystem")
+	if event_sys and event_sys.has_method("reset"):
+		event_sys.call("reset")
+	var dialogue_sys: Node = get_node_or_null("/root/DialogueSystem")
+	if dialogue_sys and dialogue_sys.has_method("reset"):
+		dialogue_sys.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -377,6 +385,11 @@ func serialize() -> Dictionary:
 	if action_sys and action_sys.has_method("serialize"):
 		data["action_system"] = action_sys.call("serialize")
 
+	# Include Phase 3 system state if available
+	var event_sys: Node = get_node_or_null("/root/EventSystem")
+	if event_sys and event_sys.has_method("serialize"):
+		data["event_system"] = event_sys.call("serialize")
+
 	return data
 
 
@@ -406,3 +419,8 @@ func deserialize(data: Dictionary) -> void:
 	var action_sys: Node = get_node_or_null("/root/ActionSystem")
 	if action_sys and action_sys.has_method("deserialize") and data.has("action_system"):
 		action_sys.call("deserialize", data["action_system"])
+
+	# Restore Phase 3 system state if available
+	var event_sys: Node = get_node_or_null("/root/EventSystem")
+	if event_sys and event_sys.has_method("deserialize") and data.has("event_system"):
+		event_sys.call("deserialize", data["event_system"])

@@ -1,7 +1,7 @@
 ## DaySystem.gd
 ## Manages the investigation day cycle, morning briefings, and night processing.
 ## Orchestrates the flow: Morning (narrative) → Afternoon (action) → Evening (action) → Night (processing).
-## Phase 2: Core day lifecycle with delayed-action processing and end-of-investigation pressure.
+## Phase 3: Delegates trigger evaluation to EventSystem. Retains day lifecycle and lab/surveillance processing.
 extends Node
 
 
@@ -37,9 +37,6 @@ signal day_advance_blocked(remaining_actions: Array[String])
 ## Whether morning briefing has been acknowledged for the current day.
 var _morning_briefing_shown: bool = false
 
-## Tracks which triggers have already fired (by ID) so they don't repeat.
-var _fired_triggers: Array[String] = []
-
 
 # --- Lifecycle --- #
 
@@ -69,9 +66,15 @@ func process_morning() -> Array[String]:
 		briefing.append("Surveillance update: %s" % surv_info.get("target_person", "unknown"))
 		surveillance_result.emit(surv_info.get("id", ""), event_ids)
 
-	# 3. Evaluate day-start triggers from case data
-	var trigger_events: Array[String] = _evaluate_day_start_triggers()
-	briefing.append_array(trigger_events)
+	# 3. Evaluate day-start triggers via EventSystem
+	var event_sys: Node = get_node_or_null("/root/EventSystem")
+	if event_sys and event_sys.has_method("evaluate_day_start_triggers"):
+		var trigger_events: Array[String] = []
+		trigger_events.assign(event_sys.call("evaluate_day_start_triggers"))
+		briefing.append_array(trigger_events)
+	else:
+		var trigger_events: Array[String] = _evaluate_day_start_triggers()
+		briefing.append_array(trigger_events)
 
 	# 4. Check for final day warning
 	if GameManager.current_day == GameManager.TOTAL_DAYS:
@@ -121,8 +124,12 @@ func _process_night() -> void:
 	# 2. Advance surveillance timers (deactivate expired ones)
 	_advance_surveillance_timers()
 
-	# 3. Evaluate TIMED triggers for the next day
-	_evaluate_timed_triggers()
+	# 3. Evaluate TIMED triggers for the next day via EventSystem
+	var event_sys: Node = get_node_or_null("/root/EventSystem")
+	if event_sys and event_sys.has_method("evaluate_timed_triggers"):
+		event_sys.call("evaluate_timed_triggers", GameManager.current_day + 1)
+	else:
+		_evaluate_timed_triggers()
 
 	# 4. Log the day end
 	GameManager._log_action("Day %d ended — Night processing complete." % GameManager.current_day)
@@ -212,9 +219,10 @@ func _advance_surveillance_timers() -> void:
 	GameManager.active_surveillance = still_active
 
 
-# --- Trigger Evaluation --- #
+# --- Legacy Trigger Evaluation (fallback when EventSystem is not loaded) --- #
 
-## Evaluates DAY_START triggers for the current day.
+## Evaluates DAY_START triggers for the current day (legacy fallback).
+## When EventSystem is available, this is not called.
 func _evaluate_day_start_triggers() -> Array[String]:
 	var results: Array[String] = []
 
@@ -223,21 +231,16 @@ func _evaluate_day_start_triggers() -> Array[String]:
 
 	var triggers: Array[EventTriggerData] = CaseManager.get_triggers_by_type("DAY_START")
 	for trigger: EventTriggerData in triggers:
-		if trigger.id in _fired_triggers:
-			continue
 		if trigger.trigger_day != -1 and trigger.trigger_day != GameManager.current_day:
 			continue
-		# Check if conditions are met
-		if _check_trigger_conditions(trigger.conditions):
-			_fired_triggers.append(trigger.id)
-			for action_str: String in trigger.actions:
-				results.append(action_str)
-			GameManager._log_action("Trigger fired: %s" % trigger.id)
+		for action_str: String in trigger.actions:
+			results.append(action_str)
+		GameManager._log_action("Trigger fired (legacy): %s" % trigger.id)
 
 	return results
 
 
-## Evaluates TIMED triggers for the next day (called during Night processing).
+## Evaluates TIMED triggers for the next day (legacy fallback).
 func _evaluate_timed_triggers() -> void:
 	if not CaseManager.case_loaded_flag:
 		return
@@ -245,55 +248,9 @@ func _evaluate_timed_triggers() -> void:
 	var next_day: int = GameManager.current_day + 1
 	var triggers: Array[EventTriggerData] = CaseManager.get_triggers_by_type("TIMED")
 	for trigger: EventTriggerData in triggers:
-		if trigger.id in _fired_triggers:
-			continue
 		if trigger.trigger_day != next_day:
 			continue
-		if _check_trigger_conditions(trigger.conditions):
-			_fired_triggers.append(trigger.id)
-			GameManager._log_action("Timed trigger queued: %s (fires Day %d)" % [trigger.id, next_day])
-
-
-## Checks whether all conditions in a trigger's condition array are met.
-## Condition format: "condition_type:value"
-## Supported types: evidence_discovered, location_visited, action_completed, warrant_obtained, day
-func _check_trigger_conditions(conditions: Array[String]) -> bool:
-	for condition: String in conditions:
-		var parts: PackedStringArray = condition.split(":", true, 1)
-		if parts.size() < 2:
-			# Conditions without a colon are treated as simple flags — skip for now
-			continue
-		var cond_type: String = parts[0].strip_edges()
-		var cond_value: String = parts[1].strip_edges()
-
-		match cond_type:
-			"evidence_discovered":
-				if not GameManager.has_evidence(cond_value):
-					return false
-			"location_visited":
-				if not GameManager.has_visited_location(cond_value):
-					return false
-			"action_completed":
-				if cond_value not in GameManager.mandatory_actions_completed:
-					return false
-			"warrant_obtained":
-				if cond_value not in GameManager.warrants_obtained:
-					return false
-			"day":
-				if GameManager.current_day != int(cond_value):
-					return false
-			"lab_complete":
-				# Check if a lab request with this ID has already completed
-				# (it would have been removed from active_lab_requests)
-				var still_active: bool = false
-				for req in GameManager.active_lab_requests:
-					if (req as Dictionary).get("id", "") == cond_value:
-						still_active = true
-						break
-				if still_active:
-					return false
-
-	return true
+		GameManager._log_action("Timed trigger queued (legacy): %s (fires Day %d)" % [trigger.id, next_day])
 
 
 # --- Serialization --- #
@@ -302,17 +259,14 @@ func _check_trigger_conditions(conditions: Array[String]) -> bool:
 func serialize() -> Dictionary:
 	return {
 		"morning_briefing_shown": _morning_briefing_shown,
-		"fired_triggers": _fired_triggers.duplicate(),
 	}
 
 
 ## Restores state from saved data.
 func deserialize(data: Dictionary) -> void:
 	_morning_briefing_shown = data.get("morning_briefing_shown", false)
-	_fired_triggers.assign(data.get("fired_triggers", []))
 
 
 ## Resets all DaySystem state for a new game.
 func reset() -> void:
 	_morning_briefing_shown = false
-	_fired_triggers.clear()

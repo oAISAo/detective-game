@@ -28,6 +28,8 @@ SaveManager="*res://scripts/managers/save_manager.gd"
 NotificationManager="*res://scripts/managers/notification_manager.gd"
 DaySystem="*res://scripts/systems/day_system.gd"
 ActionSystem="*res://scripts/systems/action_system.gd"
+EventSystem="*res://scripts/systems/event_system.gd"
+DialogueSystem="*res://scripts/systems/dialogue_system.gd"
 
 [display]
 

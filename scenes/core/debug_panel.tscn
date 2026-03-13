@@ -131,4 +131,33 @@ text = "Process Night"
 [node name="CompleteMandatoryButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
 layout_mode = 2
 text = "Complete All Mandatory Actions"
-text = "Export State to Console"
+
+[node name="HSeparator4" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="EventActionsLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Event & Dialogue Controls"
+
+[node name="EventActionsContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TriggerIdInput" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/EventActionsContainer"]
+layout_mode = 2
+placeholder_text = "Trigger ID (e.g., trigger_lab_result)"
+
+[node name="FireTriggerButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/EventActionsContainer"]
+layout_mode = 2
+text = "Force Fire Trigger"
+
+[node name="EvalConditionalButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/EventActionsContainer"]
+layout_mode = 2
+text = "Evaluate Conditional Triggers"
+
+[node name="ClearNotificationsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/EventActionsContainer"]
+layout_mode = 2
+text = "Clear All Notifications"
+
+[node name="SkipDialogueButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/EventActionsContainer"]
+layout_mode = 2
+text = "Skip Current Dialogue"

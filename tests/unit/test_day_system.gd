@@ -1,7 +1,7 @@
 ## test_day_system.gd
 ## Unit tests for the DaySystem singleton.
-## Phase 2: Verify day cycle, morning processing, night processing,
-## lab/surveillance timers, trigger evaluation, and serialization.
+## Phase 3: Updated — trigger evaluation is now delegated to EventSystem.
+## DaySystem retains day lifecycle, lab/surveillance processing, and morning/night flow.
 extends GutTest
 
 
@@ -11,6 +11,7 @@ extends GutTest
 func _reset_state() -> void:
 	GameManager.new_game()
 	DaySystem.reset()
+	EventSystem.reset()
 
 
 # --- Setup --- #
@@ -23,15 +24,12 @@ func before_each() -> void:
 
 func test_initial_state() -> void:
 	assert_false(DaySystem.is_morning_briefing_shown(), "Morning briefing should not be shown initially")
-	assert_eq(DaySystem._fired_triggers.size(), 0, "No triggers should have fired initially")
 
 
 func test_reset_clears_state() -> void:
 	DaySystem._morning_briefing_shown = true
-	DaySystem._fired_triggers.append("trigger_01")
 	DaySystem.reset()
 	assert_false(DaySystem.is_morning_briefing_shown(), "Reset should clear morning briefing flag")
-	assert_eq(DaySystem._fired_triggers.size(), 0, "Reset should clear fired triggers")
 
 
 # --- Morning Phase --- #
@@ -268,49 +266,12 @@ func test_active_surveillance_kept_during_night() -> void:
 	assert_eq(GameManager.active_surveillance.size(), 1, "Still-active surveillance should be kept")
 
 
-# --- Trigger Condition Checking --- #
+# --- Trigger Delegation (Phase 3: triggers are now in EventSystem) --- #
 
-func test_check_trigger_conditions_evidence() -> void:
-	var conditions: Array[String] = ["evidence_discovered:ev_test"]
-	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail without evidence")
-	GameManager.discover_evidence("ev_test")
-	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass with evidence")
-
-
-func test_check_trigger_conditions_location() -> void:
-	var conditions: Array[String] = ["location_visited:loc_01"]
-	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail without location")
-	GameManager.visit_location("loc_01")
-	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass with location")
-
-
-func test_check_trigger_conditions_warrant() -> void:
-	var conditions: Array[String] = ["warrant_obtained:w_01"]
-	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail without warrant")
-	GameManager.warrants_obtained.append("w_01")
-	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass with warrant")
-
-
-func test_check_trigger_conditions_day() -> void:
-	var conditions: Array[String] = ["day:2"]
-	GameManager.current_day = 1
-	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail on wrong day")
-	GameManager.current_day = 2
-	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass on correct day")
-
-
-func test_check_trigger_conditions_multiple() -> void:
-	var conditions: Array[String] = ["evidence_discovered:ev_test", "location_visited:loc_01"]
-	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail when both missing")
-	GameManager.discover_evidence("ev_test")
-	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail with only one met")
-	GameManager.visit_location("loc_01")
-	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass when all met")
-
-
-func test_check_trigger_conditions_empty() -> void:
-	var conditions: Array[String] = []
-	assert_true(DaySystem._check_trigger_conditions(conditions), "Empty conditions should always pass")
+func test_process_morning_uses_event_system() -> void:
+	# Verify morning processing still works (EventSystem handles triggers)
+	DaySystem.process_morning()
+	assert_true(DaySystem.is_morning_briefing_shown(), "Morning should still work with EventSystem")
 
 
 # --- Serialization --- #
@@ -318,29 +279,21 @@ func test_check_trigger_conditions_empty() -> void:
 func test_serialize_returns_dictionary() -> void:
 	var data: Dictionary = DaySystem.serialize()
 	assert_has(data, "morning_briefing_shown", "Should contain morning_briefing_shown")
-	assert_has(data, "fired_triggers", "Should contain fired_triggers")
 
 
 func test_deserialize_restores_state() -> void:
 	DaySystem._morning_briefing_shown = true
-	DaySystem._fired_triggers.append("trigger_01")
-	DaySystem._fired_triggers.append("trigger_02")
 	var data: Dictionary = DaySystem.serialize()
 
 	DaySystem.reset()
 	assert_false(DaySystem._morning_briefing_shown, "Should be reset")
-	assert_eq(DaySystem._fired_triggers.size(), 0, "Should be reset")
 
 	DaySystem.deserialize(data)
 	assert_true(DaySystem._morning_briefing_shown, "Should be restored")
-	assert_eq(DaySystem._fired_triggers.size(), 2, "Should have 2 triggers restored")
-	assert_has(DaySystem._fired_triggers, "trigger_01")
-	assert_has(DaySystem._fired_triggers, "trigger_02")
 
 
 func test_serialize_round_trip() -> void:
 	DaySystem._morning_briefing_shown = true
-	DaySystem._fired_triggers.append("trig_a")
 	var original: Dictionary = DaySystem.serialize()
 
 	DaySystem.reset()
@@ -348,4 +301,3 @@ func test_serialize_round_trip() -> void:
 	var restored: Dictionary = DaySystem.serialize()
 
 	assert_eq(restored["morning_briefing_shown"], original["morning_briefing_shown"])
-	assert_eq(restored["fired_triggers"].size(), original["fired_triggers"].size())
