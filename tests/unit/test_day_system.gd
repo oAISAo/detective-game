@@ -1,0 +1,351 @@
+## test_day_system.gd
+## Unit tests for the DaySystem singleton.
+## Phase 2: Verify day cycle, morning processing, night processing,
+## lab/surveillance timers, trigger evaluation, and serialization.
+extends GutTest
+
+
+# --- Helpers --- #
+
+## Resets GameManager and DaySystem to a clean starting state.
+func _reset_state() -> void:
+	GameManager.new_game()
+	DaySystem.reset()
+
+
+# --- Setup --- #
+
+func before_each() -> void:
+	_reset_state()
+
+
+# --- Initialization --- #
+
+func test_initial_state() -> void:
+	assert_false(DaySystem.is_morning_briefing_shown(), "Morning briefing should not be shown initially")
+	assert_eq(DaySystem._fired_triggers.size(), 0, "No triggers should have fired initially")
+
+
+func test_reset_clears_state() -> void:
+	DaySystem._morning_briefing_shown = true
+	DaySystem._fired_triggers.append("trigger_01")
+	DaySystem.reset()
+	assert_false(DaySystem.is_morning_briefing_shown(), "Reset should clear morning briefing flag")
+	assert_eq(DaySystem._fired_triggers.size(), 0, "Reset should clear fired triggers")
+
+
+# --- Morning Phase --- #
+
+func test_process_morning_sets_briefing_shown() -> void:
+	DaySystem.process_morning()
+	assert_true(DaySystem.is_morning_briefing_shown(), "Morning briefing should be shown after processing")
+
+
+func test_process_morning_emits_signal() -> void:
+	watch_signals(DaySystem)
+	DaySystem.process_morning()
+	assert_signal_emitted(DaySystem, "morning_briefing_ready")
+
+
+func test_process_morning_returns_array() -> void:
+	var briefing: Array[String] = DaySystem.process_morning()
+	assert_typeof(briefing, TYPE_ARRAY, "Morning processing should return an array")
+
+
+func test_process_morning_final_day_warning() -> void:
+	GameManager.current_day = GameManager.TOTAL_DAYS
+	watch_signals(DaySystem)
+	var briefing: Array[String] = DaySystem.process_morning()
+	assert_signal_emitted(DaySystem, "final_day_warning")
+	var has_warning: bool = false
+	for item: String in briefing:
+		if "FINAL DAY" in item:
+			has_warning = true
+			break
+	assert_true(has_warning, "Final day should produce a warning in briefing")
+
+
+func test_process_morning_no_warning_before_final_day() -> void:
+	GameManager.current_day = 1
+	watch_signals(DaySystem)
+	DaySystem.process_morning()
+	assert_signal_not_emitted(DaySystem, "final_day_warning")
+
+
+# --- Day Advancement --- #
+
+func test_try_end_day_succeeds_when_no_mandatory() -> void:
+	# No mandatory actions required = can advance
+	var result: bool = DaySystem.try_end_day()
+	assert_true(result, "Should succeed when no mandatory actions required")
+
+
+func test_try_end_day_blocked_by_mandatory_actions() -> void:
+	GameManager.mandatory_actions_required.append("interrogate_sarah")
+	watch_signals(DaySystem)
+	var result: bool = DaySystem.try_end_day()
+	assert_false(result, "Should fail when mandatory actions remain")
+	assert_signal_emitted(DaySystem, "day_advance_blocked")
+
+
+func test_try_end_day_succeeds_after_mandatory_completed() -> void:
+	GameManager.mandatory_actions_required.append("interrogate_sarah")
+	GameManager.complete_mandatory_action("interrogate_sarah")
+	var result: bool = DaySystem.try_end_day()
+	assert_true(result, "Should succeed when all mandatory actions completed")
+
+
+func test_force_advance_day_skips_mandatory_check() -> void:
+	GameManager.mandatory_actions_required.append("interrogate_sarah")
+	DaySystem.force_advance_day()
+	assert_eq(GameManager.current_day, 2, "Force advance should skip mandatory check and advance day")
+
+
+# --- Night Processing --- #
+
+func test_night_processing_advances_day() -> void:
+	assert_eq(GameManager.current_day, 1, "Should start on day 1")
+	DaySystem.try_end_day()
+	assert_eq(GameManager.current_day, 2, "Night processing should advance to day 2")
+
+
+func test_night_processing_resets_time_slot_to_morning() -> void:
+	GameManager.current_time_slot = Enums.TimeSlot.EVENING
+	DaySystem.try_end_day()
+	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING, "Should reset to MORNING")
+
+
+func test_night_processing_resets_actions() -> void:
+	GameManager.actions_remaining = 0
+	DaySystem.try_end_day()
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Should reset actions")
+
+
+func test_night_processing_clears_interrogation_counts() -> void:
+	GameManager.interrogation_counts_today["suspect_01"] = 1
+	DaySystem.try_end_day()
+	assert_eq(GameManager.interrogation_counts_today.size(), 0, "Should clear interrogation counts")
+
+
+func test_night_processing_clears_morning_briefing_flag() -> void:
+	DaySystem._morning_briefing_shown = true
+	DaySystem.try_end_day()
+	assert_false(DaySystem.is_morning_briefing_shown(), "Should reset morning briefing flag")
+
+
+func test_night_processing_emits_signals() -> void:
+	watch_signals(DaySystem)
+	DaySystem.try_end_day()
+	assert_signal_emitted(DaySystem, "night_processing_started")
+	assert_signal_emitted(DaySystem, "night_processing_completed")
+
+
+func test_night_processing_emits_day_changed() -> void:
+	watch_signals(GameManager)
+	DaySystem.try_end_day()
+	assert_signal_emitted_with_parameters(GameManager, "day_changed", [2])
+
+
+func test_night_processing_logs_day_end() -> void:
+	DaySystem.try_end_day()
+	var log_entries: Array[Dictionary] = GameManager.get_investigation_log()
+	var found_end: bool = false
+	var found_begin: bool = false
+	for entry: Dictionary in log_entries:
+		if "Day 1 ended" in entry.get("description", ""):
+			found_end = true
+		if "Day 2 begins" in entry.get("description", ""):
+			found_begin = true
+	assert_true(found_end, "Should log day end")
+	assert_true(found_begin, "Should log new day begin")
+
+
+# --- Investigation End --- #
+
+func test_night_at_final_day_emits_time_expired() -> void:
+	GameManager.current_day = GameManager.TOTAL_DAYS
+	watch_signals(DaySystem)
+	DaySystem.try_end_day()
+	assert_signal_emitted(DaySystem, "investigation_time_expired")
+
+
+func test_night_at_final_day_does_not_advance_day() -> void:
+	GameManager.current_day = GameManager.TOTAL_DAYS
+	DaySystem.try_end_day()
+	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Day should not advance past TOTAL_DAYS")
+
+
+func test_full_four_day_cycle() -> void:
+	for day: int in range(1, GameManager.TOTAL_DAYS):
+		assert_eq(GameManager.current_day, day, "Day should be %d" % day)
+		DaySystem.try_end_day()
+	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Should end at TOTAL_DAYS")
+
+
+# --- Lab Processing --- #
+
+func test_lab_completion_during_morning() -> void:
+	GameManager.active_lab_requests.append({
+		"id": "lab_test",
+		"input_evidence_id": "ev_sample",
+		"analysis_type": "fingerprint",
+		"day_submitted": 1,
+		"completion_day": 1,
+		"output_evidence_id": "ev_result",
+	})
+	watch_signals(DaySystem)
+	var briefing: Array[String] = DaySystem.process_morning()
+	assert_signal_emitted(DaySystem, "lab_result_ready")
+	assert_true(GameManager.has_evidence("ev_result"), "Output evidence should be auto-discovered")
+	assert_eq(GameManager.active_lab_requests.size(), 0, "Completed request should be removed")
+	var has_lab_msg: bool = false
+	for item: String in briefing:
+		if "Lab result" in item:
+			has_lab_msg = true
+			break
+	assert_true(has_lab_msg, "Briefing should mention lab result")
+
+
+func test_lab_not_complete_stays_active() -> void:
+	GameManager.active_lab_requests.append({
+		"id": "lab_test",
+		"input_evidence_id": "ev_sample",
+		"analysis_type": "dna",
+		"day_submitted": 1,
+		"completion_day": 3,
+		"output_evidence_id": "ev_dna_result",
+	})
+	DaySystem.process_morning()
+	assert_eq(GameManager.active_lab_requests.size(), 1, "Pending request should remain active")
+	assert_false(GameManager.has_evidence("ev_dna_result"), "Output evidence should not appear yet")
+
+
+# --- Surveillance Processing --- #
+
+func test_surveillance_results_during_morning() -> void:
+	GameManager.active_surveillance.append({
+		"id": "surv_test",
+		"target_person": "person_01",
+		"type": "PHONE_TAP",
+		"day_installed": 1,
+		"active_days": 2,
+		"result_events": ["evt_reveal"],
+	})
+	watch_signals(DaySystem)
+	var briefing: Array[String] = DaySystem.process_morning()
+	assert_signal_emitted(DaySystem, "surveillance_result")
+	var has_surv_msg: bool = false
+	for item: String in briefing:
+		if "Surveillance" in item:
+			has_surv_msg = true
+			break
+	assert_true(has_surv_msg, "Briefing should mention surveillance update")
+
+
+func test_expired_surveillance_removed_during_night() -> void:
+	GameManager.active_surveillance.append({
+		"id": "surv_test",
+		"target_person": "person_01",
+		"type": "PHONE_TAP",
+		"day_installed": 1,
+		"active_days": 1,
+		"result_events": [],
+	})
+	DaySystem.try_end_day()  # Night processing on Day 1
+	assert_eq(GameManager.active_surveillance.size(), 0, "Expired surveillance should be removed")
+
+
+func test_active_surveillance_kept_during_night() -> void:
+	GameManager.active_surveillance.append({
+		"id": "surv_test",
+		"target_person": "person_01",
+		"type": "PHONE_TAP",
+		"day_installed": 1,
+		"active_days": 3,
+		"result_events": [],
+	})
+	DaySystem.try_end_day()  # Night processing on Day 1 → Day 2
+	assert_eq(GameManager.active_surveillance.size(), 1, "Still-active surveillance should be kept")
+
+
+# --- Trigger Condition Checking --- #
+
+func test_check_trigger_conditions_evidence() -> void:
+	var conditions: Array[String] = ["evidence_discovered:ev_test"]
+	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail without evidence")
+	GameManager.discover_evidence("ev_test")
+	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass with evidence")
+
+
+func test_check_trigger_conditions_location() -> void:
+	var conditions: Array[String] = ["location_visited:loc_01"]
+	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail without location")
+	GameManager.visit_location("loc_01")
+	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass with location")
+
+
+func test_check_trigger_conditions_warrant() -> void:
+	var conditions: Array[String] = ["warrant_obtained:w_01"]
+	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail without warrant")
+	GameManager.warrants_obtained.append("w_01")
+	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass with warrant")
+
+
+func test_check_trigger_conditions_day() -> void:
+	var conditions: Array[String] = ["day:2"]
+	GameManager.current_day = 1
+	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail on wrong day")
+	GameManager.current_day = 2
+	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass on correct day")
+
+
+func test_check_trigger_conditions_multiple() -> void:
+	var conditions: Array[String] = ["evidence_discovered:ev_test", "location_visited:loc_01"]
+	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail when both missing")
+	GameManager.discover_evidence("ev_test")
+	assert_false(DaySystem._check_trigger_conditions(conditions), "Should fail with only one met")
+	GameManager.visit_location("loc_01")
+	assert_true(DaySystem._check_trigger_conditions(conditions), "Should pass when all met")
+
+
+func test_check_trigger_conditions_empty() -> void:
+	var conditions: Array[String] = []
+	assert_true(DaySystem._check_trigger_conditions(conditions), "Empty conditions should always pass")
+
+
+# --- Serialization --- #
+
+func test_serialize_returns_dictionary() -> void:
+	var data: Dictionary = DaySystem.serialize()
+	assert_has(data, "morning_briefing_shown", "Should contain morning_briefing_shown")
+	assert_has(data, "fired_triggers", "Should contain fired_triggers")
+
+
+func test_deserialize_restores_state() -> void:
+	DaySystem._morning_briefing_shown = true
+	DaySystem._fired_triggers.append("trigger_01")
+	DaySystem._fired_triggers.append("trigger_02")
+	var data: Dictionary = DaySystem.serialize()
+
+	DaySystem.reset()
+	assert_false(DaySystem._morning_briefing_shown, "Should be reset")
+	assert_eq(DaySystem._fired_triggers.size(), 0, "Should be reset")
+
+	DaySystem.deserialize(data)
+	assert_true(DaySystem._morning_briefing_shown, "Should be restored")
+	assert_eq(DaySystem._fired_triggers.size(), 2, "Should have 2 triggers restored")
+	assert_has(DaySystem._fired_triggers, "trigger_01")
+	assert_has(DaySystem._fired_triggers, "trigger_02")
+
+
+func test_serialize_round_trip() -> void:
+	DaySystem._morning_briefing_shown = true
+	DaySystem._fired_triggers.append("trig_a")
+	var original: Dictionary = DaySystem.serialize()
+
+	DaySystem.reset()
+	DaySystem.deserialize(original)
+	var restored: Dictionary = DaySystem.serialize()
+
+	assert_eq(restored["morning_briefing_shown"], original["morning_briefing_shown"])
+	assert_eq(restored["fired_triggers"].size(), original["fired_triggers"].size())

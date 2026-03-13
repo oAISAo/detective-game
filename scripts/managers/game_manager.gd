@@ -138,6 +138,15 @@ func new_game() -> void:
 	investigation_log.clear()
 	hints_used = 0
 	game_active = true
+
+	# Reset Phase 2 systems if available
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	if day_sys and day_sys.has_method("reset"):
+		day_sys.call("reset")
+	var action_sys: Node = get_node_or_null("/root/ActionSystem")
+	if action_sys and action_sys.has_method("reset"):
+		action_sys.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -341,7 +350,7 @@ func get_hints_remaining() -> int:
 
 ## Returns the full game state as a dictionary for saving.
 func serialize() -> Dictionary:
-	return {
+	var data: Dictionary = {
 		"current_day": current_day,
 		"current_time_slot": current_time_slot,
 		"actions_remaining": actions_remaining,
@@ -359,6 +368,16 @@ func serialize() -> Dictionary:
 		"hints_used": hints_used,
 		"game_active": game_active,
 	}
+
+	# Include Phase 2 system state if available
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	if day_sys and day_sys.has_method("serialize"):
+		data["day_system"] = day_sys.call("serialize")
+	var action_sys: Node = get_node_or_null("/root/ActionSystem")
+	if action_sys and action_sys.has_method("serialize"):
+		data["action_system"] = action_sys.call("serialize")
+
+	return data
 
 
 ## Restores game state from a saved dictionary.
@@ -379,3 +398,11 @@ func deserialize(data: Dictionary) -> void:
 	investigation_log.assign(data.get("investigation_log", []))
 	hints_used = data.get("hints_used", 0)
 	game_active = data.get("game_active", false)
+
+	# Restore Phase 2 system state if available
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	if day_sys and day_sys.has_method("deserialize") and data.has("day_system"):
+		day_sys.call("deserialize", data["day_system"])
+	var action_sys: Node = get_node_or_null("/root/ActionSystem")
+	if action_sys and action_sys.has_method("deserialize") and data.has("action_system"):
+		action_sys.call("deserialize", data["action_system"])

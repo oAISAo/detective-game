@@ -82,3 +82,53 @@ text = "Unlock All Evidence"
 [node name="ExportStateButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ActionsContainer"]
 layout_mode = 2
 text = "Export State to Console"
+
+[node name="HSeparator3" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DayActionsLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Day & Time Controls"
+
+[node name="DayActionsContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DaySelectContainer" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+
+[node name="DaySpinBox" type="SpinBox" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer/DaySelectContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 4.0
+value = 1.0
+suffix = ""
+
+[node name="GotoDayButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer/DaySelectContainer"]
+layout_mode = 2
+text = "Go to Day"
+
+[node name="AdvanceDayButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+text = "Advance Day (Night Process)"
+
+[node name="SetMorningButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+text = "Set → Morning"
+
+[node name="SetAfternoonButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+text = "Set → Afternoon"
+
+[node name="SetEveningButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+text = "Set → Evening"
+
+[node name="ProcessNightButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+text = "Process Night"
+
+[node name="CompleteMandatoryButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/DayActionsContainer"]
+layout_mode = 2
+text = "Complete All Mandatory Actions"
+text = "Export State to Console"
