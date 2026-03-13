@@ -30,6 +30,7 @@ DaySystem="*res://scripts/systems/day_system.gd"
 ActionSystem="*res://scripts/systems/action_system.gd"
 EventSystem="*res://scripts/systems/event_system.gd"
 DialogueSystem="*res://scripts/systems/dialogue_system.gd"
+ScreenManager="*res://scripts/ui/screen_manager.gd"
 
 [display]
 

@@ -1,6 +1,7 @@
 ## GameRoot.gd
 ## Main application container. Manages top-level scene structure:
-## global command bar, screen container, modal layer, and background music.
+## global command bar with navigation, screen container, modal layer, and BGM.
+## Phase 4A: Integrated with ScreenManager for all navigation.
 extends Control
 
 
@@ -19,8 +20,16 @@ extends Control
 ## Actions remaining display label.
 @onready var actions_label: Label = $CommandBar/HBoxContainer/ActionsLabel
 
-## Notification count label.
-@onready var notification_label: Label = $CommandBar/HBoxContainer/NotificationLabel
+## Navigation buttons.
+@onready var nav_desk_button: Button = $CommandBar/HBoxContainer/NavDeskButton
+@onready var nav_evidence_button: Button = $CommandBar/HBoxContainer/NavEvidenceButton
+@onready var nav_board_button: Button = $CommandBar/HBoxContainer/NavBoardButton
+@onready var nav_timeline_button: Button = $CommandBar/HBoxContainer/NavTimelineButton
+@onready var nav_map_button: Button = $CommandBar/HBoxContainer/NavMapButton
+@onready var nav_log_button: Button = $CommandBar/HBoxContainer/NavLogButton
+
+## Notification button (opens notification panel modal).
+@onready var notification_button: Button = $CommandBar/HBoxContainer/NotificationButton
 
 
 func _ready() -> void:
@@ -35,8 +44,26 @@ func _ready() -> void:
 	NotificationManager.notification_dismissed.connect(_on_notification_dismissed)
 	NotificationManager.notifications_cleared.connect(_on_notifications_cleared)
 
+	# Connect navigation buttons
+	nav_desk_button.pressed.connect(func() -> void: ScreenManager.navigate_to("desk_hub"))
+	nav_evidence_button.pressed.connect(func() -> void: ScreenManager.navigate_to("evidence_archive"))
+	nav_board_button.pressed.connect(func() -> void: ScreenManager.navigate_to("detective_board"))
+	nav_timeline_button.pressed.connect(func() -> void: ScreenManager.navigate_to("timeline_board"))
+	nav_map_button.pressed.connect(func() -> void: ScreenManager.navigate_to("location_map"))
+	nav_log_button.pressed.connect(func() -> void: ScreenManager.navigate_to("investigation_log"))
+
+	# Notification button opens the notification panel modal
+	notification_button.pressed.connect(_on_notification_button_pressed)
+
+	# Connect to ScreenManager for nav button highlighting
+	ScreenManager.screen_changed.connect(_on_screen_changed)
+
 	_update_command_bar()
-	print("[GameRoot] Ready.")
+
+	# Navigate to desk hub as the default screen
+	ScreenManager.navigate_to("desk_hub")
+
+	print("[GameRoot] Ready — Phase 4A.")
 
 
 ## Updates all command bar labels with current state.
@@ -45,15 +72,28 @@ func _update_command_bar() -> void:
 		GameManager.current_day,
 		GameManager.get_time_slot_display()
 	]
-	actions_label.text = "Actions left: %d" % GameManager.actions_remaining
-	notification_label.text = _get_notification_text()
+	actions_label.text = "Actions: %d" % GameManager.actions_remaining
+	_update_notification_button()
 
 
-func _get_notification_text() -> String:
+## Updates the notification button text with unread count.
+func _update_notification_button() -> void:
 	var count: int = NotificationManager.get_unread_count()
 	if count == 0:
-		return ""
-	return "🔔 %d" % count
+		notification_button.text = "🔔"
+	else:
+		notification_button.text = "🔔 %d" % count
+
+
+## Highlights the active nav button based on current screen.
+func _update_nav_highlight() -> void:
+	var current: String = ScreenManager.current_screen
+	nav_desk_button.disabled = (current == "desk_hub")
+	nav_evidence_button.disabled = (current == "evidence_archive")
+	nav_board_button.disabled = (current == "detective_board")
+	nav_timeline_button.disabled = (current == "timeline_board")
+	nav_map_button.disabled = (current == "location_map")
+	nav_log_button.disabled = (current == "investigation_log")
 
 
 # --- Signal Handlers --- #
@@ -72,32 +112,41 @@ func _on_actions_changed(_remaining: int) -> void:
 
 func _on_game_reset() -> void:
 	_update_command_bar()
-	# Clear screen container
-	for child: Node in screen_container.get_children():
-		child.queue_free()
+	ScreenManager.reset()
+	ScreenManager.navigate_to("desk_hub")
 
 
 func _on_notification_added(_notification: Dictionary) -> void:
-	_update_command_bar()
+	_update_notification_button()
 
 
 func _on_notification_dismissed(_notification_id: String) -> void:
-	_update_command_bar()
+	_update_notification_button()
 
 
 func _on_notifications_cleared() -> void:
-	_update_command_bar()
+	_update_notification_button()
 
 
-# --- Screen Management --- #
+func _on_screen_changed(_screen_id: String) -> void:
+	_update_nav_highlight()
+
+
+func _on_notification_button_pressed() -> void:
+	if ScreenManager.is_modal_open("notification_panel"):
+		ScreenManager.close_modal("notification_panel")
+	else:
+		ScreenManager.open_modal("notification_panel")
+
+
+# --- Legacy Screen Management (kept for backward compatibility) --- #
 
 ## Loads a scene into the screen container, removing any existing screen.
+## Prefer ScreenManager.navigate_to() for new code.
 func load_screen(scene_path: String) -> void:
-	# Clear current screen
 	for child: Node in screen_container.get_children():
 		child.queue_free()
 
-	# Load and instance new screen
 	var scene: PackedScene = load(scene_path) as PackedScene
 	if scene == null:
 		push_error("[GameRoot] Failed to load screen: %s" % scene_path)
@@ -109,6 +158,7 @@ func load_screen(scene_path: String) -> void:
 
 
 ## Shows a modal overlay on top of everything.
+## Prefer ScreenManager.open_modal() for new code.
 func show_modal(scene_path: String) -> Node:
 	var scene: PackedScene = load(scene_path) as PackedScene
 	if scene == null:
