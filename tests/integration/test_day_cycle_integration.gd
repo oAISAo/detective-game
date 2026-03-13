@@ -129,6 +129,7 @@ func before_each() -> void:
 	GameManager.new_game()
 	DaySystem.reset()
 	ActionSystem.reset()
+	EventSystem.reset()
 	CaseManager.unload_case()
 	CaseManager.load_case(TEST_CASE_FILE)
 

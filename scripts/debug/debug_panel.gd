@@ -22,6 +22,13 @@ extends CanvasLayer
 @onready var day_spin_box: SpinBox = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/DaySelectContainer/DaySpinBox
 @onready var goto_day_button: Button = $Panel/MarginContainer/VBoxContainer/DayActionsContainer/DaySelectContainer/GotoDayButton
 
+# Phase 3: Event & dialogue debug controls
+@onready var trigger_id_input: LineEdit = $Panel/MarginContainer/VBoxContainer/EventActionsContainer/TriggerIdInput
+@onready var fire_trigger_button: Button = $Panel/MarginContainer/VBoxContainer/EventActionsContainer/FireTriggerButton
+@onready var eval_conditional_button: Button = $Panel/MarginContainer/VBoxContainer/EventActionsContainer/EvalConditionalButton
+@onready var clear_notifications_button: Button = $Panel/MarginContainer/VBoxContainer/EventActionsContainer/ClearNotificationsButton
+@onready var skip_dialogue_button: Button = $Panel/MarginContainer/VBoxContainer/EventActionsContainer/SkipDialogueButton
+
 
 var _is_visible: bool = false
 
@@ -46,6 +53,13 @@ func _ready() -> void:
 	day_spin_box.max_value = GameManager.TOTAL_DAYS
 	day_spin_box.value = 1
 	goto_day_button.pressed.connect(_on_goto_day_pressed)
+
+	# Phase 3: Event & dialogue debug controls
+	fire_trigger_button.pressed.connect(_on_fire_trigger_pressed)
+	eval_conditional_button.pressed.connect(_on_eval_conditional_pressed)
+	clear_notifications_button.pressed.connect(_on_clear_notifications_pressed)
+	skip_dialogue_button.pressed.connect(_on_skip_dialogue_pressed)
+	trigger_id_input.text_submitted.connect(_on_trigger_id_submitted)
 
 	print("[DebugPanel] Ready. Press F1 to toggle.")
 
@@ -138,6 +152,24 @@ func _refresh() -> void:
 	text += "[b]Notifications[/b]\n"
 	text += "  Active: %d\n" % NotificationManager.get_all().size()
 	text += "  Unread: %d\n\n" % NotificationManager.get_unread_count()
+
+	# Event System
+	text += "[b]Event System[/b]\n"
+	text += "  Fired Triggers: %d\n" % EventSystem.get_fired_triggers().size()
+	for t_id: String in EventSystem.get_fired_triggers():
+		text += "    ✓ %s\n" % t_id
+	text += "  Pending Morning Actions: %d\n" % EventSystem.get_pending_morning_actions().size()
+	text += "  Trigger History: %d entries\n\n" % EventSystem.get_trigger_history().size()
+
+	# Dialogue System
+	text += "[b]Dialogue System[/b]\n"
+	text += "  Active: %s\n" % str(DialogueSystem.is_active())
+	text += "  Queue Size: %d\n" % DialogueSystem.get_queue_size()
+	text += "  History: %d dialogues\n" % DialogueSystem.get_dialogue_history().size()
+	if DialogueSystem.is_active():
+		var current_line: Dictionary = DialogueSystem.get_current_line()
+		text += "  Current Speaker: %s\n" % current_line.get("speaker", "?")
+	text += "\n"
 
 	# Case
 	text += "[b]Case[/b]\n"
@@ -252,3 +284,48 @@ func debug_export_state() -> void:
 	var json_string: String = JSON.stringify(state, "\t")
 	print("[Debug] Game State Export:")
 	print(json_string)
+
+
+# --- Phase 3: Event & Dialogue Debug Actions --- #
+
+func _on_fire_trigger_pressed() -> void:
+	var t_id: String = trigger_id_input.text.strip_edges()
+	if t_id.is_empty():
+		return
+	var success: bool = EventSystem.force_trigger(t_id)
+	if success:
+		print("[Debug] Force-fired trigger: %s" % t_id)
+	else:
+		print("[Debug] Failed to fire trigger: %s (not found or already fired)" % t_id)
+	trigger_id_input.text = ""
+	_refresh()
+
+
+func _on_trigger_id_submitted(t_id: String) -> void:
+	if t_id.strip_edges().is_empty():
+		return
+	var success: bool = EventSystem.force_trigger(t_id.strip_edges())
+	if success:
+		print("[Debug] Force-fired trigger: %s" % t_id.strip_edges())
+	else:
+		print("[Debug] Failed to fire trigger: %s" % t_id.strip_edges())
+	trigger_id_input.text = ""
+	_refresh()
+
+
+func _on_eval_conditional_pressed() -> void:
+	EventSystem.evaluate_conditional_triggers()
+	_refresh()
+	print("[Debug] Evaluated conditional triggers.")
+
+
+func _on_clear_notifications_pressed() -> void:
+	NotificationManager.clear_all()
+	_refresh()
+	print("[Debug] All notifications cleared.")
+
+
+func _on_skip_dialogue_pressed() -> void:
+	DialogueSystem.skip_current()
+	_refresh()
+	print("[Debug] Current dialogue skipped.")

@@ -37,3 +37,15 @@ func test_enums_accessible() -> void:
 	assert_ne(Enums.EvidenceType.FORENSIC, Enums.EvidenceType.DOCUMENT)
 	assert_ne(Enums.PersonRole.VICTIM, Enums.PersonRole.SUSPECT)
 	assert_ne(Enums.ReactionType.DENIAL, Enums.ReactionType.DEFLECTION)
+
+
+func test_event_system_accessible() -> void:
+	assert_not_null(EventSystem, "EventSystem should be accessible")
+	EventSystem.reset()
+	assert_eq(EventSystem.get_fired_triggers().size(), 0)
+
+
+func test_dialogue_system_accessible() -> void:
+	assert_not_null(DialogueSystem, "DialogueSystem should be accessible")
+	DialogueSystem.reset()
+	assert_false(DialogueSystem.is_active())
