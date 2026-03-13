@@ -14,3 +14,19 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# Build exports
+/builds/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+.vscode/
+
+# GUT test results
+.gut_editor_config.tres

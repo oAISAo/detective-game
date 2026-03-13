@@ -1,0 +1,87 @@
+[gd_scene load_steps=3 format=3 uid="uid://game_root"]
+
+[ext_resource type="Script" path="res://scripts/ui/game_root.gd" id="1_root"]
+[ext_resource type="PackedScene" path="res://scenes/core/debug_panel.tscn" id="2_debug"]
+
+[node name="GameRoot" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_root")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.12, 0.15, 1)
+
+[node name="CommandBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 48
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CommandBar"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="DayLabel" type="Label" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+text = "Day 1 — Morning"
+
+[node name="Separator1" type="VSeparator" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+
+[node name="ActionsLabel" type="Label" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+text = "Actions left: 2"
+
+[node name="Spacer" type="Control" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NotificationLabel" type="Label" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+text = ""
+
+[node name="ScreenContainer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 48
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WelcomeLabel" type="Label" parent="ScreenContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200
+offset_top = -30
+offset_right = 200
+offset_bottom = 30
+grow_horizontal = 2
+grow_vertical = 2
+text = "Detective Investigation Game
+Phase 0 — Foundation Ready"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ModalLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="BGMPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Master"
+
+[node name="DebugPanel" parent="." instance=ExtResource("2_debug")]
