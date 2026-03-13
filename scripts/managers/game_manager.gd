@@ -155,6 +155,11 @@ func new_game() -> void:
 	if dialogue_sys and dialogue_sys.has_method("reset"):
 		dialogue_sys.call("reset")
 
+	# Reset Phase 4 systems if available
+	var screen_mgr: Node = get_node_or_null("/root/ScreenManager")
+	if screen_mgr and screen_mgr.has_method("reset"):
+		screen_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 

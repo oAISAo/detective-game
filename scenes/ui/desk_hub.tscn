@@ -1,0 +1,113 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/desk_hub.gd" id="1_script"]
+
+[node name="DeskHub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 24
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Investigation Desk"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+
+[node name="InfoPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="InfoVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/InfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DayInfoLabel" type="Label" parent="MarginContainer/VBoxContainer/InfoPanel/InfoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Day 1 — Morning"
+theme_override_font_sizes/font_size = 20
+
+[node name="ActionsInfoLabel" type="Label" parent="MarginContainer/VBoxContainer/InfoPanel/InfoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Actions Remaining: 2 / 2"
+
+[node name="NavLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Navigate To:"
+theme_override_font_sizes/font_size = 18
+
+[node name="NavGrid" type="GridContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 12
+
+[node name="NavEvidenceButton" type="Button" parent="MarginContainer/VBoxContainer/NavGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+text = "📁 Evidence Archive"
+
+[node name="NavBoardButton" type="Button" parent="MarginContainer/VBoxContainer/NavGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+text = "📌 Detective Board"
+
+[node name="NavTimelineButton" type="Button" parent="MarginContainer/VBoxContainer/NavGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+text = "📅 Timeline"
+
+[node name="NavMapButton" type="Button" parent="MarginContainer/VBoxContainer/NavGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+text = "🗺️ Location Map"
+
+[node name="NavLogButton" type="Button" parent="MarginContainer/VBoxContainer/NavGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+text = "📋 Investigation Log"
+
+[node name="NotificationsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Recent Notifications:"
+theme_override_font_sizes/font_size = 18
+
+[node name="NotificationPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 120)
+
+[node name="NotificationScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/NotificationPanel"]
+layout_mode = 2
+
+[node name="NotificationList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/NotificationPanel/NotificationScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
