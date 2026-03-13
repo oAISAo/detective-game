@@ -51,7 +51,7 @@ func _ready() -> void:
 ## Adds a new notification to the queue.
 ## Returns the notification ID.
 func notify(title: String, message: String, type: NotificationType = NotificationType.SYSTEM) -> String:
-	var notification: Dictionary = {
+	var notif: Dictionary = {
 		"id": "notif_%d" % _next_id,
 		"title": title,
 		"message": message,
@@ -60,10 +60,10 @@ func notify(title: String, message: String, type: NotificationType = Notificatio
 		"read": false,
 	}
 	_next_id += 1
-	_notifications.append(notification)
-	notification_added.emit(notification)
+	_notifications.append(notif)
+	notification_added.emit(notif)
 	print("[NotificationManager] New: %s — %s" % [title, message])
-	return notification.id
+	return notif.id
 
 
 ## Convenience methods for common notification types.
@@ -107,9 +107,9 @@ func dismiss(notification_id: String) -> bool:
 
 ## Marks a notification as read (but keeps it in the queue).
 func mark_read(notification_id: String) -> void:
-	for notification: Dictionary in _notifications:
-		if notification.get("id", "") == notification_id:
-			notification.read = true
+	for notif: Dictionary in _notifications:
+		if notif.get("id", "") == notification_id:
+			notif.read = true
 			return
 
 
@@ -127,17 +127,17 @@ func get_all() -> Array[Dictionary]:
 ## Returns all unread notifications.
 func get_unread() -> Array[Dictionary]:
 	var unread: Array[Dictionary] = []
-	for notification: Dictionary in _notifications:
-		if not notification.get("read", false):
-			unread.append(notification)
+	for notif: Dictionary in _notifications:
+		if not notif.get("read", false):
+			unread.append(notif)
 	return unread
 
 
 ## Returns the count of unread notifications.
 func get_unread_count() -> int:
 	var count: int = 0
-	for notification: Dictionary in _notifications:
-		if not notification.get("read", false):
+	for notif: Dictionary in _notifications:
+		if not notif.get("read", false):
 			count += 1
 	return count
 
@@ -145,7 +145,7 @@ func get_unread_count() -> int:
 ## Returns notifications filtered by type.
 func get_by_type(type: NotificationType) -> Array[Dictionary]:
 	var filtered: Array[Dictionary] = []
-	for notification: Dictionary in _notifications:
-		if notification.get("type", -1) == type:
-			filtered.append(notification)
+	for notif: Dictionary in _notifications:
+		if notif.get("type", -1) == type:
+			filtered.append(notif)
 	return filtered

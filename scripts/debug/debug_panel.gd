@@ -9,6 +9,10 @@ extends CanvasLayer
 @onready var panel: PanelContainer = $Panel
 @onready var content_label: RichTextLabel = $Panel/MarginContainer/VBoxContainer/ContentLabel
 @onready var close_button: Button = $Panel/MarginContainer/VBoxContainer/HeaderBar/CloseButton
+@onready var evidence_id_input: LineEdit = $Panel/MarginContainer/VBoxContainer/ActionsContainer/EvidenceIdInput
+@onready var unlock_evidence_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/UnlockEvidenceButton
+@onready var unlock_all_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/UnlockAllButton
+@onready var export_state_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/ExportStateButton
 
 
 var _is_visible: bool = false
@@ -18,6 +22,10 @@ func _ready() -> void:
 	layer = 100  # Always on top
 	panel.visible = false
 	close_button.pressed.connect(_toggle)
+	unlock_evidence_button.pressed.connect(_on_unlock_evidence_pressed)
+	unlock_all_button.pressed.connect(_on_unlock_all_pressed)
+	export_state_button.pressed.connect(_on_export_state_pressed)
+	evidence_id_input.text_submitted.connect(_on_evidence_id_submitted)
 	print("[DebugPanel] Ready. Press F1 to toggle.")
 
 
@@ -104,11 +112,45 @@ func debug_unlock_evidence(evidence_id: String) -> void:
 
 ## Unlocks all evidence from the current case.
 func debug_unlock_all_evidence() -> void:
-	var all_evidence: Array[Dictionary] = CaseManager.get_all_evidence()
-	for ev: Dictionary in all_evidence:
-		GameManager.discover_evidence(ev.get("id", ""))
+	var all_evidence: Array[EvidenceData] = CaseManager.get_all_evidence()
+	for ev: EvidenceData in all_evidence:
+		GameManager.discover_evidence(ev.id)
 	_refresh()
 	print("[Debug] Unlocked all evidence (%d items)." % all_evidence.size())
+
+
+## Prints the full game state to the console.
+func debug_print_state() -> void:
+	var state: Dictionary = GameManager.serialize()
+	print("[Debug] === FULL GAME STATE ===")
+	for key: String in state:
+		print("  %s: %s" % [key, str(state[key])])
+	print("[Debug] === END STATE ===")
+
+
+# --- UI Callbacks --- #
+
+func _on_unlock_evidence_pressed() -> void:
+	var ev_id: String = evidence_id_input.text.strip_edges()
+	if ev_id.is_empty():
+		return
+	debug_unlock_evidence(ev_id)
+	evidence_id_input.text = ""
+
+
+func _on_evidence_id_submitted(ev_id: String) -> void:
+	if ev_id.strip_edges().is_empty():
+		return
+	debug_unlock_evidence(ev_id.strip_edges())
+	evidence_id_input.text = ""
+
+
+func _on_unlock_all_pressed() -> void:
+	debug_unlock_all_evidence()
+
+
+func _on_export_state_pressed() -> void:
+	debug_export_state()
 
 
 ## Advances to the specified day.
