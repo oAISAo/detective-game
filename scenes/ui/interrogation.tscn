@@ -1,0 +1,159 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/interrogation.gd" id="1_script"]
+
+[node name="Interrogation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 24
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "← Back"
+
+[node name="SuspectNameLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Suspect Name"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="PhaseLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Phase: —"
+horizontal_alignment = 2
+
+[node name="PressureLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pressure: 0 / 0"
+horizontal_alignment = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+theme_override_constants/separation = 12
+
+[node name="DialogueSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DialogueSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/DialogueSection"]
+layout_mode = 2
+text = "Dialogue"
+theme_override_font_sizes/font_size = 18
+
+[node name="DialogueLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/DialogueSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "..."
+
+[node name="TopicSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
+layout_mode = 2
+
+[node name="TopicSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection"]
+layout_mode = 2
+text = "Topics"
+theme_override_font_sizes/font_size = 18
+
+[node name="TopicScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+
+[node name="TopicList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection/TopicScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="StatementSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatementSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
+layout_mode = 2
+text = "Statement Log"
+theme_override_font_sizes/font_size = 18
+
+[node name="StatementScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatementList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection/StatementScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EvidenceSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel"]
+layout_mode = 2
+
+[node name="EvidenceSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection"]
+layout_mode = 2
+text = "Evidence Inventory"
+theme_override_font_sizes/font_size = 18
+
+[node name="EvidenceScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+
+[node name="EvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection/EvidenceScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Controls" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 16
+
+[node name="PresentButton" type="Button" parent="MarginContainer/VBoxContainer/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Present Evidence"
+
+[node name="AdvancePhaseButton" type="Button" parent="MarginContainer/VBoxContainer/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Advance Phase"
+
+[node name="EndSessionButton" type="Button" parent="MarginContainer/VBoxContainer/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "End Session"

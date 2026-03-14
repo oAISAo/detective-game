@@ -43,6 +43,9 @@ var _event_triggers: Dictionary = {}
 ## Interrogation topic lookup: { topic_id: InterrogationTopicData }
 var _interrogation_topics: Dictionary = {}
 
+## Interrogation trigger lookup: { trigger_id: InterrogationTriggerData }
+var _interrogation_triggers: Dictionary = {}
+
 ## Action lookup: { action_id: ActionData }
 var _actions: Dictionary = {}
 
@@ -121,6 +124,7 @@ func unload_case() -> void:
 	_locations.clear()
 	_event_triggers.clear()
 	_interrogation_topics.clear()
+	_interrogation_triggers.clear()
 	_actions.clear()
 	_insights.clear()
 	case_loaded_flag = false
@@ -136,6 +140,7 @@ func _build_lookups() -> void:
 	_locations.clear()
 	_event_triggers.clear()
 	_interrogation_topics.clear()
+	_interrogation_triggers.clear()
 	_actions.clear()
 	_insights.clear()
 
@@ -162,6 +167,9 @@ func _build_lookups() -> void:
 
 	for item: InterrogationTopicData in _case.interrogation_topics:
 		_interrogation_topics[item.id] = item
+
+	for item: InterrogationTriggerData in _case.interrogation_triggers:
+		_interrogation_triggers[item.id] = item
 
 	for item: ActionData in _case.actions:
 		_actions[item.id] = item
@@ -203,6 +211,10 @@ func get_event_trigger(trigger_id: String) -> EventTriggerData:
 ## Returns interrogation topic data by ID, or null if not found.
 func get_interrogation_topic(topic_id: String) -> InterrogationTopicData:
 	return _interrogation_topics.get(topic_id, null)
+
+## Returns interrogation trigger data by ID, or null if not found.
+func get_interrogation_trigger(trigger_id: String) -> InterrogationTriggerData:
+	return _interrogation_triggers.get(trigger_id, null)
 
 ## Returns action data by ID, or null if not found.
 func get_action(action_id: String) -> ActionData:
@@ -288,6 +300,24 @@ func get_topics_for_person(person_id: String) -> Array[InterrogationTopicData]:
 	return result
 
 
+## Returns all interrogation triggers for a specific person.
+func get_interrogation_triggers_for_person(person_id: String) -> Array[InterrogationTriggerData]:
+	var result: Array[InterrogationTriggerData] = []
+	for trigger: InterrogationTriggerData in _interrogation_triggers.values():
+		if trigger.person_id == person_id:
+			result.append(trigger)
+	return result
+
+
+## Returns the interrogation trigger for a specific person and evidence combination.
+## Returns null if no matching trigger exists.
+func get_trigger_by_evidence(person_id: String, evidence_id: String) -> InterrogationTriggerData:
+	for trigger: InterrogationTriggerData in _interrogation_triggers.values():
+		if trigger.person_id == person_id and trigger.evidence_id == evidence_id:
+			return trigger
+	return null
+
+
 ## Returns all actions of a specific type.
 func get_actions_by_type(action_type: Enums.ActionType) -> Array[ActionData]:
 	var result: Array[ActionData] = []
@@ -346,4 +376,11 @@ func get_all_insights() -> Array[InsightData]:
 	var result: Array[InsightData] = []
 	for i in _insights.values():
 		result.append(i)
+	return result
+
+## Returns all interrogation trigger data as an array.
+func get_all_interrogation_triggers() -> Array[InterrogationTriggerData]:
+	var result: Array[InterrogationTriggerData] = []
+	for t in _interrogation_triggers.values():
+		result.append(t)
 	return result

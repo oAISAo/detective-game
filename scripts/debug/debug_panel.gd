@@ -171,6 +171,31 @@ func _refresh() -> void:
 		text += "  Current Speaker: %s\n" % current_line.get("speaker", "?")
 	text += "\n"
 
+	# Interrogation System
+	text += "[b]Interrogation System[/b]\n"
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	if interr_mgr:
+		text += "  Active: %s\n" % str(interr_mgr.is_active())
+		if interr_mgr.is_active():
+			text += "  Suspect: %s\n" % interr_mgr.get_current_person_id()
+			text += "  Phase: %s\n" % str(interr_mgr.get_current_phase())
+			text += "  Pressure: %d\n" % interr_mgr.get_current_pressure()
+		var heard: Array = interr_mgr.get_heard_statements()
+		text += "  Heard Statements: %d\n" % heard.size()
+		# Show fired triggers per person
+		var suspects: Array[PersonData] = CaseManager.get_suspects()
+		for suspect: PersonData in suspects:
+			var fired: Array = interr_mgr.get_fired_triggers_for_person(suspect.id)
+			var pressure: int = interr_mgr.get_pressure_for_person(suspect.id)
+			var broken: bool = interr_mgr.has_break_moment(suspect.id)
+			text += "  %s: %d triggers fired, pressure=%d%s\n" % [
+				suspect.name, fired.size(), pressure,
+				" [BROKEN]" if broken else ""
+			]
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
 	# Case
 	text += "[b]Case[/b]\n"
 	text += "  Loaded: %s\n" % str(CaseManager.case_loaded_flag)
@@ -329,3 +354,51 @@ func _on_skip_dialogue_pressed() -> void:
 	DialogueSystem.skip_current()
 	_refresh()
 	print("[Debug] Current dialogue skipped.")
+
+
+# --- Phase 7: Interrogation Debug Actions --- #
+
+## Resets interrogation state for a specific suspect.
+func debug_reset_interrogation(person_id: String) -> void:
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	if interr_mgr == null:
+		print("[Debug] InterrogationManager not available.")
+		return
+	# Clear fired triggers and pressure for this person
+	interr_mgr._fired_triggers.erase(person_id)
+	interr_mgr._accumulated_pressure.erase(person_id)
+	interr_mgr._break_moments.erase(person_id)
+	_refresh()
+	print("[Debug] Reset interrogation state for %s." % person_id)
+
+
+## Sets pressure points manually for a suspect.
+func debug_set_pressure(person_id: String, pressure: int) -> void:
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	if interr_mgr == null:
+		print("[Debug] InterrogationManager not available.")
+		return
+	interr_mgr._accumulated_pressure[person_id] = pressure
+	if interr_mgr.is_active() and interr_mgr.get_current_person_id() == person_id:
+		interr_mgr._current_pressure = pressure
+	_refresh()
+	print("[Debug] Set pressure for %s to %d." % [person_id, pressure])
+
+
+## Lists all interrogation triggers and their status.
+func debug_list_triggers() -> void:
+	var triggers: Array[InterrogationTriggerData] = CaseManager.get_all_interrogation_triggers()
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	print("[Debug] === INTERROGATION TRIGGERS ===")
+	for trigger: InterrogationTriggerData in triggers:
+		var fired: bool = false
+		if interr_mgr:
+			var person_fired: Array = interr_mgr.get_fired_triggers_for_person(trigger.person_id)
+			fired = trigger.id in person_fired
+		var status: String = "FIRED" if fired else "AVAILABLE"
+		print("  [%s] %s → %s (evidence: %s, impact: %s)" % [
+			status, trigger.id, trigger.person_id,
+			trigger.evidence_id,
+			EnumHelper.enum_to_string(Enums.ImpactLevel, trigger.impact_level)
+		])
+	print("[Debug] === END TRIGGERS ===")
