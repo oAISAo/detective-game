@@ -32,6 +32,8 @@ ActionSystem="*res://scripts/systems/action_system.gd"
 EventSystem="*res://scripts/systems/event_system.gd"
 DialogueSystem="*res://scripts/systems/dialogue_system.gd"
 ScreenManager="*res://scripts/ui/screen_manager.gd"
+ToolManager="*res://scripts/systems/tool_manager.gd"
+LocationInvestigationManager="*res://scripts/managers/location_investigation_manager.gd"
 
 [display]
 

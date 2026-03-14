@@ -10,6 +10,9 @@ extends Resource
 ## Display name of the location.
 @export var name: String = ""
 
+## Description of the location.
+@export var description: String = ""
+
 ## Whether this location can be searched for evidence.
 @export var searchable: bool = true
 
@@ -25,6 +28,7 @@ static func from_dict(data: Dictionary) -> LocationData:
 	var res := LocationData.new()
 	res.id = data.get("id", "")
 	res.name = data.get("name", "")
+	res.description = data.get("description", "")
 	res.searchable = data.get("searchable", true)
 	# Parse investigable objects
 	res.investigable_objects = []
@@ -55,6 +59,7 @@ func to_dict() -> Dictionary:
 	return {
 		"id": id,
 		"name": name,
+		"description": description,
 		"searchable": searchable,
 		"investigable_objects": obj_dicts,
 		"evidence_pool": evidence_pool.duplicate(),
