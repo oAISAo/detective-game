@@ -147,3 +147,11 @@ enum InterrogationPhase {
 	BREAK_MOMENT,
 	ENDED,
 }
+
+## Strength of a theory step based on attached evidence count.
+enum TheoryStrength {
+	NONE,
+	WEAK,
+	MODERATE,
+	STRONG,
+}
