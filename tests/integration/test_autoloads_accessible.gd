@@ -49,3 +49,17 @@ func test_dialogue_system_accessible() -> void:
 	assert_not_null(DialogueSystem, "DialogueSystem should be accessible")
 	DialogueSystem.reset()
 	assert_false(DialogueSystem.is_active())
+
+
+func test_tool_manager_accessible() -> void:
+	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
+	assert_not_null(tool_mgr, "ToolManager should be accessible")
+	tool_mgr.reset()
+	assert_eq(tool_mgr.get_available_tools().size(), 3)
+
+
+func test_location_investigation_manager_accessible() -> void:
+	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
+	assert_not_null(loc_inv_mgr, "LocationInvestigationManager should be accessible")
+	loc_inv_mgr.reset()
+	assert_eq(loc_inv_mgr.current_location_id, "")

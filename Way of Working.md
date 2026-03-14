@@ -13,7 +13,7 @@ The game is built phase by phase. Each phase delivers a working, testable system
 **The cycle for every feature:**
 
 ```
-Design → Implement → Test → Review → Integrate → Commit
+Design → Implement → Test → Review → Integrate → Commit (done by user)
 ```
 
 No feature is considered "done" until it has:
@@ -21,7 +21,6 @@ No feature is considered "done" until it has:
 - Automated tests passing
 - Manual verification completed
 - No regressions in existing systems
-- Clean commit with descriptive message
 
 ### Working in Phases
 
@@ -32,8 +31,7 @@ Each Development Plan phase follows this structure:
 3. **Implement one task at a time** — small, focused changes
 4. **Write tests alongside implementation** (not after)
 5. **Verify integration** with existing systems
-6. **Commit after each meaningful unit of work**
-7. **Phase review** — full playthrough of affected systems before moving on
+6. **Phase review** — full playthrough of affected systems before moving on
 
 ---
 
@@ -259,69 +257,7 @@ UI elements are tested manually because Godot's UI testing is limited. Logic beh
 
 ## 3. Git Workflow
 
-### Branching Strategy
-
-```
-main
- └── develop
-      ├── feature/phase-1-data-architecture
-      ├── feature/phase-2-day-system
-      ├── feature/evidence-archive-ui
-      ├── fix/lab-results-not-appearing
-      └── test/interrogation-trigger-coverage
-```
-
-**Branch types:**
-- `main` — stable, releasable builds only
-- `develop` — integration branch, all features merge here first
-- `feature/<name>` — new features and systems
-- `fix/<name>` — bug fixes
-- `test/<name>` — test improvements
-
-### Commit Standards
-
-**Format:**
-```
-<type>(<scope>): <short description>
-
-<optional longer description>
-```
-
-**Types:**
-- `feat` — new feature or system
-- `fix` — bug fix
-- `test` — adding or updating tests
-- `refactor` — code restructuring without behavior change
-- `data` — case data, evidence, dialogue content
-- `art` — asset additions or updates
-- `audio` — sound or music additions
-- `docs` — documentation updates
-- `chore` — project config, tooling, dependencies
-
-**Examples:**
-```
-feat(evidence): add evidence archive UI with filtering and search
-fix(interrogation): trigger not firing when evidence presented before statement
-test(warrant): add threshold validation tests for all warrant types
-data(case): populate all 25 evidence items for prototype case
-art(portraits): add Julia Ross neutral and nervous expressions
-refactor(managers): separate CaseManager from GameManager
-```
-
-### Commit Frequency
-
-- Commit after every meaningful unit of work
-- Never commit broken code to `develop`
-- All tests must pass before committing
-- One logical change per commit (don't bundle unrelated changes)
-
-### Merge Rules
-
-- Features merge into `develop` only after:
-  - All tests pass
-  - Manual verification completed
-  - No regressions
-- `develop` merges into `main` only at phase completion milestones
+Don't do any git operations. The user will do all commiting, pulling and pushing.
 
 ---
 
@@ -548,7 +484,6 @@ _log("INTERROGATION", "Trigger fired: %s for %s" % [trigger.id, suspect.name])
 - [ ] Save/load works with new data
 - [ ] No known critical bugs remain
 - [ ] Phase deliverables documented as complete
-- [ ] Commit tagged: `phase-X-complete`
 
 ### Pre-Release Gate (before any public build)
 
@@ -597,7 +532,6 @@ Save File: Attached if available
 3. Fix the bug
 4. Verify the test passes
 5. Run full test suite to check for regressions
-6. Commit with `fix(<scope>): <description>`
 
 ---
 
@@ -653,7 +587,6 @@ grainy film texture
 5. Post-process in Krita/Photoshop (color grading, grain)
 6. Replace placeholder files (keep identical filenames)
 7. Verify in-game appearance
-8. Commit as `art(<scope>): replace placeholders with final assets`
 
 ---
 
@@ -705,15 +638,13 @@ Date: [when]
 1. Work on one task at a time
 2. Write tests alongside code (not after)
 3. Run relevant tests frequently
-4. Commit after each meaningful unit of work
-5. Update todo list as tasks complete
+4. Update todo list as tasks complete
 
 ### Ending a Development Session
 
 1. Run full test suite
-2. Commit any work in progress (use `WIP:` prefix if incomplete)
-3. Update todo list with current status
-4. Note any blockers or open questions
+2. Update todo list with current status
+3. Note any blockers or open questions
 
 ---
 

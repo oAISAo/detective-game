@@ -165,6 +165,14 @@ func new_game() -> void:
 	if evidence_mgr and evidence_mgr.has_method("reset"):
 		evidence_mgr.call("reset")
 
+	# Reset Phase 6 systems if available
+	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
+	if tool_mgr and tool_mgr.has_method("reset"):
+		tool_mgr.call("reset")
+	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
+	if loc_inv_mgr and loc_inv_mgr.has_method("reset"):
+		loc_inv_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -405,6 +413,14 @@ func serialize() -> Dictionary:
 	if evidence_mgr and evidence_mgr.has_method("serialize"):
 		data["evidence_manager"] = evidence_mgr.call("serialize")
 
+	# Include Phase 6 system state if available
+	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
+	if tool_mgr and tool_mgr.has_method("serialize"):
+		data["tool_manager"] = tool_mgr.call("serialize")
+	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
+	if loc_inv_mgr and loc_inv_mgr.has_method("serialize"):
+		data["location_investigation_manager"] = loc_inv_mgr.call("serialize")
+
 	return data
 
 
@@ -444,3 +460,11 @@ func deserialize(data: Dictionary) -> void:
 	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
 	if evidence_mgr and evidence_mgr.has_method("deserialize") and data.has("evidence_manager"):
 		evidence_mgr.call("deserialize", data["evidence_manager"])
+
+	# Restore Phase 6 system state if available
+	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
+	if tool_mgr and tool_mgr.has_method("deserialize") and data.has("tool_manager"):
+		tool_mgr.call("deserialize", data["tool_manager"])
+	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
+	if loc_inv_mgr and loc_inv_mgr.has_method("deserialize") and data.has("location_investigation_manager"):
+		loc_inv_mgr.call("deserialize", data["location_investigation_manager"])
