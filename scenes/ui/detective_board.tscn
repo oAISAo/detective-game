@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/detective_board.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/ui/screens/board_connection_drawer.gd" id="2_conn_drawer"]
 
 [node name="DetectiveBoard" type="Control"]
 layout_mode = 3
@@ -18,14 +19,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 12
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 8
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -41,29 +42,60 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Detective Board"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 
-[node name="BoardArea" type="Control" parent="MarginContainer/VBoxContainer"]
+[node name="NodeCountLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 nodes · 0 connections"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.58, 0.55, 1)
+
+[node name="ClearButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Clear Board"
+
+[node name="BoardViewport" type="Control" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 400)
+clip_contents = true
 
-[node name="PlaceholderLabel" type="Label" parent="MarginContainer/VBoxContainer/BoardArea"]
+[node name="BoardCanvas" type="Control" parent="MarginContainer/VBoxContainer/BoardViewport"]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200
-offset_top = -30
-offset_right = 200
-offset_bottom = 30
+anchors_preset = 0
+custom_minimum_size = Vector2(3840, 2160)
+size = Vector2(3840, 2160)
+
+[node name="BoardBackground" type="ColorRect" parent="MarginContainer/VBoxContainer/BoardViewport/BoardCanvas"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Pin evidence and draw connections.
-Full board features coming in Phase 4B."
-horizontal_alignment = 1
-vertical_alignment = 1
+color = Color(0.35, 0.28, 0.2, 1)
+
+[node name="ConnectionLayer" type="Control" parent="MarginContainer/VBoxContainer/BoardViewport/BoardCanvas"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_conn_drawer")
+
+[node name="NodeLayer" type="Control" parent="MarginContainer/VBoxContainer/BoardViewport/BoardCanvas"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

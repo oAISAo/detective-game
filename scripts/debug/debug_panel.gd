@@ -196,6 +196,22 @@ func _refresh() -> void:
 		text += "  Not available.\n"
 	text += "\n"
 
+	# Detective Board
+	text += "[b]Detective Board[/b]\n"
+	var board_mgr: Node = get_node_or_null("/root/BoardManager")
+	if board_mgr:
+		text += "  Nodes: %d\n" % board_mgr.get_node_count()
+		text += "  Connections: %d\n" % board_mgr.get_connection_count()
+		var person_nodes: Array = board_mgr.get_nodes_by_type("person")
+		var evidence_nodes: Array = board_mgr.get_nodes_by_type("evidence")
+		var event_nodes: Array = board_mgr.get_nodes_by_type("event")
+		text += "  Person nodes: %d\n" % person_nodes.size()
+		text += "  Evidence nodes: %d\n" % evidence_nodes.size()
+		text += "  Event nodes: %d\n" % event_nodes.size()
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
 	# Case
 	text += "[b]Case[/b]\n"
 	text += "  Loaded: %s\n" % str(CaseManager.case_loaded_flag)
@@ -402,3 +418,49 @@ func debug_list_triggers() -> void:
 			EnumHelper.enum_to_string(Enums.ImpactLevel, trigger.impact_level)
 		])
 	print("[Debug] === END TRIGGERS ===")
+
+
+# --- Phase 8: Detective Board Debug Actions --- #
+
+## Clears the entire detective board.
+func debug_clear_board() -> void:
+	var board_mgr: Node = get_node_or_null("/root/BoardManager")
+	if board_mgr == null:
+		print("[Debug] BoardManager not available.")
+		return
+	board_mgr.clear_board()
+	_refresh()
+	print("[Debug] Board cleared.")
+
+
+## Auto-populates the board with all discovered evidence and suspects.
+func debug_populate_board() -> void:
+	var board_mgr: Node = get_node_or_null("/root/BoardManager")
+	if board_mgr == null:
+		print("[Debug] BoardManager not available.")
+		return
+
+	var offset_x: float = 100.0
+	var offset_y: float = 100.0
+	var col: int = 0
+
+	# Add all discovered evidence
+	for ev_id: String in GameManager.discovered_evidence:
+		board_mgr.add_node("evidence", ev_id, offset_x + col * 200.0, offset_y)
+		col += 1
+		if col >= 8:
+			col = 0
+			offset_y += 120.0
+
+	# Add all suspects
+	offset_y += 150.0
+	col = 0
+	var suspects: Array[PersonData] = CaseManager.get_suspects()
+	for suspect: PersonData in suspects:
+		board_mgr.add_node("person", suspect.id, offset_x + col * 200.0, offset_y)
+		col += 1
+
+	_refresh()
+	print("[Debug] Board populated with %d evidence + %d suspects." % [
+		GameManager.discovered_evidence.size(), suspects.size()
+	])
