@@ -33,6 +33,7 @@ const SCREEN_SCENES: Dictionary = {
 	"evidence_detail": "res://scenes/ui/evidence_detail.tscn",
 	"location_investigation": "res://scenes/ui/location_investigation.tscn",
 	"interrogation": "res://scenes/ui/interrogation.tscn",
+	"theory_builder": "res://scenes/ui/theory_builder.tscn",
 }
 
 ## Registry of known modal scene paths, keyed by modal ID.

@@ -223,6 +223,19 @@ func _refresh() -> void:
 		text += "  Not available.\n"
 	text += "\n"
 
+	# Theory Builder
+	text += "[b]Theory Builder[/b]\n"
+	var th_mgr: Node = get_node_or_null("/root/TheoryManager")
+	if th_mgr:
+		text += "  Theories: %d\n" % th_mgr.get_theory_count()
+		text += "  Has content: %s\n" % str(th_mgr.has_content())
+		for t: Dictionary in th_mgr.get_all_theories():
+			var complete_str: String = "✓" if th_mgr.is_complete(t["id"]) else "…"
+			text += "  [%s] %s (suspect: %s)\n" % [complete_str, t["name"], t.get("suspect_id", "")]
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
 	# Case
 	text += "[b]Case[/b]\n"
 	text += "  Loaded: %s\n" % str(CaseManager.case_loaded_flag)
@@ -506,3 +519,35 @@ func debug_populate_timeline() -> void:
 
 	_refresh()
 	print("[Debug] Placed %d events on timeline." % count)
+
+
+# --- Phase 10: Theory Builder Debug Actions --- #
+
+## Clears all theories.
+func debug_reset_theories() -> void:
+	var th_mgr: Node = get_node_or_null("/root/TheoryManager")
+	if th_mgr == null:
+		print("[Debug] TheoryManager not available.")
+		return
+	th_mgr.clear_theories()
+	_refresh()
+	print("[Debug] All theories cleared.")
+
+
+## Creates a sample theory with the first suspect.
+func debug_create_sample_theory() -> void:
+	var th_mgr: Node = get_node_or_null("/root/TheoryManager")
+	if th_mgr == null:
+		print("[Debug] TheoryManager not available.")
+		return
+
+	var theory: Dictionary = th_mgr.create_theory("Debug Theory")
+	var suspects: Array[PersonData] = CaseManager.get_suspects()
+	if not suspects.is_empty():
+		th_mgr.set_suspect(theory["id"], suspects[0].id)
+	th_mgr.set_motive(theory["id"], "Debug motive")
+	th_mgr.set_method(theory["id"], "Debug weapon")
+	th_mgr.set_time(theory["id"], 1260, 1)  # 21:00 Day 1
+
+	_refresh()
+	print("[Debug] Sample theory created: %s" % theory["id"])
