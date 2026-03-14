@@ -18,6 +18,7 @@ extends Control
 @onready var compare_button: Button = %CompareButton
 @onready var comparison_panel: PanelContainer = %ComparisonPanel
 @onready var comparison_list: VBoxContainer = %ComparisonList
+@onready var send_to_board_button: Button = %SendToBoardButton
 
 var _evidence_id: String = ""
 var _comparing: bool = false
@@ -29,6 +30,7 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	pin_button.pressed.connect(_on_pin_pressed)
 	compare_button.pressed.connect(_on_compare_pressed)
+	send_to_board_button.pressed.connect(_on_send_to_board_pressed)
 
 	if _evidence_id.is_empty():
 		title_label.text = "No Evidence Selected"
@@ -238,6 +240,13 @@ func _on_compare_with(other_id: String) -> void:
 
 func _on_back_pressed() -> void:
 	ScreenManager.navigate_back()
+
+
+## Sends this evidence to the detective board as a new node.
+func _on_send_to_board_pressed() -> void:
+	BoardManager.send_to_board("evidence", _evidence_id)
+	send_to_board_button.text = "✓ Sent to Board"
+	send_to_board_button.disabled = true
 
 
 # --- Label Helpers --- #

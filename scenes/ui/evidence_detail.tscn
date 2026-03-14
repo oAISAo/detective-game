@@ -48,6 +48,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "📌 Pin"
 
+[node name="SendToBoardButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📋 Send to Board"
+
 [node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
