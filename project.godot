@@ -36,6 +36,7 @@ ToolManager="*res://scripts/systems/tool_manager.gd"
 LocationInvestigationManager="*res://scripts/managers/location_investigation_manager.gd"
 InterrogationManager="*res://scripts/managers/interrogation_manager.gd"
 BoardManager="*res://scripts/managers/board_manager.gd"
+TimelineManager="*res://scripts/managers/timeline_manager.gd"
 
 [display]
 

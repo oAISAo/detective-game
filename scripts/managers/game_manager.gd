@@ -183,6 +183,11 @@ func new_game() -> void:
 	if board_mgr and board_mgr.has_method("reset"):
 		board_mgr.call("reset")
 
+	# Reset Phase 9 systems if available
+	var timeline_mgr: Node = get_node_or_null("/root/TimelineManager")
+	if timeline_mgr and timeline_mgr.has_method("reset"):
+		timeline_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -441,6 +446,11 @@ func serialize() -> Dictionary:
 	if board_mgr and board_mgr.has_method("serialize"):
 		data["board_manager"] = board_mgr.call("serialize")
 
+	# Include Phase 9 system state if available
+	var timeline_mgr: Node = get_node_or_null("/root/TimelineManager")
+	if timeline_mgr and timeline_mgr.has_method("serialize"):
+		data["timeline_manager"] = timeline_mgr.call("serialize")
+
 	return data
 
 
@@ -498,3 +508,8 @@ func deserialize(data: Dictionary) -> void:
 	var board_mgr: Node = get_node_or_null("/root/BoardManager")
 	if board_mgr and board_mgr.has_method("deserialize") and data.has("board_manager"):
 		board_mgr.call("deserialize", data["board_manager"])
+
+	# Restore Phase 9 system state if available
+	var timeline_mgr: Node = get_node_or_null("/root/TimelineManager")
+	if timeline_mgr and timeline_mgr.has_method("deserialize") and data.has("timeline_manager"):
+		timeline_mgr.call("deserialize", data["timeline_manager"])

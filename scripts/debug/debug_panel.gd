@@ -212,6 +212,17 @@ func _refresh() -> void:
 		text += "  Not available.\n"
 	text += "\n"
 
+	# Timeline
+	text += "[b]Timeline[/b]\n"
+	var tl_mgr: Node = get_node_or_null("/root/TimelineManager")
+	if tl_mgr:
+		text += "  Entries: %d\n" % tl_mgr.get_entry_count()
+		text += "  Hypotheses: %d\n" % tl_mgr.get_hypothesis_count()
+		text += "  Has content: %s\n" % str(tl_mgr.has_content())
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
 	# Case
 	text += "[b]Case[/b]\n"
 	text += "  Loaded: %s\n" % str(CaseManager.case_loaded_flag)
@@ -464,3 +475,34 @@ func debug_populate_board() -> void:
 	print("[Debug] Board populated with %d evidence + %d suspects." % [
 		GameManager.discovered_evidence.size(), suspects.size()
 	])
+
+
+# --- Phase 9: Timeline Debug Actions --- #
+
+## Clears the entire timeline.
+func debug_clear_timeline() -> void:
+	var tl_mgr: Node = get_node_or_null("/root/TimelineManager")
+	if tl_mgr == null:
+		print("[Debug] TimelineManager not available.")
+		return
+	tl_mgr.clear_timeline()
+	_refresh()
+	print("[Debug] Timeline cleared.")
+
+
+## Places all case events on the timeline at their defined times.
+func debug_populate_timeline() -> void:
+	var tl_mgr: Node = get_node_or_null("/root/TimelineManager")
+	if tl_mgr == null:
+		print("[Debug] TimelineManager not available.")
+		return
+
+	var events: Array[EventData] = CaseManager.get_all_events()
+	var count: int = 0
+	for event: EventData in events:
+		var time_min: int = TimelineManager.parse_time_string(event.time)
+		tl_mgr.place_event(event.id, time_min, event.day)
+		count += 1
+
+	_refresh()
+	print("[Debug] Placed %d events on timeline." % count)
