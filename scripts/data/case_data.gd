@@ -53,6 +53,9 @@ var lab_requests: Array[LabRequestData] = []
 ## All surveillance request definitions.
 var surveillance_requests: Array[SurveillanceRequestData] = []
 
+## All interrogation triggers (evidence-based reactions during interrogation).
+var interrogation_triggers: Array[InterrogationTriggerData] = []
+
 
 ## Creates a CaseData from a JSON dictionary.
 static func from_dict(data: Dictionary) -> CaseData:
@@ -118,6 +121,11 @@ static func from_dict(data: Dictionary) -> CaseData:
 	for item: Dictionary in data.get("surveillance_requests", []):
 		res.surveillance_requests.append(SurveillanceRequestData.from_dict(item))
 
+	# Parse interrogation triggers
+	res.interrogation_triggers = []
+	for item: Dictionary in data.get("interrogation_triggers", []):
+		res.interrogation_triggers.append(InterrogationTriggerData.from_dict(item))
+
 	return res
 
 
@@ -156,6 +164,8 @@ func validate() -> Array[String]:
 		errors.append_array(lab_req.validate())
 	for surv_req: SurveillanceRequestData in surveillance_requests:
 		errors.append_array(surv_req.validate())
+	for interr_trig: InterrogationTriggerData in interrogation_triggers:
+		errors.append_array(interr_trig.validate())
 
 	return errors
 
@@ -226,5 +236,10 @@ func to_dict() -> Dictionary:
 	for sr: SurveillanceRequestData in surveillance_requests:
 		arr.append(sr.to_dict())
 	result["surveillance_requests"] = arr
+
+	arr = []
+	for it: InterrogationTriggerData in interrogation_triggers:
+		arr.append(it.to_dict())
+	result["interrogation_triggers"] = arr
 
 	return result

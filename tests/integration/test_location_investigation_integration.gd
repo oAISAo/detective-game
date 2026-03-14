@@ -699,10 +699,10 @@ func test_screen_manager_knows_location_investigation() -> void:
 	)
 
 
-func test_screen_manager_has_eight_screens() -> void:
+func test_screen_manager_has_nine_screens() -> void:
 	assert_eq(
-		ScreenManager.SCREEN_SCENES.size(), 8,
-		"Should have 8 screens (7 from Phase 5 + location_investigation)"
+		ScreenManager.SCREEN_SCENES.size(), 9,
+		"Should have 9 screens (8 from Phase 6 + interrogation)"
 	)
 
 

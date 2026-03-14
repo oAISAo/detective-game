@@ -173,6 +173,11 @@ func new_game() -> void:
 	if loc_inv_mgr and loc_inv_mgr.has_method("reset"):
 		loc_inv_mgr.call("reset")
 
+	# Reset Phase 7 systems if available
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	if interr_mgr and interr_mgr.has_method("reset"):
+		interr_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -421,6 +426,11 @@ func serialize() -> Dictionary:
 	if loc_inv_mgr and loc_inv_mgr.has_method("serialize"):
 		data["location_investigation_manager"] = loc_inv_mgr.call("serialize")
 
+	# Include Phase 7 system state if available
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	if interr_mgr and interr_mgr.has_method("serialize"):
+		data["interrogation_manager"] = interr_mgr.call("serialize")
+
 	return data
 
 
@@ -468,3 +478,8 @@ func deserialize(data: Dictionary) -> void:
 	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
 	if loc_inv_mgr and loc_inv_mgr.has_method("deserialize") and data.has("location_investigation_manager"):
 		loc_inv_mgr.call("deserialize", data["location_investigation_manager"])
+
+	# Restore Phase 7 system state if available
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
+	if interr_mgr and interr_mgr.has_method("deserialize") and data.has("interrogation_manager"):
+		interr_mgr.call("deserialize", data["interrogation_manager"])

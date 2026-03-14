@@ -137,3 +137,13 @@ enum SurveillanceType {
 	HOME_SURVEILLANCE,
 	FINANCIAL_MONITORING,
 }
+
+## The current phase of an interrogation session.
+enum InterrogationPhase {
+	INACTIVE,
+	OPEN_CONVERSATION,
+	EVIDENCE_CONFRONTATION,
+	PSYCHOLOGICAL_PRESSURE,
+	BREAK_MOMENT,
+	ENDED,
+}
