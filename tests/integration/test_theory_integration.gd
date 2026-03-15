@@ -345,7 +345,7 @@ func test_screen_manager_has_theory_builder() -> void:
 
 
 func test_screen_count_is_thirteen() -> void:
-	assert_eq(ScreenManager.SCREEN_SCENES.size(), 13, "Should have 13 screens")
+	assert_eq(ScreenManager.SCREEN_SCENES.size(), 16, "Should have 16 screens")
 
 
 # =========================================================================

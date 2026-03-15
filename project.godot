@@ -41,6 +41,7 @@ TheoryManager="*res://scripts/managers/theory_manager.gd"
 LabManager="*res://scripts/managers/lab_manager.gd"
 SurveillanceManager="*res://scripts/managers/surveillance_manager.gd"
 WarrantManager="*res://scripts/managers/warrant_manager.gd"
+ConclusionManager="*res://scripts/managers/conclusion_manager.gd"
 
 [display]
 

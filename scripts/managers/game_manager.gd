@@ -204,6 +204,11 @@ func new_game() -> void:
 	if warrant_mgr and warrant_mgr.has_method("reset"):
 		warrant_mgr.call("reset")
 
+	# Reset Phase 12 systems if available
+	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+	if concl_mgr and concl_mgr.has_method("reset"):
+		concl_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -338,7 +343,10 @@ func get_time_slot_display() -> String:
 func _advance_day() -> void:
 	if current_day >= TOTAL_DAYS:
 		_log_action("Investigation complete — Day %d ended." % current_day)
-		# End of investigation handling will be in Phase 12
+		# Phase 12: Signal that investigation time has ended
+		var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+		if concl_mgr:
+			print("[GameManager] Investigation time expired. Case conclusion available.")
 		return
 
 	current_day += 1
@@ -483,6 +491,11 @@ func serialize() -> Dictionary:
 	if warrant_mgr and warrant_mgr.has_method("serialize"):
 		data["warrant_manager"] = warrant_mgr.call("serialize")
 
+	# Include Phase 12 system state if available
+	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+	if concl_mgr and concl_mgr.has_method("serialize"):
+		data["conclusion_manager"] = concl_mgr.call("serialize")
+
 	return data
 
 
@@ -561,3 +574,8 @@ func deserialize(data: Dictionary) -> void:
 	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
 	if warrant_mgr and warrant_mgr.has_method("deserialize") and data.has("warrant_manager"):
 		warrant_mgr.call("deserialize", data["warrant_manager"])
+
+	# Restore Phase 12 system state if available
+	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+	if concl_mgr and concl_mgr.has_method("deserialize") and data.has("conclusion_manager"):
+		concl_mgr.call("deserialize", data["conclusion_manager"])

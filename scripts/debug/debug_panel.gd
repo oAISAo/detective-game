@@ -275,7 +275,24 @@ func _refresh() -> void:
 
 	# Case
 	text += "[b]Case[/b]\n"
-	text += "  Loaded: %s\n" % str(CaseManager.case_loaded_flag)
+	text += "  Loaded: %s\n\n" % str(CaseManager.case_loaded_flag)
+
+	# Conclusion System
+	text += "[b]Conclusion System[/b]\n"
+	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+	if concl_mgr:
+		text += "  Has Report: %s\n" % str(concl_mgr.has_report())
+		text += "  Evaluated: %s\n" % str(concl_mgr.is_evaluated())
+		if concl_mgr.is_evaluated():
+			text += "  Score: %.1f%%\n" % (concl_mgr.get_confidence_score() * 100.0)
+			text += "  Level: %s\n" % str(concl_mgr.get_confidence_level())
+			text += "  Dialogue: %s\n" % concl_mgr.get_prosecutor_dialogue()
+		var choice: String = concl_mgr.get_player_choice()
+		if not choice.is_empty():
+			text += "  Choice: %s\n" % choice
+			text += "  Outcome: %s\n" % concl_mgr.get_outcome_name()
+	else:
+		text += "  Not available.\n"
 
 	content_label.text = text
 
@@ -627,3 +644,51 @@ func debug_create_sample_theory() -> void:
 
 	_refresh()
 	print("[Debug] Sample theory created: %s" % theory["id"])
+
+
+# --- Phase 12: Conclusion Debug Actions --- #
+
+## Submits a debug case report using the first theory data.
+func debug_submit_report() -> void:
+	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+	if concl_mgr == null:
+		print("[Debug] ConclusionManager not available.")
+		return
+
+	var th_mgr: Node = get_node_or_null("/root/TheoryManager")
+	if th_mgr == null:
+		print("[Debug] TheoryManager not available.")
+		return
+
+	var theories: Array[Dictionary] = th_mgr.get_all_theories()
+	if theories.is_empty():
+		print("[Debug] No theories to build report from.")
+		return
+
+	var t: Dictionary = theories[0]
+	var report: Dictionary = {
+		"suspect": {"answer": t.get("suspect_id", ""), "evidence": []},
+		"motive": {"answer": t.get("motive", ""), "evidence": []},
+		"weapon": {"answer": t.get("method", ""), "evidence": []},
+		"time": {"answer": "%d %d" % [t.get("time_minutes", 0), t.get("time_day", 1)], "evidence": []},
+		"access": {"answer": "Unknown", "evidence": []},
+	}
+
+	var success: bool = concl_mgr.submit_report(report)
+	_refresh()
+	if success:
+		print("[Debug] Report submitted. Score: %.1f%%" % (concl_mgr.get_confidence_score() * 100.0))
+	else:
+		print("[Debug] Failed to submit report.")
+
+
+## Forces a specific case outcome.
+func debug_force_outcome(outcome: Enums.CaseOutcome) -> void:
+	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
+	if concl_mgr == null:
+		print("[Debug] ConclusionManager not available.")
+		return
+	concl_mgr._outcome = outcome
+	concl_mgr._evaluated = true
+	_refresh()
+	print("[Debug] Forced outcome: %s" % concl_mgr.get_outcome_name())
