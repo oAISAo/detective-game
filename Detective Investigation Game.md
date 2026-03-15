@@ -1248,7 +1248,9 @@ LAYER 5
 Murder was done to prevent exposure
 
 This is how a story with 25 clues feels like 100 clues.
-Our First Prototype Case
+
+
+Our First Prototype Case
 Constraints we defined earlier:
 4 suspects
 5 locations
@@ -1667,7 +1669,9 @@ Players will constantly think they solved the case, then realize:
 "Wait… that doesn't explain this clue."
 
 That moment is the core pleasure of detective games.
-Visual Style Guide
+
+
+Visual Style Guide
 Overview
 The visual style of the game aims to support the core experience of serious investigative work and atmospheric mystery. The visuals should evoke the tone of modern true-crime documentaries and noir-inspired detective fiction while remaining clean and readable for investigation gameplay.
 The art direction prioritizes:
