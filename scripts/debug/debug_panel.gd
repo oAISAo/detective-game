@@ -236,6 +236,43 @@ func _refresh() -> void:
 		text += "  Not available.\n"
 	text += "\n"
 
+	# Lab Manager
+	text += "[b]Lab Manager[/b]\n"
+	var lab_mgr: Node = get_node_or_null("/root/LabManager")
+	if lab_mgr:
+		var pending: Array = lab_mgr.get_pending_requests()
+		var completed: Array = lab_mgr.get_completed_requests()
+		text += "  Pending: %d  Completed: %d\n" % [pending.size(), completed.size()]
+		for req: Dictionary in pending:
+			text += "  [⏳] %s → %s (day %d)\n" % [req.get("input_evidence_id", ""), req.get("output_evidence_id", ""), req.get("completion_day", 0)]
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
+	# Surveillance Manager
+	text += "[b]Surveillance Manager[/b]\n"
+	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
+	if surv_mgr:
+		var active: Array = surv_mgr.get_active_operations()
+		text += "  Active: %d\n" % active.size()
+		for op: Dictionary in active:
+			text += "  [👁] %s (expires day %d)\n" % [op.get("target_person", ""), op.get("expiry_day", 0)]
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
+	# Warrant Manager
+	text += "[b]Warrant Manager[/b]\n"
+	var w_mgr: Node = get_node_or_null("/root/WarrantManager")
+	if w_mgr:
+		var approved: Array = w_mgr.get_approved_warrants()
+		var denied: Array = w_mgr.get_denied_warrants()
+		var arrested: Array = w_mgr.get_arrested_suspects()
+		text += "  Approved: %d  Denied: %d  Arrested: %d\n" % [approved.size(), denied.size(), arrested.size()]
+	else:
+		text += "  Not available.\n"
+	text += "\n"
+
 	# Case
 	text += "[b]Case[/b]\n"
 	text += "  Loaded: %s\n" % str(CaseManager.case_loaded_flag)
@@ -532,6 +569,45 @@ func debug_reset_theories() -> void:
 	th_mgr.clear_theories()
 	_refresh()
 	print("[Debug] All theories cleared.")
+
+
+## Completes all pending lab requests instantly.
+func debug_complete_all_labs() -> void:
+	var lab_mgr: Node = get_node_or_null("/root/LabManager")
+	if lab_mgr == null:
+		print("[Debug] LabManager not available.")
+		return
+	var results: Array = lab_mgr.complete_all_instantly()
+	_refresh()
+	print("[Debug] Completed %d lab requests instantly." % results.size())
+
+
+## Completes all active surveillance instantly.
+func debug_complete_all_surveillance() -> void:
+	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
+	if surv_mgr == null:
+		print("[Debug] SurveillanceManager not available.")
+		return
+	var results: Array = surv_mgr.complete_all_instantly()
+	_refresh()
+	print("[Debug] Completed %d surveillance operations instantly." % results.size())
+
+
+## Grants a warrant of the given type for the given target with all evidence.
+func debug_grant_warrant(warrant_type: int, target: String) -> void:
+	var w_mgr: Node = get_node_or_null("/root/WarrantManager")
+	if w_mgr == null:
+		print("[Debug] WarrantManager not available.")
+		return
+	var all_ids: Array[String] = []
+	for ev: EvidenceData in CaseManager.get_all_evidence():
+		all_ids.append(ev.id)
+	var result: Dictionary = w_mgr.request_warrant(warrant_type, target, all_ids)
+	_refresh()
+	if result.get("approved", false):
+		print("[Debug] Warrant granted: %s for %s" % [result.get("warrant_id", ""), target])
+	else:
+		print("[Debug] Warrant denied: %s" % result.get("feedback", ""))
 
 
 ## Creates a sample theory with the first suspect.

@@ -38,6 +38,9 @@ InterrogationManager="*res://scripts/managers/interrogation_manager.gd"
 BoardManager="*res://scripts/managers/board_manager.gd"
 TimelineManager="*res://scripts/managers/timeline_manager.gd"
 TheoryManager="*res://scripts/managers/theory_manager.gd"
+LabManager="*res://scripts/managers/lab_manager.gd"
+SurveillanceManager="*res://scripts/managers/surveillance_manager.gd"
+WarrantManager="*res://scripts/managers/warrant_manager.gd"
 
 [display]
 
