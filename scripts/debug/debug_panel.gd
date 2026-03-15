@@ -95,6 +95,16 @@ func _refresh() -> void:
 		text += "    ✓ %s\n" % ev_id
 	text += "\n"
 
+	# Evidence Checklist (compact)
+	var all_ev: Array[EvidenceData] = CaseManager.get_all_evidence()
+	if not all_ev.is_empty():
+		text += "[b]Evidence Checklist[/b]\n  "
+		var items: PackedStringArray = PackedStringArray()
+		for ev: EvidenceData in all_ev:
+			var found: bool = GameManager.has_evidence(ev.id)
+			items.append("%s %s" % ["✓" if found else "✗", ev.id])
+		text += "  ".join(items) + "\n\n"
+
 	# Insights
 	text += "[b]Insights[/b]\n"
 	text += "  Discovered: %d\n\n" % GameManager.discovered_insights.size()
