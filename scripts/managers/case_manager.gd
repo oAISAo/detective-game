@@ -52,6 +52,9 @@ var _actions: Dictionary = {}
 ## Insight lookup: { insight_id: InsightData }
 var _insights: Dictionary = {}
 
+## Discovery rule lookup: { rule_id: DiscoveryRuleData }
+var _discovery_rules: Dictionary = {}
+
 ## Whether a case is currently loaded.
 var case_loaded_flag: bool = false
 
@@ -114,6 +117,43 @@ func load_case(case_filename: String) -> bool:
 	return true
 
 
+## Loads a case from a multi-file folder structure under data/cases/.
+## Folder should contain case.json, suspects.json, locations.json, evidence.json,
+## and optionally timeline.json, events.json, discovery_rules.json.
+func load_case_folder(folder_name: String) -> bool:
+	var errors: Array[String] = []
+	var case_data: CaseData = CaseLoader.load_from_folder(folder_name, errors)
+
+	if case_data == null:
+		var error_msg: String = "Failed to load case folder '%s': %s" % [
+			folder_name, "; ".join(errors)
+		]
+		push_error(error_msg)
+		case_load_failed.emit(error_msg)
+		return false
+
+	_case = case_data
+
+	# Report validation warnings
+	var validation_errors: Array[String] = _case.validate()
+	if not validation_errors.is_empty():
+		for err: String in validation_errors:
+			push_warning("[CaseManager] Validation: %s" % err)
+		case_validation_warnings.emit(validation_errors)
+
+	# Report load errors as warnings
+	if not errors.is_empty():
+		for err: String in errors:
+			push_warning("[CaseManager] Load warning: %s" % err)
+
+	_build_lookups()
+	case_loaded_flag = true
+
+	case_loaded.emit(_case.id)
+	print("[CaseManager] Case loaded from folder: %s" % _case.id)
+	return true
+
+
 ## Clears all loaded case data.
 func unload_case() -> void:
 	_case = null
@@ -127,6 +167,7 @@ func unload_case() -> void:
 	_interrogation_triggers.clear()
 	_actions.clear()
 	_insights.clear()
+	_discovery_rules.clear()
 	case_loaded_flag = false
 	print("[CaseManager] Case unloaded.")
 
@@ -143,6 +184,7 @@ func _build_lookups() -> void:
 	_interrogation_triggers.clear()
 	_actions.clear()
 	_insights.clear()
+	_discovery_rules.clear()
 
 	if _case == null:
 		return
@@ -176,6 +218,9 @@ func _build_lookups() -> void:
 
 	for item: InsightData in _case.insights:
 		_insights[item.id] = item
+
+	for item: DiscoveryRuleData in _case.discovery_rules:
+		_discovery_rules[item.id] = item
 
 
 # --- Query Functions: Single Item --- #
@@ -223,6 +268,10 @@ func get_action(action_id: String) -> ActionData:
 ## Returns insight data by ID, or null if not found.
 func get_insight(insight_id: String) -> InsightData:
 	return _insights.get(insight_id, null)
+
+## Returns discovery rule data by ID, or null if not found.
+func get_discovery_rule(rule_id: String) -> DiscoveryRuleData:
+	return _discovery_rules.get(rule_id, null)
 
 
 # --- Query Functions: Filtered Lists --- #
@@ -383,4 +432,27 @@ func get_all_interrogation_triggers() -> Array[InterrogationTriggerData]:
 	var result: Array[InterrogationTriggerData] = []
 	for t in _interrogation_triggers.values():
 		result.append(t)
+	return result
+
+## Returns all discovery rule data as an array.
+func get_all_discovery_rules() -> Array[DiscoveryRuleData]:
+	var result: Array[DiscoveryRuleData] = []
+	for r in _discovery_rules.values():
+		result.append(r)
+	return result
+
+## Returns all discovery rules for a specific location.
+func get_discovery_rules_for_location(location_id: String) -> Array[DiscoveryRuleData]:
+	var result: Array[DiscoveryRuleData] = []
+	for rule: DiscoveryRuleData in _discovery_rules.values():
+		if rule.location_id == location_id:
+			result.append(rule)
+	return result
+
+## Returns all discovery rules for a specific evidence item.
+func get_discovery_rules_for_evidence(evidence_id: String) -> Array[DiscoveryRuleData]:
+	var result: Array[DiscoveryRuleData] = []
+	for rule: DiscoveryRuleData in _discovery_rules.values():
+		if rule.evidence_id == evidence_id:
+			result.append(rule)
 	return result

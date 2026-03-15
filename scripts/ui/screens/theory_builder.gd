@@ -523,14 +523,14 @@ func _on_attach_evidence(step: String) -> void:
 	var vbox: VBoxContainer = VBoxContainer.new()
 	dialog.add_child(vbox)
 
-	var discovered: Array[Dictionary] = EvidenceManager.get_discovered_evidence_data()
+	var discovered: Array[EvidenceData] = EvidenceManager.get_discovered_evidence_data()
 	var already: Array[String] = TheoryManager.get_step_evidence(_selected_theory_id, step)
-	for ev_dict: Dictionary in discovered:
-		var ev_id: String = ev_dict.get("id", "")
+	for ev_dict: EvidenceData in discovered:
+		var ev_id: String = ev_dict.id
 		if ev_id in already:
 			continue
 		var btn: Button = Button.new()
-		btn.text = ev_dict.get("name", ev_id)
+		btn.text = ev_dict.name if not ev_dict.name.is_empty() else ev_id
 		btn.pressed.connect(func() -> void:
 			TheoryManager.attach_evidence(_selected_theory_id, step, ev_id)
 			dialog.queue_free()

@@ -136,6 +136,7 @@ enum SurveillanceType {
 	PHONE_TAP,
 	HOME_SURVEILLANCE,
 	FINANCIAL_MONITORING,
+	PHYSICAL,
 }
 
 ## The current phase of an interrogation session.

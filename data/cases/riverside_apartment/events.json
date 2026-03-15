@@ -1,0 +1,374 @@
+{
+	"event_triggers": [
+		{
+			"id": "trig_morning_briefing_day1",
+			"trigger_type": "DAY_START",
+			"trigger_day": 1,
+			"conditions": [],
+			"actions": [
+				"unlock_location:loc_victim_apartment",
+				"unlock_location:loc_hallway",
+				"unlock_location:loc_parking_lot",
+				"unlock_location:loc_neighbor_apartment",
+				"unlock_interrogation:p_mark",
+				"unlock_interrogation:p_sarah",
+				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Mark Bennett and Sarah Klein are available for questioning."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_morning_briefing_day2",
+			"trigger_type": "DAY_START",
+			"trigger_day": 2,
+			"conditions": [],
+			"actions": [
+				"unlock_location:loc_victim_office",
+				"unlock_interrogation:p_julia",
+				"unlock_interrogation:p_lucas",
+				"notify:Day 2 Briefing - Lab results are arriving. Julia Ross and Lucas Weber have been identified as additional persons of interest. Daniel's office is now accessible for investigation."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_lab_fingerprints",
+			"trigger_type": "TIMED",
+			"trigger_day": 2,
+			"conditions": [
+				"evidence_discovered:ev_wine_glasses"
+			],
+			"actions": [
+				"deliver_lab_results:ev_julia_fingerprint_glass",
+				"deliver_lab_results:ev_mark_fingerprint_desk",
+				"notify:Lab results are in - fingerprints from the crime scene have been identified."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_lab_shoe_print",
+			"trigger_type": "TIMED",
+			"trigger_day": 2,
+			"conditions": [
+				"evidence_discovered:ev_shoe_print"
+			],
+			"actions": [
+				"deliver_lab_results:ev_shoe_print",
+				"notify:Lab results are in - the hallway shoe print has been analyzed."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_unlock_office",
+			"trigger_type": "CONDITIONAL",
+			"trigger_day": -1,
+			"conditions": [
+				"evidence_discovered:ev_mark_call_log"
+			],
+			"actions": [
+				"unlock_location:loc_victim_office",
+				"notify:The call log reveals a business connection. Daniel's office is now available for investigation."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_warrant_julia_phone",
+			"trigger_type": "CONDITIONAL",
+			"trigger_day": -1,
+			"conditions": [
+				"warrant_obtained:warrant_julia_phone"
+			],
+			"actions": [
+				"unlock_evidence:ev_deleted_messages",
+				"notify:Warrant executed. Deleted messages from Julia's phone have been recovered."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_warrant_julia_search",
+			"trigger_type": "CONDITIONAL",
+			"trigger_day": -1,
+			"conditions": [
+				"warrant_obtained:warrant_julia_search"
+			],
+			"actions": [
+				"unlock_evidence:ev_julia_shoes",
+				"notify:Search warrant executed at Julia's residence. Her shoes have been seized for comparison."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_final_day_pressure",
+			"trigger_type": "DAY_START",
+			"trigger_day": 4,
+			"conditions": [],
+			"actions": [
+				"add_mandatory:submit_case_report",
+				"notify:Final day of investigation. You must submit your case report to the prosecutor before end of day."
+			],
+			"result_events": []
+		}
+	],
+	"interrogation_topics": [
+		{
+			"id": "topic_mark_departure",
+			"person_id": "p_mark",
+			"topic_name": "Mark's Departure Time",
+			"trigger_conditions": [
+				"evidence:ev_parking_camera"
+			],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_mark_confronted"
+			],
+			"required_evidence": [
+				"ev_parking_camera"
+			],
+			"requires_statement_id": "stmt_mark_initial",
+			"impact_level": "MAJOR"
+		},
+		{
+			"id": "topic_mark_finances",
+			"person_id": "p_mark",
+			"topic_name": "Financial Dispute",
+			"trigger_conditions": [
+				"evidence:ev_bank_transfer"
+			],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_mark_financial"
+			],
+			"required_evidence": [
+				"ev_bank_transfer"
+			],
+			"requires_statement_id": "",
+			"impact_level": "MAJOR"
+		},
+		{
+			"id": "topic_mark_embezzlement",
+			"person_id": "p_mark",
+			"topic_name": "The Embezzlement",
+			"trigger_conditions": [
+				"evidence:ev_hidden_safe"
+			],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_mark_embezzlement"
+			],
+			"required_evidence": [
+				"ev_hidden_safe"
+			],
+			"requires_statement_id": "",
+			"impact_level": "BREAKPOINT"
+		},
+		{
+			"id": "topic_sarah_hallway",
+			"person_id": "p_sarah",
+			"topic_name": "What Sarah Saw",
+			"trigger_conditions": [
+				"evidence:ev_hallway_camera"
+			],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_sarah_confronted"
+			],
+			"required_evidence": [
+				"ev_hallway_camera"
+			],
+			"requires_statement_id": "stmt_sarah_initial",
+			"impact_level": "MAJOR"
+		},
+		{
+			"id": "topic_julia_presence",
+			"person_id": "p_julia",
+			"topic_name": "Julia's Presence at Apartment",
+			"trigger_conditions": [
+				"evidence:ev_julia_fingerprint_glass"
+			],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_julia_fingerprint"
+			],
+			"required_evidence": [
+				"ev_julia_fingerprint_glass"
+			],
+			"requires_statement_id": "stmt_julia_initial",
+			"impact_level": "MAJOR"
+		},
+		{
+			"id": "topic_julia_elevator",
+			"person_id": "p_julia",
+			"topic_name": "Elevator Evidence",
+			"trigger_conditions": [
+				"evidence:ev_elevator_logs"
+			],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_julia_elevator"
+			],
+			"required_evidence": [
+				"ev_elevator_logs"
+			],
+			"requires_statement_id": "stmt_julia_fingerprint",
+			"impact_level": "MAJOR"
+		},
+		{
+			"id": "topic_lucas_work",
+			"person_id": "p_lucas",
+			"topic_name": "Lucas's Work Schedule",
+			"trigger_conditions": [
+				"evidence:ev_lucas_work_log"
+			],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [
+				"ev_lucas_work_log"
+			],
+			"requires_statement_id": "stmt_lucas_initial",
+			"impact_level": "MINOR"
+		}
+	],
+	"interrogation_triggers": [
+		{
+			"id": "itrig_mark_parking",
+			"person_id": "p_mark",
+			"evidence_id": "ev_parking_camera",
+			"requires_statement_id": "stmt_mark_initial",
+			"impact_level": "MAJOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "Alright... maybe it was closer to 20:40.",
+			"new_statement_id": "stmt_mark_confronted",
+			"unlocks": [],
+			"pressure_points": 2,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_mark_bank",
+			"person_id": "p_mark",
+			"evidence_id": "ev_bank_transfer",
+			"requires_statement_id": "",
+			"impact_level": "MAJOR",
+			"reaction_type": "DEFLECTION",
+			"dialogue": "This has nothing to do with the murder.",
+			"new_statement_id": "stmt_mark_financial",
+			"unlocks": [],
+			"pressure_points": 2,
+			"deflection_target_id": "p_julia"
+		},
+		{
+			"id": "itrig_mark_safe",
+			"person_id": "p_mark",
+			"evidence_id": "ev_hidden_safe",
+			"requires_statement_id": "",
+			"impact_level": "BREAKPOINT",
+			"reaction_type": "ADMISSION",
+			"dialogue": "Daniel found out about the missing money. But I didn't kill him.",
+			"new_statement_id": "stmt_mark_embezzlement",
+			"unlocks": [],
+			"pressure_points": 3,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_sarah_camera",
+			"person_id": "p_sarah",
+			"evidence_id": "ev_hallway_camera",
+			"requires_statement_id": "stmt_sarah_initial",
+			"impact_level": "MAJOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "I may have heard a woman's voice...",
+			"new_statement_id": "stmt_sarah_confronted",
+			"unlocks": [],
+			"pressure_points": 2,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_sarah_shoe",
+			"person_id": "p_sarah",
+			"evidence_id": "ev_shoe_print",
+			"requires_statement_id": "stmt_sarah_confronted",
+			"impact_level": "MINOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "Someone walked past my door quickly.",
+			"new_statement_id": "stmt_sarah_footsteps",
+			"unlocks": [],
+			"pressure_points": 1,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_julia_fingerprint",
+			"person_id": "p_julia",
+			"evidence_id": "ev_julia_fingerprint_glass",
+			"requires_statement_id": "stmt_julia_initial",
+			"impact_level": "MAJOR",
+			"reaction_type": "DEFLECTION",
+			"dialogue": "I visited earlier in the day.",
+			"new_statement_id": "stmt_julia_fingerprint",
+			"unlocks": [],
+			"pressure_points": 2,
+			"deflection_target_id": "p_mark"
+		},
+		{
+			"id": "itrig_julia_elevator",
+			"person_id": "p_julia",
+			"evidence_id": "ev_elevator_logs",
+			"requires_statement_id": "stmt_julia_fingerprint",
+			"impact_level": "MAJOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "Okay... I stopped by briefly. But Daniel was alive when I left.",
+			"new_statement_id": "stmt_julia_elevator",
+			"unlocks": [],
+			"pressure_points": 2,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_julia_shoes",
+			"person_id": "p_julia",
+			"evidence_id": "ev_julia_shoes",
+			"requires_statement_id": "stmt_julia_elevator",
+			"impact_level": "MAJOR",
+			"reaction_type": "PANIC",
+			"dialogue": "That... that doesn't prove anything! I told you I stopped by briefly!",
+			"new_statement_id": "",
+			"unlocks": [],
+			"pressure_points": 3,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_julia_journal",
+			"person_id": "p_julia",
+			"evidence_id": "ev_personal_journal",
+			"requires_statement_id": "stmt_julia_elevator",
+			"impact_level": "BREAKPOINT",
+			"reaction_type": "PARTIAL_CONFESSION",
+			"dialogue": "He threatened to ruin everything. I just lost control.",
+			"new_statement_id": "stmt_julia_confession",
+			"unlocks": [],
+			"pressure_points": 4,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_lucas_work",
+			"person_id": "p_lucas",
+			"evidence_id": "ev_lucas_work_log",
+			"requires_statement_id": "stmt_lucas_initial",
+			"impact_level": "MINOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "Fine, I was working until 20:00, not 19:00. But I was in the basement the whole time, nowhere near his apartment.",
+			"new_statement_id": "",
+			"unlocks": [],
+			"pressure_points": 1,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_lucas_elevator",
+			"person_id": "p_lucas",
+			"evidence_id": "ev_elevator_logs",
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "See? My key card wasn't used for the elevator. I took the stairs to the basement. I never went to his floor.",
+			"new_statement_id": "",
+			"unlocks": [],
+			"pressure_points": 0,
+			"deflection_target_id": ""
+		}
+	]
+}

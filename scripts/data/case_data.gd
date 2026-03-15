@@ -56,6 +56,9 @@ var surveillance_requests: Array[SurveillanceRequestData] = []
 ## All interrogation triggers (evidence-based reactions during interrogation).
 var interrogation_triggers: Array[InterrogationTriggerData] = []
 
+## All discovery rules (conditional evidence availability).
+var discovery_rules: Array[DiscoveryRuleData] = []
+
 ## Solution: correct suspect person ID.
 var solution_suspect: String = ""
 
@@ -147,6 +150,11 @@ static func from_dict(data: Dictionary) -> CaseData:
 	for item: Dictionary in data.get("interrogation_triggers", []):
 		res.interrogation_triggers.append(InterrogationTriggerData.from_dict(item))
 
+	# Parse discovery rules
+	res.discovery_rules = []
+	for item: Dictionary in data.get("discovery_rules", []):
+		res.discovery_rules.append(DiscoveryRuleData.from_dict(item))
+
 	# Parse solution data
 	var solution: Dictionary = data.get("solution", {})
 	res.solution_suspect = solution.get("suspect", "")
@@ -202,6 +210,8 @@ func validate() -> Array[String]:
 		errors.append_array(surv_req.validate())
 	for interr_trig: InterrogationTriggerData in interrogation_triggers:
 		errors.append_array(interr_trig.validate())
+	for rule: DiscoveryRuleData in discovery_rules:
+		errors.append_array(rule.validate())
 
 	return errors
 
@@ -277,5 +287,10 @@ func to_dict() -> Dictionary:
 	for it: InterrogationTriggerData in interrogation_triggers:
 		arr.append(it.to_dict())
 	result["interrogation_triggers"] = arr
+
+	arr = []
+	for dr: DiscoveryRuleData in discovery_rules:
+		arr.append(dr.to_dict())
+	result["discovery_rules"] = arr
 
 	return result

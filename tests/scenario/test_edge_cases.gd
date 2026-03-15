@@ -20,12 +20,15 @@ var _test_case_data: Dictionary = {
 	"evidence": [
 		{"id": "ev_weapon", "name": "Weapon", "description": "Murder weapon.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["PRESENCE"]},
 		{"id": "ev_motive", "name": "Motive Doc", "description": "Financial motive.", "type": "DOCUMENT", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "CRITICAL", "legal_categories": ["MOTIVE"]},
+		{"id": "ev_extra", "name": "Extra Evidence", "description": "Additional evidence.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": [], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": []},
 	],
 	"locations": [
 		{"id": "loc_scene", "name": "Scene", "description": "Crime scene.", "type": "CRIME_SCENE", "evidence_ids": ["ev_weapon"]},
 		{"id": "loc_office", "name": "Office", "description": "Office.", "type": "PUBLIC", "evidence_ids": ["ev_motive"]},
 	],
-	"events": [],
+	"events": [
+		{"id": "evt_test", "name": "Test Event", "description": "Event for timeline tests.", "time": "21:00", "day": 1, "location": "loc_scene", "involved_persons": []},
+	],
 	"interrogation_triggers": [
 		{"id": "trig_weapon", "person_id": "p_mark", "evidence_id": "ev_weapon", "response": "Not mine.", "impact_level": "MODERATE", "pressure_points": 1},
 	],
@@ -217,6 +220,7 @@ func test_move_nonexistent_board_node() -> void:
 
 func test_connection_to_nonexistent_nodes() -> void:
 	var conn: Dictionary = BoardManager.add_connection("fake_from", "fake_to")
+	assert_push_error("[BoardManager] Source node not found: fake_from")
 	assert_true(conn.is_empty(), "Connection between nonexistent nodes should fail")
 
 
@@ -236,7 +240,7 @@ func test_timeline_move_nonexistent_entry() -> void:
 
 func test_timeline_duplicate_event_placement() -> void:
 	TimelineManager.place_event("evt_test", 1260, 1)
-	var second: Dictionary = TimelineManager.place_event("evt_test", 1290, 1)
+	var _second: Dictionary = TimelineManager.place_event("evt_test", 1290, 1)
 	# Should either reject or update — verify no crash
 	assert_true(TimelineManager.get_entry_count() >= 1)
 
@@ -270,13 +274,14 @@ func test_lab_cancel_nonexistent_request() -> void:
 
 
 func test_lab_max_concurrent_requests() -> void:
-	GameManager.discover_evidence("ev_weapon")
-	# Submit up to max
+	var evidence_ids: Array[String] = ["ev_weapon", "ev_motive", "ev_extra"]
+	# Submit up to max using different evidence IDs
 	for i: int in range(LabManager.MAX_CONCURRENT_REQUESTS):
-		LabManager.submit_request("ev_weapon", "TEST_%d" % i, "out_%d" % i, 1)
+		GameManager.discover_evidence(evidence_ids[i])
+		LabManager.submit_request(evidence_ids[i], "TEST_%d" % i, "out_%d" % i, 1)
 	assert_eq(LabManager.get_pending_count(), LabManager.MAX_CONCURRENT_REQUESTS)
 
-	# One more should fail
+	# One more should fail (ev_weapon already submitted)
 	var extra: Dictionary = LabManager.submit_request("ev_weapon", "EXTRA", "out_extra", 1)
 	assert_true(extra.is_empty(), "Should reject when at max capacity")
 
@@ -286,11 +291,14 @@ func test_lab_max_concurrent_requests() -> void:
 # =========================================================================
 
 func test_surveillance_max_concurrent() -> void:
+	var persons: Array[String] = ["p_mark", "p_julia"]
+	# Install on different persons up to the concurrent limit
 	for i: int in range(SurveillanceManager.MAX_CONCURRENT):
-		SurveillanceManager.install_surveillance("p_mark", Enums.SurveillanceType.PHYSICAL)
+		SurveillanceManager.install_surveillance(persons[i], Enums.SurveillanceType.PHYSICAL)
 	assert_eq(SurveillanceManager.get_active_count(), SurveillanceManager.MAX_CONCURRENT)
 
-	var extra: Dictionary = SurveillanceManager.install_surveillance("p_julia", Enums.SurveillanceType.PHYSICAL)
+	# p_victim should be rejected due to concurrent limit
+	var extra: Dictionary = SurveillanceManager.install_surveillance("p_victim", Enums.SurveillanceType.PHYSICAL)
 	assert_true(extra.is_empty(), "Should reject when at max concurrent")
 
 

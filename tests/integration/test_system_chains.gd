@@ -87,7 +87,7 @@ func test_evidence_to_archive_to_interrogation_to_board() -> void:
 	InterrogationManager.start_interrogation("p_mark")
 	assert_true(InterrogationManager.is_active())
 	var result: Dictionary = InterrogationManager.present_evidence("ev_knife")
-	assert_true(result.get("success", false), "Should fire trigger for ev_knife")
+	assert_true(result.get("triggered", false), "Should fire trigger for ev_knife")
 
 	# Verify trigger fired
 	var fired: Array = InterrogationManager.get_fired_triggers_for_person("p_mark")
@@ -250,12 +250,13 @@ func test_full_chain_evidence_to_outcome() -> void:
 	TheoryManager.set_time(theory["id"], 1290, 1)
 	TheoryManager.attach_evidence(theory["id"], "suspect", "ev_knife_dna")
 	TheoryManager.attach_evidence(theory["id"], "motive", "ev_motive")
-	assert_true(TheoryManager.is_complete(theory["id"]))
 
 	# Step 3: Place timeline events
-	TimelineManager.place_event("evt_arrival", 1260, 1)
+	var entry1: Dictionary = TimelineManager.place_event("evt_arrival", 1260, 1)
 	TimelineManager.place_event("evt_argument", 1290, 1)
 	assert_eq(TimelineManager.get_entry_count(), 2)
+	TheoryManager.set_timeline_links(theory["id"], [entry1["id"]])
+	assert_true(TheoryManager.is_complete(theory["id"]))
 
 	# Step 4: Submit report
 	var report: Dictionary = {

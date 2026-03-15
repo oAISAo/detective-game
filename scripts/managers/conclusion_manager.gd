@@ -88,6 +88,9 @@ func _ready() -> void:
 ## Submits a full case report. Returns true if valid.
 ## report_data format: { "suspect": { "answer": "p_mark", "evidence": ["ev1"] }, ... }
 func submit_report(report_data: Dictionary) -> bool:
+	if has_report():
+		push_warning("[ConclusionManager] Report already submitted.")
+		return false
 	# Validate all sections present
 	for section: String in REPORT_SECTIONS:
 		if section not in report_data:

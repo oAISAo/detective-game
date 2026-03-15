@@ -208,8 +208,8 @@ static func _draw_text_centered(image: Image, text: String, color: Color) -> voi
 	var scale := maxi(mini(scale_x, scale_y), 1)
 	var total_w := text_pixel_w * scale
 	var total_h := CHAR_H * scale
-	var start_x := (iw - total_w) / 2
-	var start_y := (ih - total_h) / 2
+	var start_x: int = int((iw - total_w) * 0.5)
+	var start_y: int = int((ih - total_h) * 0.5)
 	var cursor_x := start_x
 	for i in range(text.length()):
 		var c := text[i]
