@@ -193,6 +193,17 @@ func new_game() -> void:
 	if theory_mgr and theory_mgr.has_method("reset"):
 		theory_mgr.call("reset")
 
+	# Reset Phase 11 systems if available
+	var lab_mgr: Node = get_node_or_null("/root/LabManager")
+	if lab_mgr and lab_mgr.has_method("reset"):
+		lab_mgr.call("reset")
+	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
+	if surv_mgr and surv_mgr.has_method("reset"):
+		surv_mgr.call("reset")
+	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
+	if warrant_mgr and warrant_mgr.has_method("reset"):
+		warrant_mgr.call("reset")
+
 	game_reset.emit()
 	print("[GameManager] New game started.")
 
@@ -461,6 +472,17 @@ func serialize() -> Dictionary:
 	if theory_mgr and theory_mgr.has_method("serialize"):
 		data["theory_manager"] = theory_mgr.call("serialize")
 
+	# Include Phase 11 system state if available
+	var lab_mgr: Node = get_node_or_null("/root/LabManager")
+	if lab_mgr and lab_mgr.has_method("serialize"):
+		data["lab_manager"] = lab_mgr.call("serialize")
+	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
+	if surv_mgr and surv_mgr.has_method("serialize"):
+		data["surveillance_manager"] = surv_mgr.call("serialize")
+	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
+	if warrant_mgr and warrant_mgr.has_method("serialize"):
+		data["warrant_manager"] = warrant_mgr.call("serialize")
+
 	return data
 
 
@@ -528,3 +550,14 @@ func deserialize(data: Dictionary) -> void:
 	var theory_mgr: Node = get_node_or_null("/root/TheoryManager")
 	if theory_mgr and theory_mgr.has_method("deserialize") and data.has("theory_manager"):
 		theory_mgr.call("deserialize", data["theory_manager"])
+
+	# Restore Phase 11 system state if available
+	var lab_mgr: Node = get_node_or_null("/root/LabManager")
+	if lab_mgr and lab_mgr.has_method("deserialize") and data.has("lab_manager"):
+		lab_mgr.call("deserialize", data["lab_manager"])
+	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
+	if surv_mgr and surv_mgr.has_method("deserialize") and data.has("surveillance_manager"):
+		surv_mgr.call("deserialize", data["surveillance_manager"])
+	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
+	if warrant_mgr and warrant_mgr.has_method("deserialize") and data.has("warrant_manager"):
+		warrant_mgr.call("deserialize", data["warrant_manager"])

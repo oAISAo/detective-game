@@ -155,3 +155,11 @@ enum TheoryStrength {
 	MODERATE,
 	STRONG,
 }
+
+## Type of warrant that can be requested.
+enum WarrantType {
+	SEARCH,
+	SURVEILLANCE,
+	DIGITAL,
+	ARREST,
+}
