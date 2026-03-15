@@ -163,3 +163,19 @@ enum WarrantType {
 	DIGITAL,
 	ARREST,
 }
+
+## Prosecutor confidence level based on case strength.
+enum ConfidenceLevel {
+	WEAK,
+	MODERATE,
+	STRONG,
+	PERFECT,
+}
+
+## Final case outcome.
+enum CaseOutcome {
+	PERFECT_SOLUTION,
+	CORRECT_BUT_INCOMPLETE,
+	WRONG_BUT_PLAUSIBLE,
+	INCORRECT_THEORY,
+}

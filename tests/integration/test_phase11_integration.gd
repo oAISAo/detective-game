@@ -336,4 +336,4 @@ func test_phase11_screens_registered() -> void:
 	assert_has(screens, "lab_queue", "lab_queue screen should be registered")
 	assert_has(screens, "surveillance_panel", "surveillance_panel screen should be registered")
 	assert_has(screens, "warrant_office", "warrant_office screen should be registered")
-	assert_eq(screens.size(), 13, "Should now have 13 screens total")
+	assert_eq(screens.size(), 16, "Should now have 16 screens total")

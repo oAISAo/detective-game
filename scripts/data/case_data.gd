@@ -56,6 +56,27 @@ var surveillance_requests: Array[SurveillanceRequestData] = []
 ## All interrogation triggers (evidence-based reactions during interrogation).
 var interrogation_triggers: Array[InterrogationTriggerData] = []
 
+## Solution: correct suspect person ID.
+var solution_suspect: String = ""
+
+## Solution: correct motive description.
+var solution_motive: String = ""
+
+## Solution: correct weapon/method.
+var solution_weapon: String = ""
+
+## Solution: correct time of crime in minutes from midnight.
+var solution_time_minutes: int = -1
+
+## Solution: correct day of crime.
+var solution_time_day: int = -1
+
+## Solution: how the suspect accessed the location.
+var solution_access: String = ""
+
+## IDs of evidence considered critical for the case.
+var critical_evidence_ids: Array[String] = []
+
 
 ## Creates a CaseData from a JSON dictionary.
 static func from_dict(data: Dictionary) -> CaseData:
@@ -125,6 +146,21 @@ static func from_dict(data: Dictionary) -> CaseData:
 	res.interrogation_triggers = []
 	for item: Dictionary in data.get("interrogation_triggers", []):
 		res.interrogation_triggers.append(InterrogationTriggerData.from_dict(item))
+
+	# Parse solution data
+	var solution: Dictionary = data.get("solution", {})
+	res.solution_suspect = solution.get("suspect", "")
+	res.solution_motive = solution.get("motive", "")
+	res.solution_weapon = solution.get("weapon", "")
+	res.solution_time_minutes = int(solution.get("time_minutes", -1))
+	res.solution_time_day = int(solution.get("time_day", -1))
+	res.solution_access = solution.get("access", "")
+
+	# Parse critical evidence IDs
+	var crit: Array = data.get("critical_evidence_ids", [])
+	res.critical_evidence_ids = []
+	for eid in crit:
+		res.critical_evidence_ids.append(str(eid))
 
 	return res
 
