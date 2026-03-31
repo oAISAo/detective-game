@@ -110,6 +110,8 @@ func _setup_ui() -> void:
 func _update_phase_display() -> void:
 	var phase: Enums.InterrogationPhase = InterrogationManager.get_current_phase()
 	match phase:
+		Enums.InterrogationPhase.STATEMENT_INTAKE:
+			phase_label.text = "Statement Intake"
 		Enums.InterrogationPhase.INTERROGATION:
 			phase_label.text = "Questioning"
 		Enums.InterrogationPhase.PRESSURE:
@@ -271,21 +273,42 @@ func _populate_statements() -> void:
 func _update_button_states() -> void:
 	var phase: Enums.InterrogationPhase = InterrogationManager.get_current_phase()
 	var focus: Dictionary = InterrogationManager.get_current_focus()
+	var in_intake: bool = phase == Enums.InterrogationPhase.STATEMENT_INTAKE
 
-	# Present Evidence: allowed when active, requires focus + evidence
-	var can_present: bool = InterrogationManager.is_active()
+	# Present Evidence: not allowed during statement intake
+	var can_present: bool = InterrogationManager.is_active() and not in_intake
 	present_button.disabled = not can_present or focus.is_empty() or _selected_evidence_id.is_empty()
 
-	# Apply Pressure: always visible, disabled if not enough contradictions
+	# Apply Pressure: not allowed during statement intake
 	apply_pressure_button.visible = InterrogationManager.is_active()
-	var can_pressure: bool = InterrogationManager.can_apply_pressure()
+	var can_pressure: bool = InterrogationManager.can_apply_pressure() and not in_intake
 	apply_pressure_button.disabled = not can_pressure
 	if not can_pressure and InterrogationManager.is_active():
-		apply_pressure_button.tooltip_text = "Need more contradictions to apply pressure"
+		if in_intake:
+			apply_pressure_button.tooltip_text = "Proceed to questioning first"
+		else:
+			apply_pressure_button.tooltip_text = "Need more contradictions to apply pressure"
 	else:
 		apply_pressure_button.tooltip_text = ""
 
 	end_session_button.disabled = not InterrogationManager.is_active()
+
+	# Show/hide the "Proceed to Questioning" button
+	_update_proceed_button(in_intake)
+
+
+## Shows or hides the "Proceed to Questioning" button for statement intake phase.
+func _update_proceed_button(in_intake: bool) -> void:
+	var parent: Node = dialogue_label.get_parent()
+	var existing: Node = parent.get_node_or_null("ProceedButton")
+	if in_intake and existing == null:
+		var btn: Button = Button.new()
+		btn.name = "ProceedButton"
+		btn.text = "Proceed to Questioning ►"
+		btn.pressed.connect(_on_proceed_pressed)
+		parent.add_child(btn)
+	elif not in_intake and existing != null:
+		existing.queue_free()
 
 
 # =========================================================================
@@ -340,6 +363,11 @@ func _on_contradiction_logged(_statement_id: String, _evidence_id: String) -> vo
 # =========================================================================
 # User Actions
 # =========================================================================
+
+func _on_proceed_pressed() -> void:
+	InterrogationManager.advance_to_interrogation()
+	_show_dialogue("You begin questioning %s." % suspect_name_label.text)
+
 
 func _on_statement_pressed(statement_id: String) -> void:
 	var current_focus: Dictionary = InterrogationManager.get_current_focus()

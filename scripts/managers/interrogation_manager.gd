@@ -75,7 +75,6 @@ func start_interrogation(person_id: String) -> bool:
 		return false
 
 	_current_person_id = person_id
-	_current_phase = Enums.InterrogationPhase.INTERROGATION
 	_current_focus = {}
 	_session_contradictions.clear()
 	_session_statements.clear()
@@ -84,15 +83,22 @@ func start_interrogation(person_id: String) -> bool:
 
 	GameManager.record_interrogation(person_id)
 
-	# Auto-record initial statements from session data
+	# Start in statement intake phase — suspect tells their story first
 	var session: InterrogationSessionData = CaseManager.get_interrogation_session(person_id)
-	if session:
+	if session and not session.initial_statement_ids.is_empty():
+		_current_phase = Enums.InterrogationPhase.STATEMENT_INTAKE
 		for stmt_id: String in session.initial_statement_ids:
 			_record_statement(stmt_id)
+	else:
+		# No initial statements defined — skip straight to interrogation
+		_current_phase = Enums.InterrogationPhase.INTERROGATION
 
 	interrogation_started.emit(person_id)
 	phase_changed.emit(_current_phase)
-	print("[InterrogationManager] Interrogation started with %s" % person_id)
+	print("[InterrogationManager] Interrogation started with %s (phase: %s)" % [
+		person_id,
+		"STATEMENT_INTAKE" if _current_phase == Enums.InterrogationPhase.STATEMENT_INTAKE else "INTERROGATION",
+	])
 	return true
 
 

@@ -23,6 +23,11 @@ extends Control
 var _current_tab: String = "evidence"
 var _selected_evidence_id: String = ""
 
+# Stored callables for signal disconnection on exit
+var _on_evidence_discovered_cb: Callable
+var _on_evidence_pinned_cb: Callable
+var _on_evidence_unpinned_cb: Callable
+
 
 func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
@@ -37,10 +42,21 @@ func _ready() -> void:
 	_populate_pinned_bar()
 	_populate_evidence_list()
 
+	# Store callables so we can disconnect them in _exit_tree
+	_on_evidence_discovered_cb = func(_id: String) -> void: _refresh()
+	_on_evidence_pinned_cb = func(_id: String) -> void: _populate_pinned_bar()
+	_on_evidence_unpinned_cb = func(_id: String) -> void: _populate_pinned_bar()
+
 	# Connect to live updates
-	GameManager.evidence_discovered.connect(func(_id: String) -> void: _refresh())
-	EvidenceManager.evidence_pinned.connect(func(_id: String) -> void: _populate_pinned_bar())
-	EvidenceManager.evidence_unpinned.connect(func(_id: String) -> void: _populate_pinned_bar())
+	GameManager.evidence_discovered.connect(_on_evidence_discovered_cb)
+	EvidenceManager.evidence_pinned.connect(_on_evidence_pinned_cb)
+	EvidenceManager.evidence_unpinned.connect(_on_evidence_unpinned_cb)
+
+
+func _exit_tree() -> void:
+	GameManager.evidence_discovered.disconnect(_on_evidence_discovered_cb)
+	EvidenceManager.evidence_pinned.disconnect(_on_evidence_pinned_cb)
+	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
 
 
 ## Configures the filter dropdown with all evidence types.
