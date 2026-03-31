@@ -1,7 +1,7 @@
 ## test_day_cycle_integration.gd
-## Integration tests for the full day cycle: Morning → Afternoon → Evening → Night.
+## Integration tests for the full day cycle: Morning → Daytime → Night.
 ## Tests DaySystem + ActionSystem + GameManager working together.
-## Phase 2: Verify complete investigation flow across multiple days.
+## Validates the 3-phase model with 4 actions per day.
 extends GutTest
 
 
@@ -134,43 +134,41 @@ func before_each() -> void:
 	CaseManager.load_case(TEST_CASE_FILE)
 
 
-# --- Full Day Cycle --- #
+# --- Full Day Cycle (3-Phase) --- #
 
-func test_morning_afternoon_evening_night_cycle() -> void:
-	# Morning — briefing
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING)
-	var briefing: Array[String] = DaySystem.process_morning()
+func test_morning_daytime_night_cycle() -> void:
+	# Morning — briefing, auto-transitions to Daytime
+	assert_eq(GameManager.current_phase, Enums.DayPhase.MORNING)
+	DaySystem.process_morning()
 	assert_true(DaySystem.is_morning_briefing_shown())
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME, "Should be in Daytime after morning")
 
-	# Player moves to afternoon
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.AFTERNOON)
-
-	# Afternoon — execute major action
+	# Daytime — execute actions (4 available)
+	assert_eq(GameManager.actions_remaining, 4)
 	var result: bool = ActionSystem.execute_action("act_visit")
 	assert_true(result, "Should execute visit action")
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
+	assert_eq(GameManager.actions_remaining, 3)
 	assert_true(GameManager.has_evidence("ev_initial"))
-	# Action auto-advances to evening
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.EVENING)
 
-	# Evening — execute second action (now has evidence for interrogation)
+	# Execute second action
 	result = ActionSystem.execute_action("act_interrogate")
 	assert_true(result, "Should execute interrogation with evidence")
-	assert_eq(GameManager.actions_remaining, 0)
-	# Action auto-advances to night
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.NIGHT)
+	assert_eq(GameManager.actions_remaining, 2)
 
-	# Night — end day
+	# Still in Daytime with actions remaining
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
+
+	# End day early
 	var advanced: bool = DaySystem.try_end_day()
 	assert_true(advanced, "Should advance to next day")
 	assert_eq(GameManager.current_day, 2)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.MORNING)
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 
 
 func test_day_2_morning_briefing_includes_trigger() -> void:
 	# Advance to Day 2
+	DaySystem.process_morning()
 	DaySystem.try_end_day()
 	assert_eq(GameManager.current_day, 2)
 
@@ -211,7 +209,7 @@ func test_trigger_fires_only_once() -> void:
 	GameManager.discover_evidence("ev_initial")
 	DaySystem.process_morning()
 	# Process morning again — trigger should not re-fire
-	DaySystem._morning_briefing_shown = false
+	DaySystem.try_end_day()
 	var briefing2: Array[String] = DaySystem.process_morning()
 	var count: int = 0
 	for item: String in briefing2:
@@ -234,7 +232,7 @@ func test_lab_request_completes_on_correct_day() -> void:
 	})
 
 	# Day 1 morning — should NOT complete yet
-	var briefing1: Array[String] = DaySystem.process_morning()
+	DaySystem.process_morning()
 	assert_eq(GameManager.active_lab_requests.size(), 1, "Lab should still be pending on Day 1")
 
 	# Advance to Day 2
@@ -271,10 +269,12 @@ func test_surveillance_active_across_days() -> void:
 	assert_eq(GameManager.active_surveillance.size(), 1, "Surveillance should still be active on Day 2")
 
 	# Night processing Day 2 → Day 3
+	DaySystem.process_morning()
 	DaySystem.try_end_day()
 	assert_eq(GameManager.active_surveillance.size(), 1, "Surveillance should still be active on Day 3")
 
 	# Night processing Day 3 → Day 4
+	DaySystem.process_morning()
 	DaySystem.try_end_day()
 	assert_eq(GameManager.active_surveillance.size(), 0, "Surveillance should expire after Day 3")
 
@@ -282,6 +282,7 @@ func test_surveillance_active_across_days() -> void:
 # --- Mandatory Action Blocking --- #
 
 func test_mandatory_blocks_day_advance() -> void:
+	DaySystem.process_morning()
 	GameManager.mandatory_actions_required.append("must_do_this")
 	watch_signals(DaySystem)
 	var result: bool = DaySystem.try_end_day()
@@ -291,6 +292,7 @@ func test_mandatory_blocks_day_advance() -> void:
 
 
 func test_mandatory_allows_after_completion() -> void:
+	DaySystem.process_morning()
 	GameManager.mandatory_actions_required.append("must_do_this")
 	GameManager.complete_mandatory_action("must_do_this")
 	var result: bool = DaySystem.try_end_day()
@@ -304,6 +306,7 @@ func test_full_investigation_four_days() -> void:
 	watch_signals(DaySystem)
 	# Advance through all 4 days
 	for i: int in range(GameManager.TOTAL_DAYS - 1):
+		DaySystem.process_morning()
 		DaySystem.try_end_day()
 	# Now on Day 4
 	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS)
@@ -321,23 +324,23 @@ func test_full_investigation_four_days() -> void:
 
 # --- Passive Actions Don't Consume Slots --- #
 
-func test_passive_actions_during_any_time() -> void:
-	# Passive actions work during morning
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
+func test_passive_actions_during_daytime() -> void:
+	DaySystem.process_morning()
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
 	var result: bool = ActionSystem.execute_action("act_free")
-	assert_true(result, "Passive action should work during morning")
+	assert_true(result, "Passive action should work during Daytime")
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Should not consume slot")
 
 
 # --- Action System + Day System Integration --- #
 
 func test_action_system_daily_reset_via_day_advance() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
+	DaySystem.process_morning()
 	ActionSystem.execute_action("act_visit")
 	assert_eq(ActionSystem.actions_executed_today.size(), 1, "Should have 1 daily action")
 
-	# Manually trigger new day reset
-	ActionSystem.on_new_day()
+	# Advance day
+	DaySystem.try_end_day()
 	assert_eq(ActionSystem.actions_executed_today.size(), 0, "Daily actions should reset")
 	assert_eq(ActionSystem.executed_actions.size(), 1, "Total actions should persist")
 
@@ -345,7 +348,9 @@ func test_action_system_daily_reset_via_day_advance() -> void:
 # --- Investigation Log Records Correctly --- #
 
 func test_investigation_log_records_day_transitions() -> void:
+	DaySystem.process_morning()
 	DaySystem.try_end_day()
+	DaySystem.process_morning()
 	DaySystem.try_end_day()
 	var action_log: Array[Dictionary] = GameManager.get_investigation_log()
 	var day_entries: int = 0

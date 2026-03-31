@@ -77,7 +77,8 @@ func clear_pending_morning_actions() -> void:
 # --- Trigger Evaluation: DAY_START --- #
 
 ## Evaluates all DAY_START triggers for the current day.
-## Returns an array of action strings to include in the morning briefing.
+## Returns an array of human-readable briefing strings to include in the morning briefing.
+## Also dispatches all actions (unlock_location, unlock_evidence, etc.) as side-effects.
 func evaluate_day_start_triggers() -> Array[String]:
 	var results: Array[String] = []
 
@@ -91,7 +92,10 @@ func evaluate_day_start_triggers() -> Array[String]:
 			if _check_conditions(trigger.conditions):
 				_fire_trigger(trigger, "DAY_START")
 				for action_str: String in trigger.actions:
-					results.append(action_str)
+					_dispatch_action(action_str, trigger.id)
+					var briefing_line: String = _action_to_briefing_text(action_str)
+					if not briefing_line.is_empty():
+						results.append(briefing_line)
 					action_dispatched.emit(action_str, trigger.id)
 				day_start_trigger_fired.emit(trigger.id, trigger.actions)
 
@@ -99,10 +103,52 @@ func evaluate_day_start_triggers() -> Array[String]:
 	for pending: Dictionary in _pending_morning_actions:
 		var actions: Array = pending.get("actions", [])
 		for action_str in actions:
-			results.append(action_str as String)
+			_dispatch_action(action_str as String, pending.get("trigger_id", ""))
+			var briefing_line: String = _action_to_briefing_text(action_str as String)
+			if not briefing_line.is_empty():
+				results.append(briefing_line)
 	clear_pending_morning_actions()
 
 	return results
+
+
+## Converts a raw action string to human-readable briefing text.
+## Returns empty string for actions that should not appear in the briefing.
+func _action_to_briefing_text(action_str: String) -> String:
+	var parts: PackedStringArray = action_str.split(":", true, 1)
+	if parts.size() < 2:
+		# Plain text — show as-is
+		return action_str
+
+	var action_type: String = parts[0].strip_edges()
+	var action_value: String = parts[1].strip_edges()
+
+	match action_type:
+		"unlock_location":
+			var loc: LocationData = CaseManager.get_location(action_value)
+			var loc_name: String = loc.name if loc else action_value
+			return "New location available: %s" % loc_name
+		"unlock_evidence":
+			var ev: EvidenceData = CaseManager.get_evidence(action_value)
+			var ev_name: String = ev.name if ev else action_value
+			return "New evidence: %s" % ev_name
+		"unlock_interrogation":
+			var person: PersonData = CaseManager.get_person(action_value)
+			var person_name: String = person.name if person else action_value
+			return "New suspect available for questioning: %s" % person_name
+		"deliver_lab_results":
+			var ev: EvidenceData = CaseManager.get_evidence(action_value)
+			var ev_name: String = ev.name if ev else action_value
+			return "Lab results ready: %s" % ev_name
+		"unlock_warrant":
+			return "Warrant available: %s" % action_value
+		"notify":
+			return action_value
+		"add_mandatory", "show_dialogue":
+			# Internal actions — don't show in briefing
+			return ""
+		_:
+			return action_value
 
 
 # --- Trigger Evaluation: TIMED --- #
@@ -260,27 +306,31 @@ func _dispatch_action(action_str: String, source_trigger_id: String) -> void:
 	match action_type:
 		"unlock_evidence":
 			GameManager.discover_evidence(action_value)
-			NotificationManager.notify_evidence(action_value)
+			var ev: EvidenceData = CaseManager.get_evidence(action_value)
+			var ev_name: String = ev.name if ev else action_value
+			NotificationManager.notify_evidence(ev_name)
 		"unlock_event":
 			# Events are informational — log and notify
 			NotificationManager.notify_story("New event: %s" % action_value)
-			GameManager._log_action("Event unlocked: %s" % action_value)
 		"unlock_location":
-			GameManager.visit_location(action_value)
-			NotificationManager.notify_story("New location available: %s" % action_value)
+			GameManager.unlock_location(action_value)
+			var loc: LocationData = CaseManager.get_location(action_value)
+			var loc_name: String = loc.name if loc else action_value
+			NotificationManager.notify_story("New location available: %s" % loc_name)
 		"unlock_interrogation":
-			NotificationManager.notify_story("New suspect available for questioning: %s" % action_value)
-			GameManager._log_action("Interrogation unlocked: %s" % action_value)
+			GameManager.unlock_interrogation(action_value)
+			var person: PersonData = CaseManager.get_person(action_value)
+			var person_name: String = person.name if person else action_value
+			NotificationManager.notify_story("New suspect available for questioning: %s" % person_name)
 		"deliver_lab_results":
-			NotificationManager.notify_lab_result(action_value)
-			GameManager._log_action("Lab results delivered: %s" % action_value)
+			var ev: EvidenceData = CaseManager.get_evidence(action_value)
+			var ev_name: String = ev.name if ev else action_value
+			NotificationManager.notify_lab_result(ev_name)
 		"unlock_warrant":
 			NotificationManager.notify_warrant("Warrant available: %s" % action_value)
-			GameManager._log_action("Warrant available: %s" % action_value)
 		"add_mandatory":
 			if action_value not in GameManager.mandatory_actions_required:
 				GameManager.mandatory_actions_required.append(action_value)
-				GameManager._log_action("Mandatory action added: %s" % action_value)
 		"show_dialogue":
 			# Queue dialogue for the dialogue system
 			_queue_dialogue(action_value, source_trigger_id)
@@ -289,7 +339,6 @@ func _dispatch_action(action_str: String, source_trigger_id: String) -> void:
 		_:
 			# Unknown action — just notify
 			NotificationManager.notify_story(action_str)
-			GameManager._log_action("Trigger action: %s (from %s)" % [action_str, source_trigger_id])
 
 
 ## Queues a dialogue entry for the DialogueSystem.
@@ -311,12 +360,11 @@ func _fire_trigger(trigger: EventTriggerData, source: String) -> void:
 		"trigger_id": trigger.id,
 		"source": source,
 		"day": GameManager.current_day,
-		"time_slot": GameManager.current_time_slot,
+		"phase": GameManager.current_phase,
 		"timestamp": Time.get_unix_time_from_system(),
 	}
 	_trigger_history.append(history_entry)
 	trigger_fired.emit(trigger.id, trigger)
-	GameManager._log_action("Trigger fired: %s [%s]" % [trigger.id, source])
 
 
 # --- Signal Handlers for Conditional Evaluation --- #

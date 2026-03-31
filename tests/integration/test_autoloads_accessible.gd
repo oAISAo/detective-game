@@ -33,7 +33,7 @@ func test_notification_manager_accessible() -> void:
 
 func test_enums_accessible() -> void:
 	# Verify enum values exist and are distinct
-	assert_ne(Enums.TimeSlot.MORNING, Enums.TimeSlot.AFTERNOON)
+	assert_ne(Enums.DayPhase.MORNING, Enums.DayPhase.DAYTIME)
 	assert_ne(Enums.EvidenceType.FORENSIC, Enums.EvidenceType.DOCUMENT)
 	assert_ne(Enums.PersonRole.VICTIM, Enums.PersonRole.SUSPECT)
 	assert_ne(Enums.ReactionType.DENIAL, Enums.ReactionType.DEFLECTION)

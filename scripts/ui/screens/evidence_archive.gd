@@ -147,7 +147,7 @@ func _on_evidence_selected(evidence_id: String) -> void:
 				lab_text = "\n[color=#33cc33]Lab: Complete[/color]"
 
 	var type_label: String = _get_type_label(ev.type)
-	var location_text: String = ev.location_found if not ev.location_found.is_empty() else "Unknown"
+	var location_text: String = _get_location_name(ev.location_found)
 
 	preview_label.text = "[b]%s%s[/b]\n%s\n\n[i]Type: %s[/i]\n[i]Location: %s[/i]%s" % [
 		ev.name, pin_status, ev.description, type_label, location_text, lab_text,
@@ -165,6 +165,14 @@ func _get_type_label(type: Enums.EvidenceType) -> String:
 		Enums.EvidenceType.DIGITAL: return "Digital"
 		Enums.EvidenceType.OBJECT: return "Object"
 	return "Unknown"
+
+
+## Resolves a location ID to its display name.
+func _get_location_name(location_id: String) -> String:
+	if location_id.is_empty():
+		return "Unknown"
+	var loc: LocationData = CaseManager.get_location(location_id)
+	return loc.name if loc else location_id
 
 
 ## Populates the pinned evidence bar.
@@ -216,7 +224,7 @@ func _populate_testimony_list() -> void:
 
 		var header_label: Label = Label.new()
 		header_label.text = "%s — Day %d" % [person_name, stmt.day_given]
-		header_label.add_theme_font_size_override("font_size", 14)
+		header_label.add_theme_font_size_override("font_size", 16)
 		vbox.add_child(header_label)
 
 		var text_label: RichTextLabel = RichTextLabel.new()

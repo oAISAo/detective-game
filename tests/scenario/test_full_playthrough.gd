@@ -14,17 +14,17 @@ var _test_case_data: Dictionary = {
 	"end_day": 4,
 	"persons": [
 		{"id": "p_victim", "name": "Daniel", "role": "VICTIM", "personality_traits": [], "relationships": [], "pressure_threshold": 0},
-		{"id": "p_mark", "name": "Mark", "role": "SUSPECT", "personality_traits": ["DEFENSIVE"], "relationships": [], "pressure_threshold": 3},
-		{"id": "p_julia", "name": "Julia", "role": "SUSPECT", "personality_traits": ["EVASIVE"], "relationships": [], "pressure_threshold": 5},
+		{"id": "p_mark", "name": "Mark", "role": "SUSPECT", "personality_traits": ["CALM"], "relationships": [], "pressure_threshold": 3},
+		{"id": "p_julia", "name": "Julia", "role": "SUSPECT", "personality_traits": ["ANXIOUS"], "relationships": [], "pressure_threshold": 5},
 		{"id": "p_carol", "name": "Carol", "role": "SUSPECT", "personality_traits": [], "relationships": [], "pressure_threshold": 4},
 	],
 	"evidence": [
-		{"id": "ev_knife", "name": "Kitchen Knife", "description": "Murder weapon.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_knife", "name": "Kitchen Knife", "description": "Murder weapon.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["PRESENCE"]},
 		{"id": "ev_dna", "name": "DNA Results", "description": "DNA on weapon.", "type": "FORENSIC", "location_found": "lab", "related_persons": ["p_mark"], "weight": 0.95, "importance_level": "CRITICAL", "legal_categories": ["CONNECTION"]},
 		{"id": "ev_insurance", "name": "Insurance Policy", "description": "Financial motive.", "type": "DOCUMENT", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "CRITICAL", "legal_categories": ["MOTIVE"]},
 		{"id": "ev_camera", "name": "Camera Footage", "description": "Lobby camera.", "type": "DIGITAL", "location_found": "loc_lobby", "related_persons": ["p_mark"], "weight": 0.7, "importance_level": "KEY", "legal_categories": ["PRESENCE"]},
-		{"id": "ev_prints", "name": "Shoe Prints", "description": "At scene.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.6, "importance_level": "SUPPORTING", "legal_categories": ["PRESENCE"]},
-		{"id": "ev_glass", "name": "Wine Glass", "description": "Fingerprints.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": ["p_julia"], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_prints", "name": "Shoe Prints", "description": "At scene.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.6, "importance_level": "SUPPORTING", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_glass", "name": "Wine Glass", "description": "Fingerprints.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": ["p_julia"], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": ["PRESENCE"]},
 		{"id": "ev_phone", "name": "Phone Records", "description": "Calls.", "type": "DIGITAL", "location_found": "loc_office", "related_persons": ["p_julia"], "weight": 0.4, "importance_level": "OPTIONAL", "legal_categories": ["CONNECTION"]},
 	],
 	"locations": [
@@ -37,9 +37,9 @@ var _test_case_data: Dictionary = {
 		{"id": "evt_argument", "name": "Argument", "description": "Loud argument.", "time": "21:30", "day": 1, "location": "loc_scene", "involved_persons": ["p_mark", "p_victim"]},
 	],
 	"interrogation_triggers": [
-		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "response": "I never saw it.", "impact_level": "MODERATE", "pressure_points": 1},
-		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_dna", "response": "Impossible!", "impact_level": "STRONG", "pressure_points": 2},
-		{"id": "trig_glass", "person_id": "p_julia", "evidence_id": "ev_glass", "response": "I was there earlier.", "impact_level": "MODERATE", "pressure_points": 1},
+		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "dialogue": "I never saw it.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
+		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_dna", "dialogue": "Impossible!", "impact_level": "MAJOR", "reaction_type": "PANIC", "pressure_points": 2},
+		{"id": "trig_glass", "person_id": "p_julia", "evidence_id": "ev_glass", "dialogue": "I was there earlier.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
 	],
 	"solution": {
 		"suspect": "p_mark",
@@ -227,6 +227,8 @@ func test_all_interrogation_triggers_fire() -> void:
 
 	# Interrogate Mark
 	InterrogationManager.start_interrogation("p_mark")
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("topic", "general")
 	InterrogationManager.present_evidence("ev_knife")
 	InterrogationManager.present_evidence("ev_dna")
 	InterrogationManager.end_interrogation()
@@ -236,6 +238,8 @@ func test_all_interrogation_triggers_fire() -> void:
 
 	# Interrogate Julia
 	InterrogationManager.start_interrogation("p_julia")
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("topic", "general")
 	InterrogationManager.present_evidence("ev_glass")
 	InterrogationManager.end_interrogation()
 
@@ -249,20 +253,16 @@ func test_all_interrogation_triggers_fire() -> void:
 
 func test_day_progression_full_cycle() -> void:
 	assert_eq(GameManager.current_day, 1)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.MORNING)
 
-	# Progress through all time slots on day 1
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.AFTERNOON)
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.EVENING)
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.NIGHT)
+	# Process morning → auto-transitions to Daytime
+	DaySystem.process_morning()
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
 
-	# Night → Day 2
-	GameManager.advance_time_slot()
+	# End day → Night → Next Morning
+	DaySystem.try_end_day()
 	assert_eq(GameManager.current_day, 2)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.MORNING)
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 
 
@@ -272,13 +272,12 @@ func test_day_progression_full_cycle() -> void:
 
 func test_action_economy_across_days() -> void:
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
-	GameManager.use_action()
-	GameManager.use_action()
+	for i: int in range(GameManager.ACTIONS_PER_DAY):
+		GameManager.use_action()
 	assert_false(GameManager.has_actions_remaining())
 
 	# Advance to next day — actions reset
-	GameManager.current_day = 2
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
-	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
+	DaySystem.process_morning()
+	DaySystem.try_end_day()
 	assert_true(GameManager.has_actions_remaining())
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)

@@ -12,6 +12,7 @@ extends Control
 @onready var nav_board_button: Button = %NavBoardButton
 @onready var nav_timeline_button: Button = %NavTimelineButton
 @onready var nav_map_button: Button = %NavMapButton
+@onready var nav_suspects_button: Button = %NavSuspectsButton
 @onready var nav_log_button: Button = %NavLogButton
 
 
@@ -21,11 +22,12 @@ func _ready() -> void:
 	nav_board_button.pressed.connect(func() -> void: ScreenManager.navigate_to("detective_board"))
 	nav_timeline_button.pressed.connect(func() -> void: ScreenManager.navigate_to("timeline_board"))
 	nav_map_button.pressed.connect(func() -> void: ScreenManager.navigate_to("location_map"))
+	nav_suspects_button.pressed.connect(func() -> void: ScreenManager.navigate_to("suspect_list"))
 	nav_log_button.pressed.connect(func() -> void: ScreenManager.navigate_to("investigation_log"))
 
 	# Connect signals for live updates
 	GameManager.day_changed.connect(func(_d: int) -> void: _refresh())
-	GameManager.time_slot_changed.connect(func(_s: Enums.TimeSlot) -> void: _refresh())
+	GameManager.phase_changed.connect(func(_s: Enums.DayPhase) -> void: _refresh())
 	GameManager.actions_remaining_changed.connect(func(_r: int) -> void: _refresh())
 	NotificationManager.notification_added.connect(func(_n: Dictionary) -> void: _refresh_notifications())
 	NotificationManager.notification_dismissed.connect(func(_id: String) -> void: _refresh_notifications())
@@ -37,8 +39,12 @@ func _ready() -> void:
 
 ## Updates the desk hub info display.
 func _refresh() -> void:
-	day_info_label.text = "Day %d — %s" % [GameManager.current_day, GameManager.get_time_slot_display()]
-	actions_info_label.text = "Actions Remaining: %d / %d" % [GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY]
+	day_info_label.text = "Day %d — %s" % [GameManager.current_day, GameManager.get_phase_display()]
+	if GameManager.is_daytime():
+		actions_info_label.text = "Actions Remaining: %d / %d" % [GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY]
+		actions_info_label.visible = true
+	else:
+		actions_info_label.visible = false
 
 
 ## Refreshes the notification list area.

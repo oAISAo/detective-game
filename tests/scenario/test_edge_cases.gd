@@ -14,13 +14,13 @@ var _test_case_data: Dictionary = {
 	"end_day": 4,
 	"persons": [
 		{"id": "p_victim", "name": "Daniel", "role": "VICTIM", "personality_traits": [], "relationships": [], "pressure_threshold": 0},
-		{"id": "p_mark", "name": "Mark", "role": "SUSPECT", "personality_traits": ["DEFENSIVE"], "relationships": [], "pressure_threshold": 3},
+		{"id": "p_mark", "name": "Mark", "role": "SUSPECT", "personality_traits": ["CALM"], "relationships": [], "pressure_threshold": 3},
 		{"id": "p_julia", "name": "Julia", "role": "SUSPECT", "personality_traits": [], "relationships": [], "pressure_threshold": 5},
 	],
 	"evidence": [
-		{"id": "ev_weapon", "name": "Weapon", "description": "Murder weapon.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_weapon", "name": "Weapon", "description": "Murder weapon.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["PRESENCE"]},
 		{"id": "ev_motive", "name": "Motive Doc", "description": "Financial motive.", "type": "DOCUMENT", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "CRITICAL", "legal_categories": ["MOTIVE"]},
-		{"id": "ev_extra", "name": "Extra Evidence", "description": "Additional evidence.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": [], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": []},
+		{"id": "ev_extra", "name": "Extra Evidence", "description": "Additional evidence.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": [], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": []},
 	],
 	"locations": [
 		{"id": "loc_scene", "name": "Scene", "description": "Crime scene.", "type": "CRIME_SCENE", "evidence_ids": ["ev_weapon"]},
@@ -30,7 +30,7 @@ var _test_case_data: Dictionary = {
 		{"id": "evt_test", "name": "Test Event", "description": "Event for timeline tests.", "time": "21:00", "day": 1, "location": "loc_scene", "involved_persons": []},
 	],
 	"interrogation_triggers": [
-		{"id": "trig_weapon", "person_id": "p_mark", "evidence_id": "ev_weapon", "response": "Not mine.", "impact_level": "MODERATE", "pressure_points": 1},
+		{"id": "trig_weapon", "person_id": "p_mark", "evidence_id": "ev_weapon", "dialogue": "Not mine.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
 	],
 	"solution": {
 		"suspect": "p_mark",
@@ -106,8 +106,8 @@ func test_duplicate_location_visit_ignored() -> void:
 # =========================================================================
 
 func test_actions_cannot_go_negative() -> void:
-	GameManager.use_action()
-	GameManager.use_action()
+	for i in GameManager.ACTIONS_PER_DAY:
+		GameManager.use_action()
 	assert_false(GameManager.has_actions_remaining())
 	var result: bool = GameManager.use_action()
 	assert_false(result, "Should not be able to use action when none remain")
@@ -150,8 +150,8 @@ func test_interrogation_limit_resets_on_new_day() -> void:
 
 func test_day_does_not_exceed_total() -> void:
 	GameManager.current_day = GameManager.TOTAL_DAYS
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
-	GameManager.advance_time_slot()
+	DaySystem.process_morning()
+	DaySystem.try_end_day()
 	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Should not exceed TOTAL_DAYS")
 
 
@@ -311,7 +311,7 @@ func test_save_load_mid_investigation() -> void:
 	GameManager.discover_evidence("ev_weapon")
 	GameManager.visit_location("loc_scene")
 	GameManager.current_day = 2
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
 	GameManager.use_action()
 
 	# Serialize and restore
@@ -321,10 +321,10 @@ func test_save_load_mid_investigation() -> void:
 
 	GameManager.deserialize(state)
 	assert_eq(GameManager.current_day, 2)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.AFTERNOON)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
 	assert_true(GameManager.has_evidence("ev_weapon"))
 	assert_true(GameManager.has_visited_location("loc_scene"))
-	assert_eq(GameManager.actions_remaining, 1)
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
 
 
 # =========================================================================
@@ -341,7 +341,7 @@ func test_new_game_resets_all_state() -> void:
 	GameManager.new_game()
 
 	assert_eq(GameManager.current_day, 1)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.MORNING)
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 	assert_eq(GameManager.discovered_evidence.size(), 0)
 	assert_eq(GameManager.visited_locations.size(), 0)

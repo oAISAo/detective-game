@@ -122,15 +122,99 @@
 	],
 	"statements": [
 		{
-			"id": "stmt_mark_initial",
+			"id": "stmt_mark_visit",
 			"person_id": "p_mark",
-			"text": "I visited Daniel earlier but left around 20:30.",
+			"text": "I stopped by to talk to Daniel.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_arrives",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_argument",
+			"person_id": "p_mark",
+			"text": "We argued a little.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_argument_money",
+			"contradicting_evidence": [
+				"ev_bank_transfer"
+			]
+		},
+		{
+			"id": "stmt_mark_departure_time",
+			"person_id": "p_mark",
+			"text": "I left around 20:30.",
 			"day_given": 1,
 			"related_evidence": [],
 			"related_event": "evt_mark_leaves",
 			"contradicting_evidence": [
 				"ev_parking_camera"
 			]
+		},
+		{
+			"id": "stmt_mark_daniel_requested",
+			"person_id": "p_mark",
+			"text": "Daniel asked me to come by.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_arrives",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_departure_reinforced",
+			"person_id": "p_mark",
+			"text": "I was gone before 20:40.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_leaves",
+			"contradicting_evidence": [
+				"ev_parking_camera"
+			]
+		},
+		{
+			"id": "stmt_mark_corrected_departure",
+			"person_id": "p_mark",
+			"text": "Fine. I left closer to 20:40.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_parking_camera"
+			],
+			"related_event": "evt_mark_leaves",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_denies_financial",
+			"person_id": "p_mark",
+			"text": "The company accounts are complicated. That doesn't make me a killer.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_bank_transfer"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_deeper_admission",
+			"person_id": "p_mark",
+			"text": "Daniel found out about the missing money, but he was alive when I left.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_hidden_safe"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_final_lock",
+			"person_id": "p_mark",
+			"text": "Daniel had the records. He was going to destroy me.",
+			"day_given": 3,
+			"related_evidence": [
+				"ev_hidden_safe"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
 		},
 		{
 			"id": "stmt_julia_initial",
@@ -168,41 +252,6 @@
 			"contradicting_evidence": [
 				"ev_lucas_work_log"
 			]
-		},
-		{
-			"id": "stmt_mark_confronted",
-			"person_id": "p_mark",
-			"text": "Alright... maybe it was closer to 20:40.",
-			"day_given": 2,
-			"related_evidence": [
-				"ev_parking_camera"
-			],
-			"related_event": "evt_mark_leaves",
-			"contradicting_evidence": []
-		},
-		{
-			"id": "stmt_mark_financial",
-			"person_id": "p_mark",
-			"text": "This has nothing to do with the murder.",
-			"day_given": 2,
-			"related_evidence": [
-				"ev_bank_transfer"
-			],
-			"related_event": "",
-			"contradicting_evidence": [
-				"ev_hidden_safe"
-			]
-		},
-		{
-			"id": "stmt_mark_embezzlement",
-			"person_id": "p_mark",
-			"text": "Daniel found out about the missing money. But I didn't kill him.",
-			"day_given": 3,
-			"related_evidence": [
-				"ev_hidden_safe"
-			],
-			"related_event": "",
-			"contradicting_evidence": []
 		},
 		{
 			"id": "stmt_sarah_confronted",
@@ -359,7 +408,7 @@
 			],
 			"strengthens_theory": "",
 			"enables_warrant": "",
-			"unlocks_topic": "topic_mark_embezzlement"
+			"unlocks_topic": "topic_missing_money"
 		},
 		{
 			"id": "ins_julia_presence",

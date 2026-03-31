@@ -134,6 +134,8 @@ static func _merge_file_data(merged: Dictionary, data: Dictionary, file_name: St
 				merged["interrogation_topics"] = data["interrogation_topics"]
 			if data.has("interrogation_triggers"):
 				merged["interrogation_triggers"] = data["interrogation_triggers"]
+			if data.has("interrogation_sessions"):
+				merged["interrogation_sessions"] = data["interrogation_sessions"]
 
 		"discovery_rules.json":
 			# discovery_rules.json provides discovery rules

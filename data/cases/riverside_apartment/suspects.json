@@ -30,7 +30,7 @@
 					"type": "BUSINESS_PARTNER"
 				}
 			],
-			"pressure_threshold": 4
+			"pressure_threshold": 2
 		},
 		{
 			"id": "p_sarah",

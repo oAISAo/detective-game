@@ -14,11 +14,11 @@ var _test_case_data: Dictionary = {
 	"end_day": 4,
 	"persons": [
 		{"id": "p_victim", "name": "Daniel", "role": "VICTIM", "personality_traits": [], "relationships": [], "pressure_threshold": 0},
-		{"id": "p_mark", "name": "Mark", "role": "SUSPECT", "personality_traits": ["DEFENSIVE"], "relationships": [], "pressure_threshold": 3},
+		{"id": "p_mark", "name": "Mark", "role": "SUSPECT", "personality_traits": ["CALM"], "relationships": [], "pressure_threshold": 3},
 		{"id": "p_julia", "name": "Julia", "role": "SUSPECT", "personality_traits": [], "relationships": [], "pressure_threshold": 5},
 	],
 	"evidence": [
-		{"id": "ev_knife", "name": "Kitchen Knife", "description": "Found at scene.", "type": "PHYSICAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.8, "importance_level": "KEY", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_knife", "name": "Kitchen Knife", "description": "Found at scene.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.8, "importance_level": "KEY", "legal_categories": ["PRESENCE"]},
 		{"id": "ev_knife_dna", "name": "Knife DNA", "description": "DNA from knife.", "type": "FORENSIC", "location_found": "lab", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["CONNECTION"]},
 		{"id": "ev_motive", "name": "Insurance Doc", "description": "Financial motive.", "type": "DOCUMENT", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "CRITICAL", "legal_categories": ["MOTIVE"]},
 		{"id": "ev_camera", "name": "Camera Footage", "description": "Security footage.", "type": "DIGITAL", "location_found": "loc_lobby", "related_persons": ["p_mark"], "weight": 0.7, "importance_level": "SUPPORTING", "legal_categories": ["PRESENCE"]},
@@ -34,8 +34,8 @@ var _test_case_data: Dictionary = {
 		{"id": "evt_argument", "name": "Argument Heard", "description": "Witnesses hear argument.", "time": "21:30", "day": 1, "location": "loc_scene", "involved_persons": ["p_mark", "p_victim"]},
 	],
 	"interrogation_triggers": [
-		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "response": "I never touched that knife.", "impact_level": "MODERATE", "pressure_points": 1},
-		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_knife_dna", "response": "That's impossible!", "impact_level": "STRONG", "pressure_points": 2},
+		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "dialogue": "I never touched that knife.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
+		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_knife_dna", "dialogue": "That's impossible!", "impact_level": "MAJOR", "reaction_type": "PANIC", "pressure_points": 2},
 	],
 	"solution": {
 		"suspect": "p_mark",
@@ -86,6 +86,8 @@ func test_evidence_to_archive_to_interrogation_to_board() -> void:
 	# Present evidence in interrogation
 	InterrogationManager.start_interrogation("p_mark")
 	assert_true(InterrogationManager.is_active())
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("topic", "general")
 	var result: Dictionary = InterrogationManager.present_evidence("ev_knife")
 	assert_true(result.get("triggered", false), "Should fire trigger for ev_knife")
 
@@ -284,7 +286,7 @@ func test_all_systems_serialize_roundtrip() -> void:
 	GameManager.discover_evidence("ev_motive")
 	GameManager.visit_location("loc_scene")
 	GameManager.current_day = 2
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
 
 	BoardManager.add_node("evidence", "ev_knife", 100.0, 200.0)
 	TimelineManager.place_event("evt_arrival", 1260, 1)
@@ -310,7 +312,7 @@ func test_all_systems_serialize_roundtrip() -> void:
 	# Deserialize
 	GameManager.deserialize(state)
 	assert_eq(GameManager.current_day, 2)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.AFTERNOON)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
 	assert_eq(GameManager.discovered_evidence.size(), 2)
 	assert_true(GameManager.has_evidence("ev_knife"))
 	assert_true(GameManager.has_visited_location("loc_scene"))

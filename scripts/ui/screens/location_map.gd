@@ -27,9 +27,22 @@ func _populate_locations() -> void:
 		location_list.add_child(empty_label)
 		return
 
+	# Filter to only show unlocked locations
+	var unlocked: Array[LocationData] = []
+	for loc: LocationData in locations:
+		if GameManager.is_location_unlocked(loc.id):
+			unlocked.append(loc)
+
+	if unlocked.is_empty():
+		var empty_label: Label = Label.new()
+		empty_label.text = "No locations available yet."
+		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		location_list.add_child(empty_label)
+		return
+
 	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
 
-	for loc: Resource in locations:
+	for loc: Resource in unlocked:
 		var hbox: HBoxContainer = HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 12)
 
@@ -67,18 +80,20 @@ func _on_location_pressed(location_id: String) -> void:
 	if is_first_visit:
 		# First visit — costs an action, go straight in
 		if not GameManager.has_actions_remaining():
-			var notif_mgr: Node = get_node_or_null("/root/NotificationManager")
-			if notif_mgr:
-				notif_mgr.send_notification(
-					"No Actions",
-					"You have no actions remaining today.",
-					"warning"
-				)
+			NotificationManager.notify(
+				"No Actions",
+				"You have no actions remaining today. Use 'End Day' to proceed."
+			)
 			return
 		_navigate_to_location(location_id, true)
 	else:
-		# Return visit — for now go as full investigation
-		# (a dialog prompt for quick vs full would be a UI enhancement)
+		# Return visit (full investigation) — also costs an action
+		if not GameManager.has_actions_remaining():
+			NotificationManager.notify(
+				"No Actions",
+				"You have no actions remaining today. Use 'End Day' to proceed."
+			)
+			return
 		_navigate_to_location(location_id, true)
 
 

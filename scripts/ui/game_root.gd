@@ -2,7 +2,13 @@
 ## Main application container. Manages top-level scene structure:
 ## global command bar with navigation, screen container, modal layer, and BGM.
 ## Phase 4A: Integrated with ScreenManager for all navigation.
+## Phase 18: Title screen and case selection flow added.
 extends Control
+
+
+## Scene paths for menu screens.
+const TITLE_SCREEN_SCENE: String = "res://scenes/ui/title_screen.tscn"
+const CASE_SELECTION_SCENE: String = "res://scenes/ui/case_selection_screen.tscn"
 
 
 ## Reference to the screen container where gameplay screens are loaded.
@@ -26,16 +32,20 @@ extends Control
 @onready var nav_board_button: Button = $CommandBar/HBoxContainer/NavBoardButton
 @onready var nav_timeline_button: Button = $CommandBar/HBoxContainer/NavTimelineButton
 @onready var nav_map_button: Button = $CommandBar/HBoxContainer/NavMapButton
+@onready var nav_suspects_button: Button = $CommandBar/HBoxContainer/NavSuspectsButton
 @onready var nav_log_button: Button = $CommandBar/HBoxContainer/NavLogButton
 
 ## Notification button (opens notification panel modal).
 @onready var notification_button: Button = $CommandBar/HBoxContainer/NotificationButton
 
+## End Day button (triggers night processing).
+@onready var end_day_button: Button = $CommandBar/HBoxContainer/EndDayButton
+
 
 func _ready() -> void:
 	# Connect to GameManager signals for UI updates
 	GameManager.day_changed.connect(_on_day_changed)
-	GameManager.time_slot_changed.connect(_on_time_slot_changed)
+	GameManager.phase_changed.connect(_on_phase_changed)
 	GameManager.actions_remaining_changed.connect(_on_actions_changed)
 	GameManager.game_reset.connect(_on_game_reset)
 
@@ -50,29 +60,43 @@ func _ready() -> void:
 	nav_board_button.pressed.connect(func() -> void: ScreenManager.navigate_to("detective_board"))
 	nav_timeline_button.pressed.connect(func() -> void: ScreenManager.navigate_to("timeline_board"))
 	nav_map_button.pressed.connect(func() -> void: ScreenManager.navigate_to("location_map"))
+	nav_suspects_button.pressed.connect(func() -> void: ScreenManager.navigate_to("suspect_list"))
 	nav_log_button.pressed.connect(func() -> void: ScreenManager.navigate_to("investigation_log"))
 
 	# Notification button opens the notification panel modal
 	notification_button.pressed.connect(_on_notification_button_pressed)
 
+	# End Day button
+	end_day_button.pressed.connect(_on_end_day_pressed)
+
+	# Connect to DaySystem for night-to-morning transition
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	if day_sys:
+		day_sys.night_processing_completed.connect(_on_night_processing_completed)
+
 	# Connect to ScreenManager for nav button highlighting
 	ScreenManager.screen_changed.connect(_on_screen_changed)
 
-	_update_command_bar()
+	# Start at the title screen — hide command bar until investigation begins
+	_show_title_screen()
 
-	# Navigate to desk hub as the default screen
-	ScreenManager.navigate_to("desk_hub")
-
-	print("[GameRoot] Ready — Phase 4A.")
+	print("[GameRoot] Ready — Phase 18: Title screen.")
 
 
 ## Updates all command bar labels with current state.
 func _update_command_bar() -> void:
 	day_label.text = "Day %d — %s" % [
 		GameManager.current_day,
-		GameManager.get_time_slot_display()
+		GameManager.get_phase_display()
 	]
-	actions_label.text = "Actions: %d" % GameManager.actions_remaining
+	# Show actions only during Daytime
+	if GameManager.is_daytime():
+		actions_label.text = "Actions: %d / %d" % [GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY]
+		actions_label.visible = true
+	else:
+		actions_label.visible = false
+	# End Day button only visible during Daytime
+	end_day_button.visible = GameManager.is_daytime()
 	_update_notification_button()
 
 
@@ -93,6 +117,7 @@ func _update_nav_highlight() -> void:
 	nav_board_button.disabled = (current == "detective_board")
 	nav_timeline_button.disabled = (current == "timeline_board")
 	nav_map_button.disabled = (current == "location_map")
+	nav_suspects_button.disabled = (current == "suspect_list")
 	nav_log_button.disabled = (current == "investigation_log")
 
 
@@ -102,7 +127,7 @@ func _on_day_changed(_new_day: int) -> void:
 	_update_command_bar()
 
 
-func _on_time_slot_changed(_new_slot: Enums.TimeSlot) -> void:
+func _on_phase_changed(_new_phase: Enums.DayPhase) -> void:
 	_update_command_bar()
 
 
@@ -112,8 +137,122 @@ func _on_actions_changed(_remaining: int) -> void:
 
 func _on_game_reset() -> void:
 	_update_command_bar()
+
+
+# --- Title Screen & Case Selection Flow --- #
+
+## Shows the title screen, hiding the command bar and clearing the screen container.
+func _show_title_screen() -> void:
+	command_bar.visible = false
+	_clear_screen_container()
 	ScreenManager.reset()
+
+	var scene: PackedScene = load(TITLE_SCREEN_SCENE) as PackedScene
+	if scene == null:
+		push_error("[GameRoot] Failed to load title screen.")
+		return
+
+	var title_screen: Control = scene.instantiate() as Control
+	title_screen.new_game_requested.connect(_on_title_new_game)
+	title_screen.continue_requested.connect(_on_title_continue)
+	title_screen.debug_game_requested.connect(_on_title_debug_game)
+	screen_container.add_child(title_screen)
+
+
+## Shows the case selection screen.
+func _show_case_selection() -> void:
+	_clear_screen_container()
+
+	var scene: PackedScene = load(CASE_SELECTION_SCENE) as PackedScene
+	if scene == null:
+		push_error("[GameRoot] Failed to load case selection screen.")
+		return
+
+	var case_screen: Control = scene.instantiate() as Control
+	case_screen.case_selected.connect(_on_case_selected)
+	case_screen.back_requested.connect(_on_case_selection_back)
+	screen_container.add_child(case_screen)
+
+
+## Starts the investigation after loading a case.
+func _start_investigation(case_folder: String) -> void:
+	# Load the case data
+	var loaded: bool = CaseManager.load_case_folder(case_folder)
+	if not loaded:
+		push_error("[GameRoot] Failed to load case: %s" % case_folder)
+		return
+
+	# Initialize all game systems for a new game
+	GameManager.new_game()
+
+	# Process the first morning (day-start events, briefing)
+	var briefing_items: Array[String] = []
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	if day_sys and day_sys.has_method("process_morning"):
+		briefing_items.assign(day_sys.call("process_morning"))
+
+	# Show the command bar and navigate to the desk hub
+	command_bar.visible = true
+	ScreenManager.reset()
+	_update_command_bar()
 	ScreenManager.navigate_to("desk_hub")
+
+	# Show the morning briefing modal if there are briefing items
+	if not briefing_items.is_empty():
+		DialogueSystem.queue_briefing(briefing_items, GameManager.current_day)
+		ScreenManager.open_modal("morning_briefing")
+
+	print("[GameRoot] Investigation started: %s" % case_folder)
+
+
+## Clears all children from the screen container.
+func _clear_screen_container() -> void:
+	for child: Node in screen_container.get_children():
+		child.queue_free()
+
+
+## Returns to the title screen (e.g. from main menu).
+func return_to_title() -> void:
+	GameManager.game_active = false
+	_show_title_screen()
+
+
+func _on_title_new_game() -> void:
+	_show_case_selection()
+
+
+func _on_title_debug_game(preset_filename: String) -> void:
+	var loaded: bool = DebugStateLoader.load_debug_state(preset_filename)
+	if not loaded:
+		push_error("[GameRoot] Failed to load debug preset: %s" % preset_filename)
+		return
+
+	command_bar.visible = true
+	ScreenManager.reset()
+	_update_command_bar()
+	ScreenManager.navigate_to("desk_hub")
+	print("[GameRoot] Debug game started with preset: %s" % preset_filename)
+
+
+func _on_title_continue(slot: int) -> void:
+	var loaded: bool = SaveManager.load_game(slot)
+	if not loaded:
+		push_error("[GameRoot] Failed to load save slot %d." % slot)
+		return
+
+	command_bar.visible = true
+	ScreenManager.reset()
+	_update_command_bar()
+	ScreenManager.navigate_to("desk_hub")
+	print("[GameRoot] Continued from save slot %d." % slot)
+
+
+func _on_case_selected(case_folder: String) -> void:
+	_start_investigation(case_folder)
+
+
+func _on_case_selection_back() -> void:
+	_show_title_screen()
 
 
 func _on_notification_added(_notification: Dictionary) -> void:
@@ -130,6 +269,27 @@ func _on_notifications_cleared() -> void:
 
 func _on_screen_changed(_screen_id: String) -> void:
 	_update_nav_highlight()
+
+
+func _on_end_day_pressed() -> void:
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	if day_sys and day_sys.has_method("try_end_day"):
+		day_sys.call("try_end_day")
+
+
+func _on_night_processing_completed(new_day: int) -> void:
+	# Process the new day's morning briefing
+	var day_sys: Node = get_node_or_null("/root/DaySystem")
+	var briefing_items: Array[String] = []
+	if day_sys and day_sys.has_method("process_morning"):
+		briefing_items.assign(day_sys.call("process_morning"))
+
+	_update_command_bar()
+	ScreenManager.navigate_to("desk_hub")
+
+	if not briefing_items.is_empty():
+		DialogueSystem.queue_briefing(briefing_items, new_day)
+		ScreenManager.open_modal("morning_briefing")
 
 
 func _on_notification_button_pressed() -> void:

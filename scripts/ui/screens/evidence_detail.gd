@@ -67,8 +67,12 @@ func _populate_detail() -> void:
 	# Legal categories
 	_populate_legal_categories(ev)
 
-	# Image placeholder
-	evidence_image.visible = false
+	# Evidence image via AssetFallback
+	var image_path: String = ev.image
+	if image_path.is_empty():
+		image_path = "res://assets/evidence_images/%s.png" % ev.id
+	evidence_image.texture = AssetFallback.get_texture(image_path)
+	evidence_image.visible = true
 
 
 func _populate_info_grid(ev: EvidenceData) -> void:

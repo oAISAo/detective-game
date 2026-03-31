@@ -94,7 +94,7 @@ func test_save_load_round_trip() -> void:
 	GameManager.discover_evidence("ev_two")
 	GameManager.visit_location("loc_a")
 	GameManager.current_day = 3
-	GameManager.current_time_slot = Enums.TimeSlot.EVENING
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
 	GameManager.hints_used = 2
 
 	# Save
@@ -112,7 +112,7 @@ func test_save_load_round_trip() -> void:
 
 	# Verify restored state
 	assert_eq(GameManager.current_day, 3)
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.EVENING)
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
 	assert_eq(GameManager.discovered_evidence.size(), 2)
 	assert_true(GameManager.has_evidence("ev_one"))
 	assert_true(GameManager.has_evidence("ev_two"))

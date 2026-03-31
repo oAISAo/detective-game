@@ -65,7 +65,7 @@ func _get_all_operation_ids(surv_mgr: Node) -> Array[String]:
 func _add_section_header(text: String) -> void:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
 	operation_list.add_child(label)
 
@@ -79,7 +79,7 @@ func _add_operation_card(op: Dictionary, is_active: bool) -> void:
 	var header := Label.new()
 	var type_name: String = _get_type_name(op.get("type", 0))
 	header.text = "%s — %s" % [type_name, op.get("target_person", "?")]
-	header.add_theme_font_size_override("font_size", 14)
+	header.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(header)
 
 	# Status line
@@ -95,7 +95,7 @@ func _add_operation_card(op: Dictionary, is_active: bool) -> void:
 	else:
 		status.text = "Status: %s" % op.get("status", "unknown")
 		status.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	status.add_theme_font_size_override("font_size", 12)
+	status.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(status)
 
 	# Cancel button for active

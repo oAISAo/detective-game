@@ -44,9 +44,9 @@ func _ready() -> void:
 
 	# Phase 2: Day/action debug controls
 	advance_day_button.pressed.connect(_on_advance_day_pressed)
-	set_morning_button.pressed.connect(func() -> void: debug_set_time_slot(Enums.TimeSlot.MORNING))
-	set_afternoon_button.pressed.connect(func() -> void: debug_set_time_slot(Enums.TimeSlot.AFTERNOON))
-	set_evening_button.pressed.connect(func() -> void: debug_set_time_slot(Enums.TimeSlot.EVENING))
+	set_morning_button.pressed.connect(func() -> void: debug_set_phase(Enums.DayPhase.MORNING))
+	set_afternoon_button.pressed.connect(func() -> void: debug_set_phase(Enums.DayPhase.DAYTIME))
+	set_evening_button.pressed.connect(func() -> void: debug_set_phase(Enums.DayPhase.NIGHT))
 	process_night_button.pressed.connect(_on_process_night_pressed)
 	complete_mandatory_button.pressed.connect(_on_complete_mandatory_pressed)
 	day_spin_box.min_value = 1
@@ -84,7 +84,7 @@ func _refresh() -> void:
 	# Game State
 	text += "[b]Game State[/b]\n"
 	text += "  Day: %d / %d\n" % [GameManager.current_day, GameManager.TOTAL_DAYS]
-	text += "  Time Slot: %s\n" % GameManager.get_time_slot_display()
+	text += "  Phase: %s\n" % GameManager.get_phase_display()
 	text += "  Actions Remaining: %d / %d\n" % [GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY]
 	text += "  Game Active: %s\n\n" % str(GameManager.game_active)
 
@@ -383,20 +383,20 @@ func _on_goto_day_pressed() -> void:
 ## Advances to the specified day.
 func debug_set_day(day: int) -> void:
 	GameManager.current_day = clampi(day, 1, GameManager.TOTAL_DAYS)
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
+	GameManager.current_phase = Enums.DayPhase.MORNING
 	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
 	GameManager.day_changed.emit(GameManager.current_day)
-	GameManager.time_slot_changed.emit(GameManager.current_time_slot)
+	GameManager.phase_changed.emit(GameManager.current_phase)
 	_refresh()
 	print("[Debug] Set day to %d." % day)
 
 
-## Sets the current time slot.
-func debug_set_time_slot(slot: Enums.TimeSlot) -> void:
-	GameManager.current_time_slot = slot
-	GameManager.time_slot_changed.emit(slot)
+## Sets the current day phase.
+func debug_set_phase(phase: Enums.DayPhase) -> void:
+	GameManager.current_phase = phase
+	GameManager.phase_changed.emit(phase)
 	_refresh()
-	print("[Debug] Set time slot to %s." % GameManager.get_time_slot_display())
+	print("[Debug] Set phase to %s." % GameManager.get_phase_display())
 
 
 ## Completes all mandatory actions.

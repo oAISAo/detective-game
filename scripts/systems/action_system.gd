@@ -55,11 +55,10 @@ func check_availability(action_id: String) -> Array[String]:
 	if action_id in executed_actions and action.time_cost > 0:
 		reasons.append("Action already completed: %s" % action.name)
 
-	# Check time slot — major actions require Afternoon or Evening
+	# Check time slot — major actions require Daytime phase
 	if action.time_cost > 0:
-		var slot: Enums.TimeSlot = GameManager.current_time_slot
-		if slot != Enums.TimeSlot.AFTERNOON and slot != Enums.TimeSlot.EVENING:
-			reasons.append("Major actions can only be performed during Afternoon or Evening.")
+		if not GameManager.is_daytime():
+			reasons.append("Major actions can only be performed during Daytime.")
 
 	# Check interrogation limits
 	if action.type == Enums.ActionType.INTERROGATION:
@@ -150,10 +149,6 @@ func execute_action(action_id: String) -> bool:
 
 	# Log the action
 	GameManager._log_action("Action: %s" % action.name)
-
-	# Auto-advance time slot for major actions
-	if action.time_cost > 0:
-		GameManager.advance_time_slot()
 
 	action_executed.emit(action_id, action)
 	return true

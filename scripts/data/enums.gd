@@ -96,11 +96,10 @@ enum ActionType {
 	ANALYZE_EVIDENCE,
 }
 
-## The current time slot within a day.
-enum TimeSlot {
+## The current phase within a day: Morning (briefing), Daytime (actions), Night (processing).
+enum DayPhase {
 	MORNING,
-	AFTERNOON,
-	EVENING,
+	DAYTIME,
 	NIGHT,
 }
 
@@ -142,9 +141,9 @@ enum SurveillanceType {
 ## The current phase of an interrogation session.
 enum InterrogationPhase {
 	INACTIVE,
-	OPEN_CONVERSATION,
-	EVIDENCE_CONFRONTATION,
-	PSYCHOLOGICAL_PRESSURE,
+	STATEMENT_INTAKE,
+	INTERROGATION,
+	PRESSURE,
 	BREAK_MOMENT,
 	ENDED,
 }

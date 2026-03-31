@@ -48,7 +48,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "0 theories"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
 
 [node name="NewTheoryButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
@@ -68,7 +68,7 @@ custom_minimum_size = Vector2(180, 0)
 [node name="ListLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
 text = "Theories"
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 
 [node name="TheoryListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
@@ -87,7 +87,7 @@ size_flags_horizontal = 3
 text = "Select or create a theory to begin."
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
 
 [node name="DetailScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]

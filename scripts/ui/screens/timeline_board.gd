@@ -74,10 +74,7 @@ func _safe_disconnect(sig: Signal, callable: Callable) -> void:
 
 func _setup_day_selector() -> void:
 	day_selector.clear()
-	var case_data: CaseData = CaseManager.get_case_data()
-	var max_day: int = 4
-	if case_data:
-		max_day = case_data.end_day
+	var max_day: int = GameManager.current_day
 	for d: int in range(1, max_day + 1):
 		day_selector.add_item("Day %d" % d, d)
 	day_selector.selected = 0
@@ -109,7 +106,7 @@ func _build_hour_markers() -> void:
 	for hour: int in range(START_HOUR, END_HOUR + 1):
 		var marker: Label = Label.new()
 		marker.text = "%02d:00 ────────────────────────────────" % hour
-		marker.add_theme_font_size_override("font_size", 12)
+		marker.add_theme_font_size_override("font_size", 14)
 		marker.add_theme_color_override("font_color", Color(0.55, 0.52, 0.48))
 		timeline_container.add_child(marker)
 
@@ -158,13 +155,13 @@ func _create_entry_card(entry: Dictionary) -> PanelContainer:
 		TimelineManager.format_time(entry["time_minutes"]),
 		event.description if event else "Unknown event",
 	]
-	time_label.add_theme_font_size_override("font_size", 13)
+	time_label.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(time_label)
 
 	var detail_label: Label = Label.new()
 	var persons_text: String = _get_persons_text(event.involved_persons if event else [])
 	detail_label.text = "Certainty: %s  |  %s" % [certainty_str, persons_text]
-	detail_label.add_theme_font_size_override("font_size", 11)
+	detail_label.add_theme_font_size_override("font_size", 13)
 	detail_label.add_theme_color_override("font_color", Color(0.65, 0.62, 0.58))
 	vbox.add_child(detail_label)
 
@@ -172,7 +169,7 @@ func _create_entry_card(entry: Dictionary) -> PanelContainer:
 	if not attached.is_empty():
 		var ev_label: Label = Label.new()
 		ev_label.text = "📎 Evidence: %s" % ", ".join(attached)
-		ev_label.add_theme_font_size_override("font_size", 10)
+		ev_label.add_theme_font_size_override("font_size", 12)
 		vbox.add_child(ev_label)
 
 	var remove_btn: Button = Button.new()
@@ -197,14 +194,14 @@ func _create_hypothesis_card(hyp: Dictionary) -> PanelContainer:
 		TimelineManager.format_time(hyp["time_minutes"]),
 		hyp.get("description", ""),
 	]
-	time_label.add_theme_font_size_override("font_size", 13)
+	time_label.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(time_label)
 
 	var persons_text: String = _get_persons_text(hyp.get("involved_persons", []))
 	if not persons_text.is_empty():
 		var detail_label: Label = Label.new()
 		detail_label.text = "Hypothesis  |  %s" % persons_text
-		detail_label.add_theme_font_size_override("font_size", 11)
+		detail_label.add_theme_font_size_override("font_size", 13)
 		detail_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.75))
 		vbox.add_child(detail_label)
 

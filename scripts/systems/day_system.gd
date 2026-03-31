@@ -1,7 +1,13 @@
 ## DaySystem.gd
-## Manages the investigation day cycle, morning briefings, and night processing.
-## Orchestrates the flow: Morning (narrative) → Afternoon (action) → Evening (action) → Night (processing).
-## Phase 3: Delegates trigger evaluation to EventSystem. Retains day lifecycle and lab/surveillance processing.
+## Manages the investigation day cycle as an explicit state machine.
+## State flow: MORNING → DAYTIME → NIGHT → (next day) MORNING → ...
+##
+## Morning: Informational only — briefing, lab results, surveillance results, story events.
+##          Automatically transitions to Daytime after processing.
+## Daytime: Player performs actions (4 per day). Transitions to Night only when
+##          the player presses "End Day". Running out of actions does NOT auto-end the day.
+## Night:   Processes queued systems (lab, surveillance, timed triggers).
+##          Automatically transitions to next day's Morning.
 extends Node
 
 
@@ -16,10 +22,10 @@ signal night_processing_started
 ## Emitted when night processing is complete and the new day is ready.
 signal night_processing_completed(new_day: int)
 
-## Emitted when a lab request completes during night processing.
+## Emitted when a lab request completes during morning processing.
 signal lab_result_ready(lab_request_id: String, output_evidence_id: String)
 
-## Emitted when surveillance produces results during night processing.
+## Emitted when surveillance produces results during morning processing.
 signal surveillance_result(surveillance_id: String, result_event_ids: Array[String])
 
 ## Emitted when the investigation reaches its final day.
@@ -31,10 +37,13 @@ signal investigation_time_expired
 ## Emitted when the player cannot advance the day because mandatory actions remain.
 signal day_advance_blocked(remaining_actions: Array[String])
 
+## Emitted when the phase transitions (Morning, Daytime, Night).
+signal phase_transitioned(new_phase: Enums.DayPhase)
+
 
 # --- State --- #
 
-## Whether morning briefing has been acknowledged for the current day.
+## Whether morning briefing has been processed for the current day.
 var _morning_briefing_shown: bool = false
 
 
@@ -44,11 +53,10 @@ func _ready() -> void:
 	print("[DaySystem] Initialized.")
 
 
-# --- Morning Phase --- #
+# --- Phase Transitions --- #
 
-## Processes the morning phase for the current day.
-## Collects lab results, surveillance results, and trigger-based events,
-## then emits the morning briefing signal.
+## Processes the morning phase and automatically transitions to Daytime.
+## Call this at the start of each day.
 func process_morning() -> Array[String]:
 	var briefing: Array[String] = []
 
@@ -83,6 +91,10 @@ func process_morning() -> Array[String]:
 
 	_morning_briefing_shown = true
 	morning_briefing_ready.emit(briefing)
+
+	# 5. Automatically transition to Daytime
+	_transition_to_daytime()
+
 	return briefing
 
 
@@ -91,10 +103,9 @@ func is_morning_briefing_shown() -> bool:
 	return _morning_briefing_shown
 
 
-# --- Day Advancement --- #
-
-## Attempts to end the current day and advance to Night processing.
-## Returns true if successful, false if blocked by mandatory actions or other conditions.
+## Ends the day early (player pressed "End Day") or when actions reach 0.
+## Transitions to Night phase, processes night systems, then advances to next Morning.
+## Returns true if successful, false if blocked by mandatory actions.
 func try_end_day() -> bool:
 	# Check mandatory actions
 	if not GameManager.all_mandatory_actions_completed():
@@ -102,7 +113,6 @@ func try_end_day() -> bool:
 		day_advance_blocked.emit(remaining)
 		return false
 
-	# Process night
 	_process_night()
 	return true
 
@@ -112,10 +122,24 @@ func force_advance_day() -> void:
 	_process_night()
 
 
-# --- Night Processing --- #
+# --- Internal Transitions --- #
 
-## Processes the Night phase: advances timers, evaluates triggers, and transitions to the next day.
+## Transitions from Morning to Daytime.
+func _transition_to_daytime() -> void:
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
+	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
+	GameManager.phase_changed.emit(GameManager.current_phase)
+	GameManager.actions_remaining_changed.emit(GameManager.actions_remaining)
+	phase_transitioned.emit(Enums.DayPhase.DAYTIME)
+	print("[DaySystem] Day %d — Transitioned to Daytime." % GameManager.current_day)
+
+
+## Transitions to Night, processes all night systems, then advances to next Morning.
 func _process_night() -> void:
+	# Transition to Night phase
+	GameManager.current_phase = Enums.DayPhase.NIGHT
+	GameManager.phase_changed.emit(GameManager.current_phase)
+	phase_transitioned.emit(Enums.DayPhase.NIGHT)
 	night_processing_started.emit()
 
 	# 1. Advance lab request timers
@@ -140,18 +164,24 @@ func _process_night() -> void:
 		night_processing_completed.emit(GameManager.current_day)
 		return
 
-	# 6. Advance to next day
+	# 6. Advance to next day's Morning
 	GameManager.current_day += 1
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
+	GameManager.current_phase = Enums.DayPhase.MORNING
 	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
 	GameManager.interrogation_counts_today.clear()
 	_morning_briefing_shown = false
 
 	GameManager.day_changed.emit(GameManager.current_day)
-	GameManager.time_slot_changed.emit(GameManager.current_time_slot)
+	GameManager.phase_changed.emit(GameManager.current_phase)
 	GameManager.actions_remaining_changed.emit(GameManager.actions_remaining)
 	GameManager._log_action("Day %d begins." % GameManager.current_day)
 
+	# Reset ActionSystem daily tracking
+	var action_sys: Node = get_node_or_null("/root/ActionSystem")
+	if action_sys and action_sys.has_method("on_new_day"):
+		action_sys.call("on_new_day")
+
+	phase_transitioned.emit(Enums.DayPhase.MORNING)
 	night_processing_completed.emit(GameManager.current_day)
 
 
@@ -177,11 +207,8 @@ func _process_lab_completions() -> Array[Dictionary]:
 	return completed
 
 
-## Advances lab request timers (called during Night processing — no completions here,
-## just ensures the state is ready for the next morning check).
+## Advances lab request timers (hook for future timer-based processing).
 func _advance_lab_timers() -> void:
-	# Lab requests complete during morning processing, not night.
-	# This method is a hook for future timer-based processing.
 	pass
 
 
@@ -195,7 +222,6 @@ func _check_surveillance_results() -> Array[Dictionary]:
 		var s: Dictionary = surv as Dictionary
 		var installed_day: int = s.get("day_installed", 0)
 		var active_days: int = s.get("active_days", 0)
-		# Surveillance is active from installed_day to installed_day + active_days - 1
 		if GameManager.current_day >= installed_day and GameManager.current_day < installed_day + active_days:
 			var result_events: Array = s.get("result_events", [])
 			if not result_events.is_empty():
@@ -212,7 +238,6 @@ func _advance_surveillance_timers() -> void:
 		var s: Dictionary = surv as Dictionary
 		var installed_day: int = s.get("day_installed", 0)
 		var active_days: int = s.get("active_days", 0)
-		# Keep if still active after tonight (next day is current_day + 1)
 		if GameManager.current_day + 1 < installed_day + active_days:
 			still_active.append(s)
 
@@ -222,7 +247,6 @@ func _advance_surveillance_timers() -> void:
 # --- Legacy Trigger Evaluation (fallback when EventSystem is not loaded) --- #
 
 ## Evaluates DAY_START triggers for the current day (legacy fallback).
-## When EventSystem is available, this is not called.
 func _evaluate_day_start_triggers() -> Array[String]:
 	var results: Array[String] = []
 

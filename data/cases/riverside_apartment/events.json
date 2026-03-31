@@ -6,13 +6,13 @@
 			"trigger_day": 1,
 			"conditions": [],
 			"actions": [
+				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Mark Bennett and Sarah Klein are available for questioning.",
 				"unlock_location:loc_victim_apartment",
 				"unlock_location:loc_hallway",
 				"unlock_location:loc_parking_lot",
 				"unlock_location:loc_neighbor_apartment",
 				"unlock_interrogation:p_mark",
-				"unlock_interrogation:p_sarah",
-				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Mark Bennett and Sarah Klein are available for questioning."
+				"unlock_interrogation:p_sarah"
 			],
 			"result_events": []
 		},
@@ -109,55 +109,80 @@
 	],
 	"interrogation_topics": [
 		{
-			"id": "topic_mark_departure",
+			"id": "topic_reason_for_visit",
 			"person_id": "p_mark",
-			"topic_name": "Mark's Departure Time",
-			"trigger_conditions": [
-				"evidence:ev_parking_camera"
-			],
+			"topic_name": "Why were you there?",
+			"trigger_conditions": [],
 			"unlock_evidence": [],
 			"statements": [
-				"stmt_mark_confronted"
+				"stmt_mark_daniel_requested"
 			],
-			"required_evidence": [
-				"ev_parking_camera"
-			],
-			"requires_statement_id": "stmt_mark_initial",
-			"impact_level": "MAJOR"
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "Daniel asked me to come by. It was supposed to be a quick conversation."
 		},
 		{
-			"id": "topic_mark_finances",
+			"id": "topic_departure_time",
 			"person_id": "p_mark",
-			"topic_name": "Financial Dispute",
-			"trigger_conditions": [
-				"evidence:ev_bank_transfer"
-			],
+			"topic_name": "What time did you leave?",
+			"trigger_conditions": [],
 			"unlock_evidence": [],
 			"statements": [
-				"stmt_mark_financial"
+				"stmt_mark_departure_reinforced"
 			],
-			"required_evidence": [
-				"ev_bank_transfer"
-			],
+			"required_evidence": [],
 			"requires_statement_id": "",
-			"impact_level": "MAJOR"
+			"impact_level": "MINOR",
+			"dialogue": "Like I said, around 20:30. Maybe a few minutes after, but not much later."
 		},
 		{
-			"id": "topic_mark_embezzlement",
+			"id": "topic_relationship",
 			"person_id": "p_mark",
-			"topic_name": "The Embezzlement",
-			"trigger_conditions": [
-				"evidence:ev_hidden_safe"
-			],
+			"topic_name": "What was your relationship with Daniel?",
+			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [
-				"stmt_mark_embezzlement"
-			],
-			"required_evidence": [
-				"ev_hidden_safe"
-			],
+			"statements": [],
+			"required_evidence": [],
 			"requires_statement_id": "",
-			"impact_level": "BREAKPOINT"
+			"impact_level": "MINOR",
+			"dialogue": "We worked together for years. Things were tense lately, but that's business."
+		},
+		{
+			"id": "topic_why_lie_about_time",
+			"person_id": "p_mark",
+			"topic_name": "Why did you lie about the time?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_mark_corrected_departure",
+			"impact_level": "MAJOR",
+			"dialogue": "Because it looks bad, alright? We argued. I didn't want to make myself look worse than I already do."
+		},
+		{
+			"id": "topic_missing_money",
+			"person_id": "p_mark",
+			"topic_name": "What happened to the missing money?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_mark_denies_financial",
+			"impact_level": "MAJOR",
+			"dialogue": "I made some transfers I shouldn't have. I was going to fix it before Daniel found out."
+		},
+		{
+			"id": "topic_who_else_knew",
+			"person_id": "p_mark",
+			"topic_name": "Who else knew?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_mark_deeper_admission",
+			"impact_level": "MINOR",
+			"dialogue": "I don't know for sure... but Julia had been asking Daniel strange questions lately."
 		},
 		{
 			"id": "topic_sarah_hallway",
@@ -228,42 +253,78 @@
 	],
 	"interrogation_triggers": [
 		{
-			"id": "itrig_mark_parking",
+			"id": "itrig_mark_parking_v1",
 			"person_id": "p_mark",
 			"evidence_id": "ev_parking_camera",
-			"requires_statement_id": "stmt_mark_initial",
+			"requires_statement_id": "stmt_mark_departure_time",
+			"target_statement_id": "stmt_mark_departure_time",
+			"target_topic_id": "topic_departure_time",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
-			"dialogue": "Alright... maybe it was closer to 20:40.",
-			"new_statement_id": "stmt_mark_confronted",
-			"unlocks": [],
-			"pressure_points": 2,
+			"dialogue": "Alright... maybe it was closer to 20:40. I didn't think ten minutes mattered.",
+			"new_statement_id": "stmt_mark_corrected_departure",
+			"unlocks": ["topic_why_lie_about_time"],
+			"pressure_points": 1,
 			"deflection_target_id": ""
 		},
 		{
-			"id": "itrig_mark_bank",
+			"id": "itrig_mark_parking_v2",
+			"person_id": "p_mark",
+			"evidence_id": "ev_parking_camera",
+			"requires_statement_id": "stmt_mark_departure_time",
+			"target_statement_id": "stmt_mark_departure_reinforced",
+			"target_topic_id": "",
+			"impact_level": "MAJOR",
+			"reaction_type": "ADMISSION",
+			"dialogue": "Alright... maybe it was closer to 20:40. I didn't think ten minutes mattered.",
+			"new_statement_id": "stmt_mark_corrected_departure",
+			"unlocks": ["topic_why_lie_about_time"],
+			"pressure_points": 1,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_mark_bank_v1",
 			"person_id": "p_mark",
 			"evidence_id": "ev_bank_transfer",
 			"requires_statement_id": "",
+			"target_statement_id": "stmt_mark_argument",
+			"target_topic_id": "topic_relationship",
 			"impact_level": "MAJOR",
-			"reaction_type": "DEFLECTION",
-			"dialogue": "This has nothing to do with the murder.",
-			"new_statement_id": "stmt_mark_financial",
-			"unlocks": [],
-			"pressure_points": 2,
-			"deflection_target_id": "p_julia"
+			"reaction_type": "DENIAL",
+			"dialogue": "This has nothing to do with Daniel's murder. You don't understand how messy business accounting can get.",
+			"new_statement_id": "stmt_mark_denies_financial",
+			"unlocks": ["topic_missing_money"],
+			"pressure_points": 1,
+			"deflection_target_id": ""
 		},
 		{
-			"id": "itrig_mark_safe",
+			"id": "itrig_mark_bank_v2",
+			"person_id": "p_mark",
+			"evidence_id": "ev_bank_transfer",
+			"requires_statement_id": "",
+			"target_statement_id": "",
+			"target_topic_id": "topic_why_lie_about_time",
+			"impact_level": "MAJOR",
+			"reaction_type": "DENIAL",
+			"dialogue": "This has nothing to do with Daniel's murder. You don't understand how messy business accounting can get.",
+			"new_statement_id": "stmt_mark_denies_financial",
+			"unlocks": ["topic_missing_money"],
+			"pressure_points": 1,
+			"deflection_target_id": ""
+		},
+		{
+			"id": "itrig_mark_safe_v1",
 			"person_id": "p_mark",
 			"evidence_id": "ev_hidden_safe",
-			"requires_statement_id": "",
-			"impact_level": "BREAKPOINT",
+			"requires_statement_id": "stmt_mark_deeper_admission",
+			"target_statement_id": "stmt_mark_deeper_admission",
+			"target_topic_id": "topic_missing_money",
+			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
-			"dialogue": "Daniel found out about the missing money. But I didn't kill him.",
-			"new_statement_id": "stmt_mark_embezzlement",
+			"dialogue": "Alright. That's everything. Daniel had the records. He was going to destroy me.",
+			"new_statement_id": "stmt_mark_final_lock",
 			"unlocks": [],
-			"pressure_points": 3,
+			"pressure_points": 0,
 			"deflection_target_id": ""
 		},
 		{
@@ -271,6 +332,8 @@
 			"person_id": "p_sarah",
 			"evidence_id": "ev_hallway_camera",
 			"requires_statement_id": "stmt_sarah_initial",
+			"target_statement_id": "stmt_sarah_initial",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "I may have heard a woman's voice...",
@@ -284,6 +347,8 @@
 			"person_id": "p_sarah",
 			"evidence_id": "ev_shoe_print",
 			"requires_statement_id": "stmt_sarah_confronted",
+			"target_statement_id": "stmt_sarah_confronted",
+			"target_topic_id": "",
 			"impact_level": "MINOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "Someone walked past my door quickly.",
@@ -297,6 +362,8 @@
 			"person_id": "p_julia",
 			"evidence_id": "ev_julia_fingerprint_glass",
 			"requires_statement_id": "stmt_julia_initial",
+			"target_statement_id": "stmt_julia_initial",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "DEFLECTION",
 			"dialogue": "I visited earlier in the day.",
@@ -310,6 +377,8 @@
 			"person_id": "p_julia",
 			"evidence_id": "ev_elevator_logs",
 			"requires_statement_id": "stmt_julia_fingerprint",
+			"target_statement_id": "stmt_julia_fingerprint",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "Okay... I stopped by briefly. But Daniel was alive when I left.",
@@ -323,6 +392,8 @@
 			"person_id": "p_julia",
 			"evidence_id": "ev_julia_shoes",
 			"requires_statement_id": "stmt_julia_elevator",
+			"target_statement_id": "stmt_julia_elevator",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "PANIC",
 			"dialogue": "That... that doesn't prove anything! I told you I stopped by briefly!",
@@ -336,6 +407,8 @@
 			"person_id": "p_julia",
 			"evidence_id": "ev_personal_journal",
 			"requires_statement_id": "stmt_julia_elevator",
+			"target_statement_id": "stmt_julia_elevator",
+			"target_topic_id": "",
 			"impact_level": "BREAKPOINT",
 			"reaction_type": "PARTIAL_CONFESSION",
 			"dialogue": "He threatened to ruin everything. I just lost control.",
@@ -349,6 +422,8 @@
 			"person_id": "p_lucas",
 			"evidence_id": "ev_lucas_work_log",
 			"requires_statement_id": "stmt_lucas_initial",
+			"target_statement_id": "stmt_lucas_initial",
+			"target_topic_id": "",
 			"impact_level": "MINOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "Fine, I was working until 20:00, not 19:00. But I was in the basement the whole time, nowhere near his apartment.",
@@ -362,6 +437,8 @@
 			"person_id": "p_lucas",
 			"evidence_id": "ev_elevator_logs",
 			"requires_statement_id": "",
+			"target_statement_id": "stmt_lucas_initial",
+			"target_topic_id": "",
 			"impact_level": "MINOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "See? My key card wasn't used for the elevator. I took the stairs to the basement. I never went to his floor.",
@@ -369,6 +446,59 @@
 			"unlocks": [],
 			"pressure_points": 0,
 			"deflection_target_id": ""
+		}
+	],
+	"interrogation_sessions": [
+		{
+			"person_id": "p_mark",
+			"initial_dialogue": "I already told the police what happened.\nI stopped by to talk to Daniel, we argued a little, and then I left.\nThat's it.",
+			"initial_statement_ids": ["stmt_mark_visit", "stmt_mark_argument", "stmt_mark_departure_time"],
+			"base_topic_ids": ["topic_reason_for_visit", "topic_departure_time", "topic_relationship"],
+			"pressure_gate": 1,
+			"rejection_texts": [
+				"He barely reacts to that.",
+				"That doesn't seem to shake his story.",
+				"He dismisses it immediately.",
+				"That isn't enough to challenge this point."
+			],
+			"pressure_dialogue": "You're trying to pin this on me because I lied.\nThat doesn't make me a murderer.",
+			"break_dialogue": "Fine.\nDaniel found out about the money.\nHe said he was going to expose everything the next morning.\nI panicked, alright?\nBut when I left, he was still alive.",
+			"break_statement_ids": ["stmt_mark_deeper_admission"],
+			"break_unlocks": ["topic_who_else_knew"]
+		},
+		{
+			"person_id": "p_sarah",
+			"initial_dialogue": "Sarah clutches her hands nervously. 'I live next door. I heard shouting that night, but I was too scared to look.'",
+			"initial_statement_ids": ["stmt_sarah_initial"],
+			"base_topic_ids": ["topic_sarah_hallway"],
+			"pressure_gate": 1,
+			"rejection_texts": [
+				"Sarah shakes her head. 'I don't know anything about that.'",
+				"She looks confused. 'I... I don't understand what you're showing me.'"
+			]
+		},
+		{
+			"person_id": "p_julia",
+			"initial_dialogue": "Julia sits rigid, arms crossed. 'Daniel was my husband. We were separated, but I had nothing to do with this.'",
+			"initial_statement_ids": ["stmt_julia_initial"],
+			"base_topic_ids": ["topic_julia_presence"],
+			"pressure_gate": 2,
+			"rejection_texts": [
+				"Julia's expression hardens. 'That proves nothing.'",
+				"She waves dismissively. 'This has nothing to do with me.'",
+				"'You're wasting both of our time with this.'"
+			]
+		},
+		{
+			"person_id": "p_lucas",
+			"initial_dialogue": "Lucas leans back casually. 'I'm the building maintenance guy. I was in the basement working all evening.'",
+			"initial_statement_ids": ["stmt_lucas_initial"],
+			"base_topic_ids": ["topic_lucas_work"],
+			"pressure_gate": 1,
+			"rejection_texts": [
+				"Lucas shrugs. 'Don't know what that has to do with me.'",
+				"He looks bored. 'I was in the basement. That's my story.'"
+			]
 		}
 	]
 }

@@ -132,7 +132,7 @@ func _add_theory_header(theory: Dictionary) -> void:
 
 	var name_label: Label = Label.new()
 	name_label.text = theory["name"]
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
@@ -143,7 +143,7 @@ func _add_theory_header(theory: Dictionary) -> void:
 	else:
 		complete_label.text = "Incomplete"
 		complete_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
-	complete_label.add_theme_font_size_override("font_size", 13)
+	complete_label.add_theme_font_size_override("font_size", 15)
 	hbox.add_child(complete_label)
 
 	var delete_btn: Button = Button.new()
@@ -290,14 +290,14 @@ func _add_inconsistency_section(theory: Dictionary) -> void:
 
 	var header: Label = Label.new()
 	header.text = "⚠ Inconsistencies Found"
-	header.add_theme_font_size_override("font_size", 14)
+	header.add_theme_font_size_override("font_size", 16)
 	header.add_theme_color_override("font_color", Color(0.9, 0.55, 0.3))
 	detail_panel.add_child(header)
 
 	for incon: Dictionary in inconsistencies:
 		var lbl: Label = Label.new()
 		lbl.text = "• %s" % incon.get("description", "Unknown conflict")
-		lbl.add_theme_font_size_override("font_size", 12)
+		lbl.add_theme_font_size_override("font_size", 14)
 		lbl.add_theme_color_override("font_color", Color(0.85, 0.55, 0.35))
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		detail_panel.add_child(lbl)
@@ -326,7 +326,7 @@ func _create_step_panel(step: String) -> PanelContainer:
 	# Add step title as first element (caller adds VBox after)
 	var title: Label = Label.new()
 	title.text = config.get("label", step)
-	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", config.get("color", Color.WHITE))
 	# Title will be child 0; caller's VBox child 1
 	panel.add_child(title)
@@ -339,7 +339,7 @@ func _add_strength_label(parent: VBoxContainer, step: String) -> void:
 	)
 	var lbl: Label = Label.new()
 	lbl.text = STRENGTH_LABELS.get(strength, "—")
-	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_font_size_override("font_size", 14)
 	lbl.add_theme_color_override("font_color", STRENGTH_COLORS.get(strength, Color.WHITE))
 	parent.add_child(lbl)
 
@@ -354,7 +354,7 @@ func _add_evidence_section(parent: VBoxContainer, step: String) -> void:
 			var ev_data: EvidenceData = CaseManager.get_evidence(ev_id)
 			var ev_label: Label = Label.new()
 			ev_label.text = "📎 %s" % (ev_data.name if ev_data else ev_id)
-			ev_label.add_theme_font_size_override("font_size", 11)
+			ev_label.add_theme_font_size_override("font_size", 13)
 			ev_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			hbox.add_child(ev_label)
 

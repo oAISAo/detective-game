@@ -46,6 +46,9 @@ var _interrogation_topics: Dictionary = {}
 ## Interrogation trigger lookup: { trigger_id: InterrogationTriggerData }
 var _interrogation_triggers: Dictionary = {}
 
+## Interrogation session lookup: { person_id: InterrogationSessionData }
+var _interrogation_sessions: Dictionary = {}
+
 ## Action lookup: { action_id: ActionData }
 var _actions: Dictionary = {}
 
@@ -165,6 +168,7 @@ func unload_case() -> void:
 	_event_triggers.clear()
 	_interrogation_topics.clear()
 	_interrogation_triggers.clear()
+	_interrogation_sessions.clear()
 	_actions.clear()
 	_insights.clear()
 	_discovery_rules.clear()
@@ -182,6 +186,7 @@ func _build_lookups() -> void:
 	_event_triggers.clear()
 	_interrogation_topics.clear()
 	_interrogation_triggers.clear()
+	_interrogation_sessions.clear()
 	_actions.clear()
 	_insights.clear()
 	_discovery_rules.clear()
@@ -212,6 +217,9 @@ func _build_lookups() -> void:
 
 	for item: InterrogationTriggerData in _case.interrogation_triggers:
 		_interrogation_triggers[item.id] = item
+
+	for item: InterrogationSessionData in _case.interrogation_sessions:
+		_interrogation_sessions[item.person_id] = item
 
 	for item: ActionData in _case.actions:
 		_actions[item.id] = item
@@ -365,6 +373,27 @@ func get_trigger_by_evidence(person_id: String, evidence_id: String) -> Interrog
 		if trigger.person_id == person_id and trigger.evidence_id == evidence_id:
 			return trigger
 	return null
+
+
+## Returns the interrogation trigger matching a person, evidence, and current focus.
+## Focus is a Dictionary with "type" ("statement" or "topic") and "id".
+## Returns null if no trigger matches the focus target.
+func get_trigger_by_evidence_and_focus(person_id: String, evidence_id: String, focus: Dictionary) -> InterrogationTriggerData:
+	var focus_type: String = focus.get("type", "")
+	var focus_id: String = focus.get("id", "")
+	for trigger: InterrogationTriggerData in _interrogation_triggers.values():
+		if trigger.person_id != person_id or trigger.evidence_id != evidence_id:
+			continue
+		if focus_type == "statement" and trigger.target_statement_id == focus_id:
+			return trigger
+		if focus_type == "topic" and trigger.target_topic_id == focus_id:
+			return trigger
+	return null
+
+
+## Returns the InterrogationSessionData for a specific person, or null.
+func get_interrogation_session(person_id: String) -> InterrogationSessionData:
+	return _interrogation_sessions.get(person_id, null)
 
 
 ## Returns all actions of a specific type.

@@ -66,8 +66,8 @@ size_flags_horizontal = 3
 
 [node name="ObjectsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
-text = "Objects"
-theme_override_font_sizes/font_size = 18
+text = "Areas & Objects"
+theme_override_font_sizes/font_size = 20
 
 [node name="ObjectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
@@ -82,7 +82,7 @@ theme_override_constants/separation = 4
 [node name="ToolsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
 text = "Investigation Tools"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="ToolPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 unique_name_in_owner = true

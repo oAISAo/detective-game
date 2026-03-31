@@ -142,7 +142,7 @@ CertaintyLevel: CONFIRMED, LIKELY, CLAIMED, UNKNOWN
 ImpactLevel: MINOR, MAJOR, BREAKPOINT
 InvestigationState: NOT_INSPECTED, PARTIALLY_EXAMINED, FULLY_EXAMINED
 ActionType: INTERROGATION, VISIT_LOCATION, SEARCH_LOCATION, EXAMINE_DEVICE, ANALYZE_EVIDENCE
-TimeSlot: MORNING, AFTERNOON, EVENING, NIGHT
+DayPhase: MORNING, DAYTIME, NIGHT
 TriggerType: TIMED, CONDITIONAL, DAY_START
 LegalCategory: PRESENCE, MOTIVE, OPPORTUNITY, CONNECTION
 ReactionType: DENIAL, ADMISSION, ANGER, PANIC, SILENCE, REVELATION, PARTIAL_CONFESSION, DEFLECTION
@@ -161,7 +161,7 @@ Track the dynamic state of the investigation:
 
 ```
 current_day: int
-current_time_slot: TimeSlot
+current_phase: DayPhase
 actions_remaining: int
 discovered_evidence: Array[String]
 discovered_insights: Array[String]
@@ -293,7 +293,7 @@ When all slots are used (or player chooses to end day):
 1. Process delayed actions (advance lab/surveillance timers)
 2. Evaluate event triggers for the next day
 3. Advance `current_day`
-4. Set `current_time_slot` to MORNING
+4. Set `current_phase` to MORNING
 5. Queue morning briefing content
 
 ### 2.6 — Investigation Log

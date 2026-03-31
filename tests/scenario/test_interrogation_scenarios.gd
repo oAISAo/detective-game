@@ -1,8 +1,8 @@
 ## test_interrogation_scenarios.gd
 ## Scenario tests for the interrogation system.
 ## Tests complete interrogation sequences with specific suspects.
-## Scenario 1: Mark Bennett — 3 triggers in sequence.
-## Scenario 2: Julia Ross — reaching break point at threshold 5.
+## Scenario 1: Mark Bennett — 3 triggers in sequence with focus selection.
+## Scenario 2: Julia Ross — reaching break point at threshold 5 with focus.
 extends GutTest
 
 
@@ -215,6 +215,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_mark",
 			"evidence_id": "ev_parking_camera",
 			"requires_statement_id": "s_mark_left_early",
+			"target_statement_id": "s_mark_left_early",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "DENIAL",
 			"dialogue": "That camera must be wrong!",
@@ -227,6 +229,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_mark",
 			"evidence_id": "ev_financial",
 			"requires_statement_id": "",
+			"target_statement_id": "",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "Fine, I moved some money.",
@@ -239,6 +243,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_mark",
 			"evidence_id": "ev_safe",
 			"requires_statement_id": "s_mark_embezzlement",
+			"target_statement_id": "s_mark_embezzlement",
+			"target_topic_id": "",
 			"impact_level": "BREAKPOINT",
 			"reaction_type": "PANIC",
 			"dialogue": "I did not think you would find the safe.",
@@ -251,6 +257,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_julia",
 			"evidence_id": "ev_fingerprint",
 			"requires_statement_id": "s_julia_was_away",
+			"target_statement_id": "s_julia_was_away",
+			"target_topic_id": "",
 			"impact_level": "MINOR",
 			"reaction_type": "DENIAL",
 			"dialogue": "Those prints could be from weeks ago.",
@@ -263,6 +271,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_julia",
 			"evidence_id": "ev_elevator_log",
 			"requires_statement_id": "s_julia_was_away",
+			"target_statement_id": "s_julia_was_away",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "Fine, I was there briefly.",
@@ -275,6 +285,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_julia",
 			"evidence_id": "ev_shoe_print",
 			"requires_statement_id": "",
+			"target_statement_id": "",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "SILENCE",
 			"dialogue": "...",
@@ -287,12 +299,32 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_julia",
 			"evidence_id": "ev_journal",
 			"requires_statement_id": "",
+			"target_statement_id": "",
+			"target_topic_id": "",
 			"impact_level": "BREAKPOINT",
 			"reaction_type": "PARTIAL_CONFESSION",
 			"dialogue": "He was going to ruin everything.",
 			"new_statement_id": "s_julia_journal_confession",
 			"unlocks": [],
 			"pressure_points": 2,
+		},
+	],
+	"interrogation_sessions": [
+		{
+			"person_id": "p_mark",
+			"initial_dialogue": "Mark sits down and crosses his arms.",
+			"initial_statement_ids": ["s_mark_left_early"],
+			"base_topic_ids": ["topic_mark_evening"],
+			"pressure_gate": 2,
+			"rejection_texts": ["Mark shakes his head."],
+		},
+		{
+			"person_id": "p_julia",
+			"initial_dialogue": "Julia crosses her arms defiantly.",
+			"initial_statement_ids": ["s_julia_was_away"],
+			"base_topic_ids": ["topic_julia_whereabouts"],
+			"pressure_gate": 2,
+			"rejection_texts": ["Julia dismisses it."],
 		},
 	],
 }
@@ -322,8 +354,17 @@ func after_all() -> void:
 	CaseManager.unload_case()
 
 
+# --- Helpers --- #
+
+## Start interrogation for a person and advance to INTERROGATION phase.
+func _start_and_advance(person_id: String) -> void:
+	InterrogationManager.start_interrogation(person_id)
+	assert_eq(InterrogationManager.get_current_phase(),
+		Enums.InterrogationPhase.INTERROGATION)
+
+
 # =========================================================================
-# Scenario 1: Mark Bennett — 3 Triggers in Sequence
+# Scenario 1: Mark Bennett — 3 Triggers with Focus Selection
 # =========================================================================
 
 func test_mark_interrogation_three_triggers() -> void:
@@ -336,21 +377,23 @@ func test_mark_interrogation_three_triggers() -> void:
 	var started: bool = InterrogationManager.start_interrogation("p_mark")
 	assert_true(started, "Interrogation should start")
 
-	# --- Phase 1: Open Conversation ---
+	# --- Interrogation starts directly ---
 	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.OPEN_CONVERSATION)
+		Enums.InterrogationPhase.INTERROGATION)
 
-	# Discuss evening whereabouts → hear "I left at 19:30"
-	var topic_result: Dictionary = InterrogationManager.discuss_topic("topic_mark_evening")
-	assert_has(topic_result.get("statements", []), "s_mark_left_early")
-	assert_has(InterrogationManager.get_heard_statements(), "s_mark_left_early")
+	# Session auto-records s_mark_left_early from initial_statement_ids
+	assert_has(InterrogationManager.get_heard_statements(), "s_mark_left_early",
+		"Initial statement should be auto-heard from session data")
 
-	# --- Phase 2: Evidence Confrontation ---
-	InterrogationManager.advance_phase()
-	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.EVIDENCE_CONFRONTATION)
+	# Initial dialogue available from session
+	var dialogue: String = InterrogationManager.get_initial_dialogue()
+	assert_ne(dialogue, "", "Session should provide initial dialogue")
 
-	# Trigger 1: Present parking camera (prereq s_mark_left_early met)
+	# Trigger 1: Focus on s_mark_left_early, present parking camera
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	assert_eq(InterrogationManager.get_current_focus(),
+		{"type": "statement", "id": "s_mark_left_early"})
+
 	var result1: Dictionary = InterrogationManager.present_evidence("ev_parking_camera")
 	assert_true(result1.get("triggered", false), "Camera trigger should fire")
 	assert_eq(result1["trigger_id"], "trig_mark_camera")
@@ -362,7 +405,10 @@ func test_mark_interrogation_three_triggers() -> void:
 	assert_eq(InterrogationManager.get_current_pressure(), 1)
 	assert_has(InterrogationManager.get_heard_statements(), "s_mark_admission_time")
 
-	# Trigger 2: Present financial records (no prereq)
+	# Trigger 2: Financial records (no prereq, no target — global trigger)
+	# Clear focus, select a different focus for financial (no specific target)
+	InterrogationManager.clear_focus()
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
 	var result2: Dictionary = InterrogationManager.present_evidence("ev_financial")
 	assert_true(result2.get("triggered", false), "Financial trigger should fire")
 	assert_eq(result2["trigger_id"], "trig_mark_financial")
@@ -371,13 +417,12 @@ func test_mark_interrogation_three_triggers() -> void:
 	assert_eq(InterrogationManager.get_current_pressure(), 2)
 	assert_has(InterrogationManager.get_heard_statements(), "s_mark_embezzlement")
 
-	# --- Phase 3: Psychological Pressure ---
-	InterrogationManager.advance_phase()
-	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.PSYCHOLOGICAL_PRESSURE)
+	# Contradiction log should reflect focus-based evidence presentations
+	var contradictions: Array = InterrogationManager.get_session_contradictions()
+	assert_true(contradictions.size() >= 1, "Should have logged at least one contradiction")
 
-	# Trigger 3: Present safe (prereq s_mark_embezzlement met from trigger 2)
-	watch_signals(InterrogationManager)
+	# Trigger 3: Focus on s_mark_embezzlement, present safe
+	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
 	var result3: Dictionary = InterrogationManager.present_evidence("ev_safe")
 	assert_true(result3.get("triggered", false), "Safe trigger should fire")
 	assert_eq(result3["trigger_id"], "trig_mark_safe")
@@ -385,8 +430,10 @@ func test_mark_interrogation_three_triggers() -> void:
 	assert_eq(result3["pressure_added"], 1)
 	assert_eq(InterrogationManager.get_current_pressure(), 3)
 
-	# Break moment! Pressure 3 = threshold 3
-	assert_true(result3.get("break_moment", false), "Break moment should trigger")
+	# Break moment! Pressure 3 = threshold 3 — triggered via apply_pressure
+	watch_signals(InterrogationManager)
+	var pressure_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(pressure_result.get("break_moment", false), "Break moment should trigger")
 	assert_signal_emitted_with_parameters(
 		InterrogationManager, "break_moment_reached", ["p_mark"]
 	)
@@ -416,35 +463,34 @@ func test_julia_interrogation_reaching_break_point() -> void:
 	var started: bool = InterrogationManager.start_interrogation("p_julia")
 	assert_true(started)
 
-	# --- Phase 1: Open Conversation ---
-	# Discuss whereabouts → hear "I was out of town"
-	InterrogationManager.discuss_topic("topic_julia_whereabouts")
-	assert_has(InterrogationManager.get_heard_statements(), "s_julia_was_away")
+	# --- Statement Intake ---
+	# Session auto-records s_julia_was_away
+	assert_has(InterrogationManager.get_heard_statements(), "s_julia_was_away",
+		"Initial statement auto-heard from session data")
 
-	# --- Phase 2: Evidence Confrontation ---
-	InterrogationManager.advance_phase()
+	# --- Advance to Interrogation ---
+	InterrogationManager.advance_to_interrogation()
+	assert_eq(InterrogationManager.get_current_phase(),
+		Enums.InterrogationPhase.INTERROGATION)
 
-	# Trigger 1: Fingerprint (MINOR, prereq met)
+	# Trigger 1: Focus on s_julia_was_away, present fingerprint (MINOR, prereq met)
 	# Julia is MANIPULATIVE → MINOR triggers produce DEFLECTION
+	InterrogationManager.select_focus("statement", "s_julia_was_away")
 	var r1: Dictionary = InterrogationManager.present_evidence("ev_fingerprint")
 	assert_true(r1.get("triggered", false))
 	assert_eq(r1["reaction_type"], Enums.ReactionType.DEFLECTION,
 		"Manipulative Julia should convert MINOR to DEFLECTION")
-	# Note: MANIPULATIVE doesn't affect pressure for MINOR (only CALM does)
 	assert_eq(r1["pressure_added"], 1)
 	assert_eq(InterrogationManager.get_current_pressure(), 1)
 
-	# Trigger 2: Elevator log (MAJOR, prereq met)
+	# Trigger 2: Same focus, present elevator log (MAJOR, prereq met)
 	var r2: Dictionary = InterrogationManager.present_evidence("ev_elevator_log")
 	assert_true(r2.get("triggered", false))
 	assert_eq(r2["reaction_type"], Enums.ReactionType.ADMISSION)
 	assert_eq(r2["pressure_added"], 1)
 	assert_eq(InterrogationManager.get_current_pressure(), 2)
 
-	# --- Phase 3: Psychological Pressure ---
-	InterrogationManager.advance_phase()
-
-	# Trigger 3: Shoe print (MAJOR, no prereq)
+	# Trigger 3: Shoe print (no target — global trigger, any focus works)
 	var r3: Dictionary = InterrogationManager.present_evidence("ev_shoe_print")
 	assert_true(r3.get("triggered", false))
 	assert_eq(r3["reaction_type"], Enums.ReactionType.SILENCE)
@@ -455,16 +501,17 @@ func test_julia_interrogation_reaching_break_point() -> void:
 	assert_false(InterrogationManager.has_break_moment("p_julia"),
 		"Should not have break moment yet (3 < 5)")
 
-	# Trigger 4: Journal (BREAKPOINT, no prereq, +2 pressure)
-	watch_signals(InterrogationManager)
+	# Trigger 4: Journal (no target — global, +2 pressure)
 	var r4: Dictionary = InterrogationManager.present_evidence("ev_journal")
 	assert_true(r4.get("triggered", false))
 	assert_eq(r4["reaction_type"], Enums.ReactionType.PARTIAL_CONFESSION)
 	assert_eq(r4["pressure_added"], 2)
 	assert_eq(InterrogationManager.get_current_pressure(), 5)
 
-	# Break moment! Pressure 5 = threshold 5
-	assert_true(r4.get("break_moment", false), "Break moment should trigger")
+	# Break moment! Pressure 5 = threshold 5 — triggered via apply_pressure
+	watch_signals(InterrogationManager)
+	var pressure_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(pressure_result.get("break_moment", false), "Break moment should trigger")
 	assert_signal_emitted_with_parameters(
 		InterrogationManager, "break_moment_reached", ["p_julia"]
 	)
@@ -472,7 +519,20 @@ func test_julia_interrogation_reaching_break_point() -> void:
 		Enums.InterrogationPhase.BREAK_MOMENT)
 	assert_true(InterrogationManager.has_break_moment("p_julia"))
 
-	# End and verify
+	# Verify contradiction log (before end — session data is cleared on end)
+	var contradictions: Array = InterrogationManager.get_session_contradictions()
+	assert_true(contradictions.size() >= 2,
+		"Should log contradictions for fingerprint and elevator (both target s_julia_was_away)")
+
+	# Verify all statements heard (before end — session statements cleared on end)
+	var heard: Array[String] = InterrogationManager.get_heard_statements()
+	assert_has(heard, "s_julia_was_away")
+	assert_has(heard, "s_julia_deflection_fingerprint")
+	assert_has(heard, "s_julia_elevator_admission")
+	assert_has(heard, "s_julia_shoe_silence")
+	assert_has(heard, "s_julia_journal_confession")
+
+	# End and verify persistence
 	InterrogationManager.end_interrogation()
 	assert_eq(InterrogationManager.get_pressure_for_person("p_julia"), 5)
 	var fired: Array = InterrogationManager.get_fired_triggers_for_person("p_julia")
@@ -481,11 +541,3 @@ func test_julia_interrogation_reaching_break_point() -> void:
 	assert_has(fired, "trig_julia_elevator")
 	assert_has(fired, "trig_julia_shoe")
 	assert_has(fired, "trig_julia_journal")
-
-	# Verify all statements heard
-	var heard: Array[String] = InterrogationManager.get_heard_statements()
-	assert_has(heard, "s_julia_was_away")
-	assert_has(heard, "s_julia_deflection_fingerprint")
-	assert_has(heard, "s_julia_elevator_admission")
-	assert_has(heard, "s_julia_shoe_silence")
-	assert_has(heard, "s_julia_journal_confession")

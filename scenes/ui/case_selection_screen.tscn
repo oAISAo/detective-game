@@ -1,0 +1,121 @@
+[gd_scene load_steps=2 format=3 uid="uid://case_selection"]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/case_selection_screen.gd" id="1_script"]
+
+[node name="CaseSelectionScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 60
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/HeaderHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "← Back"
+
+[node name="HeaderLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "Select Case"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/HeaderHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 32
+
+[node name="CaseListPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(400, 0)
+
+[node name="CaseListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentHBox/CaseListPanel"]
+layout_mode = 2
+
+[node name="CaseListContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/CaseListPanel/CaseListScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="DetailMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel/DetailVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="DetailContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel/DetailVBox/DetailMargin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CaseTitleLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel/DetailVBox/DetailMargin/DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Select a case to view details"
+autowrap_mode = 2
+
+[node name="CaseDescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel/DetailVBox/DetailMargin/DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = ""
+fit_content = true
+
+[node name="StartCaseButton" type="Button" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel/DetailVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+theme_override_font_sizes/font_size = 22
+text = "Start Investigation"

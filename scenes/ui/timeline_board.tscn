@@ -58,7 +58,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "0 entries · 0 hypotheses"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
 
 [node name="OverlapLabel" type="Label" parent="MarginContainer/VBoxContainer"]
@@ -67,7 +67,7 @@ layout_mode = 2
 visible = false
 text = ""
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.9, 0.55, 0.3, 1)
 
 [node name="TimelineScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
