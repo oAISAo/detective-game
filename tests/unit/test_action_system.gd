@@ -181,8 +181,8 @@ func before_each() -> void:
 	ActionSystem.reset()
 	CaseManager.unload_case()
 	CaseManager.load_case(TEST_CASE_FILE)
-	# Set time to AFTERNOON so major actions are allowed
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
+	# Set phase to DAYTIME so major actions are allowed
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
 
 
 # --- Initialization --- #
@@ -242,31 +242,25 @@ func test_available_action_with_warrant_met() -> void:
 
 
 func test_unavailable_during_morning() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
+	GameManager.current_phase = Enums.DayPhase.MORNING
 	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
 	assert_true(reasons.size() > 0, "Major action should be unavailable during MORNING")
 
 
 func test_unavailable_during_night() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
+	GameManager.current_phase = Enums.DayPhase.NIGHT
 	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
 	assert_true(reasons.size() > 0, "Major action should be unavailable during NIGHT")
 
 
-func test_available_during_afternoon() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
+func test_available_during_daytime() -> void:
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
 	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
-	assert_eq(reasons.size(), 0, "Major action should be available during AFTERNOON")
-
-
-func test_available_during_evening() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.EVENING
-	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
-	assert_eq(reasons.size(), 0, "Major action should be available during EVENING")
+	assert_eq(reasons.size(), 0, "Major action should be available during DAYTIME")
 
 
 func test_passive_action_no_slot_check() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
+	GameManager.current_phase = Enums.DayPhase.MORNING
 	var reasons: Array[String] = ActionSystem.check_availability("act_passive_review")
 	assert_eq(reasons.size(), 0, "Passive actions should be available any time")
 
@@ -319,7 +313,7 @@ func test_interrogation_limit_check() -> void:
 
 func test_get_available_actions_filters_correctly() -> void:
 	var available: Array[ActionData] = ActionSystem.get_available_actions()
-	# At start, during AFTERNOON with full actions: act_visit_scene, act_passive_review,
+	# At start, during DAYTIME with full actions: act_visit_scene, act_passive_review,
 	# act_start_surveillance, act_multi_result should be available
 	var available_ids: Array[String] = []
 	for a: ActionData in available:
@@ -371,15 +365,14 @@ func test_execute_passive_action_no_slot_cost() -> void:
 
 func test_execute_major_action_already_completed() -> void:
 	ActionSystem.execute_action("act_visit_scene")
-	GameManager.current_time_slot = Enums.TimeSlot.EVENING
 	var result: bool = ActionSystem.execute_action("act_visit_scene")
 	assert_false(result, "Should not allow re-executing major action")
 
 
-func test_execute_action_advances_time_slot() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
+func test_execute_action_does_not_change_phase() -> void:
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
 	ActionSystem.execute_action("act_visit_scene")
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.EVENING, "Major action should advance time slot")
+	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME, "Action should not change phase")
 
 
 func test_execute_action_records_interrogation() -> void:

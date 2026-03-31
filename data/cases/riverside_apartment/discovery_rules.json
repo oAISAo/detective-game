@@ -1,0 +1,117 @@
+{
+	"discovery_rules": [
+		{
+			"id": "dr_julia_fingerprint_glass",
+			"evidence_id": "ev_julia_fingerprint_glass",
+			"location_id": "loc_victim_apartment",
+			"conditions": [
+				"evidence_discovered:ev_wine_glasses",
+				"day_gte:2"
+			],
+			"description": "Julia's fingerprint on the wine glass is revealed through lab analysis after discovering the glasses."
+		},
+		{
+			"id": "dr_mark_fingerprint_desk",
+			"evidence_id": "ev_mark_fingerprint_desk",
+			"location_id": "loc_victim_apartment",
+			"conditions": [
+				"day_gte:2"
+			],
+			"description": "Mark's fingerprint on the desk is identified through lab analysis on Day 2."
+		},
+		{
+			"id": "dr_hallway_camera",
+			"evidence_id": "ev_hallway_camera",
+			"location_id": "loc_hallway",
+			"conditions": [
+				"location_visited:loc_hallway"
+			],
+			"description": "The hallway camera footage becomes available after visiting the building hallway."
+		},
+		{
+			"id": "dr_elevator_logs",
+			"evidence_id": "ev_elevator_logs",
+			"location_id": "loc_hallway",
+			"conditions": [
+				"location_visited:loc_hallway"
+			],
+			"description": "Elevator access logs become available after visiting the building hallway."
+		},
+		{
+			"id": "dr_parking_camera",
+			"evidence_id": "ev_parking_camera",
+			"location_id": "loc_parking_lot",
+			"conditions": [
+				"location_visited:loc_parking_lot"
+			],
+			"description": "The parking lot camera footage becomes available after visiting the parking lot."
+		},
+		{
+			"id": "dr_sarah_second_testimony",
+			"evidence_id": "ev_sarah_second_testimony",
+			"location_id": "loc_neighbor_apartment",
+			"conditions": [
+				"evidence_discovered:ev_sarah_testimony",
+				"evidence_discovered:ev_hallway_camera"
+			],
+			"description": "Sarah gives a more detailed testimony after being confronted with the hallway camera footage."
+		},
+		{
+			"id": "dr_shoe_print",
+			"evidence_id": "ev_shoe_print",
+			"location_id": "loc_hallway",
+			"conditions": [
+				"location_visited:loc_hallway",
+				"day_gte:2"
+			],
+			"description": "The shoe print in the hallway is discovered by forensics and analyzed in the lab."
+		},
+		{
+			"id": "dr_hidden_safe",
+			"evidence_id": "ev_hidden_safe",
+			"location_id": "loc_victim_office",
+			"conditions": [
+				"evidence_discovered:ev_accounting_files"
+			],
+			"description": "The hidden safe is found after discovering the accounting irregularities and searching the office thoroughly."
+		},
+		{
+			"id": "dr_personal_journal",
+			"evidence_id": "ev_personal_journal",
+			"location_id": "loc_victim_office",
+			"conditions": [
+				"location_visited:loc_victim_office",
+				"day_gte:3"
+			],
+			"description": "Daniel's personal journal is found during a thorough search of his office on Day 3 or later."
+		},
+		{
+			"id": "dr_deleted_messages",
+			"evidence_id": "ev_deleted_messages",
+			"location_id": "loc_victim_apartment",
+			"conditions": [
+				"warrant_obtained:warrant_julia_phone",
+				"day_gte:3"
+			],
+			"description": "Deleted messages are recovered after obtaining a warrant to search Julia's phone."
+		},
+		{
+			"id": "dr_julia_shoes",
+			"evidence_id": "ev_julia_shoes",
+			"location_id": "loc_victim_apartment",
+			"conditions": [
+				"warrant_obtained:warrant_julia_search"
+			],
+			"description": "Julia's shoes are seized under a search warrant for comparison with the hallway shoe print."
+		},
+		{
+			"id": "dr_julia_financial_records",
+			"evidence_id": "ev_julia_financial_records",
+			"location_id": "loc_victim_office",
+			"conditions": [
+				"day_gte:3"
+			],
+			"description": "Julia's financial records become available through investigation on Day 3."
+		}
+	]
+}

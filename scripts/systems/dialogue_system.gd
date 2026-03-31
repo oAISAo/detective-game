@@ -78,6 +78,7 @@ func queue_simple(speaker: String, text: String, portrait: String = "", dialogue
 
 
 ## Queues a morning briefing as a dialogue sequence.
+## Groups related items (locations, suspects) into consolidated lines.
 func queue_briefing(briefing_items: Array[String], day: int) -> void:
 	if briefing_items.is_empty():
 		return
@@ -89,10 +90,46 @@ func queue_briefing(briefing_items: Array[String], day: int) -> void:
 		"portrait": "chief",
 	})
 
+	# Separate items into groups for consolidated display
+	var locations: Array[String] = []
+	var suspects: Array[String] = []
+	var other_items: Array[String] = []
+
 	for item: String in briefing_items:
+		if item.begins_with("New location available: "):
+			locations.append(item.trim_prefix("New location available: "))
+		elif item.begins_with("New suspect available for questioning: "):
+			suspects.append(item.trim_prefix("New suspect available for questioning: "))
+		else:
+			other_items.append(item)
+
+	# Add non-grouped items first (narrative text, lab results, etc.)
+	for item: String in other_items:
 		lines.append({
 			"speaker": "Chief",
 			"text": item,
+			"portrait": "chief",
+		})
+
+	# Add grouped locations as a single line
+	if not locations.is_empty():
+		var loc_text: String = "New locations unlocked:"
+		for loc_name: String in locations:
+			loc_text += "\n- %s" % loc_name
+		lines.append({
+			"speaker": "Chief",
+			"text": loc_text,
+			"portrait": "chief",
+		})
+
+	# Add grouped suspects as a single line
+	if not suspects.is_empty():
+		var suspect_text: String = "New suspects available for questioning:"
+		for suspect_name: String in suspects:
+			suspect_text += "\n- %s" % suspect_name
+		lines.append({
+			"speaker": "Chief",
+			"text": suspect_text,
 			"portrait": "chief",
 		})
 

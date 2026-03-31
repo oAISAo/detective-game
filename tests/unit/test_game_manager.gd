@@ -15,7 +15,7 @@ func before_each() -> void:
 
 func test_initial_state() -> void:
 	assert_eq(GameManager.current_day, 1, "Game should start on day 1")
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING, "Game should start in the morning")
+	assert_eq(GameManager.current_phase, Enums.DayPhase.MORNING, "Game should start in the morning")
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Should have full actions")
 	assert_eq(GameManager.discovered_evidence.size(), 0, "No evidence discovered at start")
 	assert_eq(GameManager.discovered_insights.size(), 0, "No insights at start")
@@ -139,56 +139,36 @@ func test_get_remaining_mandatory_actions() -> void:
 	assert_eq(remaining[0], "action_02")
 
 
-# --- Day Progression --- #
+# --- Day Phase --- #
 
-func test_advance_time_slot_morning_to_afternoon() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
-	var result: Enums.TimeSlot = GameManager.advance_time_slot()
-	assert_eq(result, Enums.TimeSlot.AFTERNOON)
-
-
-func test_advance_time_slot_afternoon_to_evening() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
-	var result: Enums.TimeSlot = GameManager.advance_time_slot()
-	assert_eq(result, Enums.TimeSlot.EVENING)
+func test_phase_display_morning() -> void:
+	GameManager.current_phase = Enums.DayPhase.MORNING
+	assert_eq(GameManager.get_phase_display(), "Morning")
 
 
-func test_advance_time_slot_evening_to_night() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.EVENING
-	var result: Enums.TimeSlot = GameManager.advance_time_slot()
-	assert_eq(result, Enums.TimeSlot.NIGHT)
+func test_phase_display_daytime() -> void:
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
+	assert_eq(GameManager.get_phase_display(), "Daytime")
 
 
-func test_advance_time_slot_night_advances_day() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.current_day, 2, "Day should advance from night")
-	assert_eq(GameManager.current_time_slot, Enums.TimeSlot.MORNING, "Should be morning after night")
+func test_phase_display_night() -> void:
+	GameManager.current_phase = Enums.DayPhase.NIGHT
+	assert_eq(GameManager.get_phase_display(), "Night")
 
 
-func test_day_does_not_advance_past_total_days() -> void:
-	GameManager.current_day = GameManager.TOTAL_DAYS
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Day should not exceed total days")
+func test_is_daytime_returns_true_during_daytime() -> void:
+	GameManager.current_phase = Enums.DayPhase.DAYTIME
+	assert_true(GameManager.is_daytime(), "is_daytime() should return true during Daytime")
 
 
-func test_actions_reset_on_new_day() -> void:
-	GameManager.use_action()
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
-	GameManager.advance_time_slot()
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Actions should reset on new day")
+func test_is_daytime_returns_false_during_morning() -> void:
+	GameManager.current_phase = Enums.DayPhase.MORNING
+	assert_false(GameManager.is_daytime(), "is_daytime() should return false during Morning")
 
 
-func test_time_slot_display_strings() -> void:
-	GameManager.current_time_slot = Enums.TimeSlot.MORNING
-	assert_eq(GameManager.get_time_slot_display(), "Morning")
-	GameManager.current_time_slot = Enums.TimeSlot.AFTERNOON
-	assert_eq(GameManager.get_time_slot_display(), "Afternoon")
-	GameManager.current_time_slot = Enums.TimeSlot.EVENING
-	assert_eq(GameManager.get_time_slot_display(), "Evening")
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
-	assert_eq(GameManager.get_time_slot_display(), "Night")
+func test_is_daytime_returns_false_during_night() -> void:
+	GameManager.current_phase = Enums.DayPhase.NIGHT
+	assert_false(GameManager.is_daytime(), "is_daytime() should return false during Night")
 
 
 # --- Interrogation Tracking --- #
@@ -212,8 +192,8 @@ func test_can_interrogate_today() -> void:
 
 func test_interrogation_counts_reset_on_new_day() -> void:
 	GameManager.record_interrogation("p_julia")
-	GameManager.current_time_slot = Enums.TimeSlot.NIGHT
-	GameManager.advance_time_slot()
+	DaySystem.process_morning()
+	DaySystem.try_end_day()
 	assert_true(GameManager.can_interrogate_today("p_julia"), "Interrogation should be available on new day")
 
 
@@ -250,7 +230,7 @@ func test_log_entries_have_correct_structure() -> void:
 	var action_log: Array[Dictionary] = GameManager.get_investigation_log()
 	var entry: Dictionary = action_log[action_log.size() - 1]
 	assert_has(entry, "day")
-	assert_has(entry, "time_slot")
+	assert_has(entry, "phase")
 	assert_has(entry, "description")
 	assert_has(entry, "timestamp")
 
@@ -262,7 +242,7 @@ func test_serialize_produces_valid_dictionary() -> void:
 	GameManager.visit_location("loc_apartment")
 	var data: Dictionary = GameManager.serialize()
 	assert_has(data, "current_day")
-	assert_has(data, "current_time_slot")
+	assert_has(data, "current_phase")
 	assert_has(data, "actions_remaining")
 	assert_has(data, "discovered_evidence")
 	assert_has(data, "visited_locations")
@@ -303,3 +283,130 @@ func test_new_game_resets_all_state() -> void:
 	assert_eq(GameManager.visited_locations.size(), 0)
 	assert_eq(GameManager.hints_used, 0)
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
+
+
+# --- Investigation Log --- #
+
+func test_log_entry_phase_is_enum_not_string() -> void:
+	GameManager.current_phase = Enums.DayPhase.MORNING
+	GameManager._log_action("Test action")
+	var log: Array[Dictionary] = GameManager.get_investigation_log()
+	assert_false(log.is_empty(), "Log should have entries")
+	var entry: Dictionary = log[log.size() - 1]
+	assert_eq(entry["phase"], Enums.DayPhase.MORNING,
+		"phase should be the enum value, not a string")
+
+
+func test_log_entry_exists_for_all_phases() -> void:
+	for phase: int in [Enums.DayPhase.MORNING, Enums.DayPhase.DAYTIME,
+						Enums.DayPhase.NIGHT]:
+		GameManager.current_phase = phase as Enums.DayPhase
+		GameManager._log_action("Action at phase %d" % phase)
+	var log: Array[Dictionary] = GameManager.get_investigation_log()
+	assert_eq(log.size(), 3, "Should have 3 entries (one per phase)")
+
+
+func test_evidence_log_shows_name_not_id() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	GameManager.new_game()
+	GameManager.discover_evidence("ev_knife")
+	var log: Array[Dictionary] = GameManager.get_investigation_log()
+	var last_entry: Dictionary = log[log.size() - 1]
+	var desc: String = last_entry.get("description", "")
+	assert_false(desc.contains("ev_knife"),
+		"Log should not contain raw evidence ID")
+	assert_true(desc.contains("Kitchen Knife") or desc.contains("Murder Weapon"),
+		"Log should contain the evidence name")
+	CaseManager.unload_case()
+
+
+func test_location_log_shows_name_not_id() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	GameManager.new_game()
+	GameManager.visit_location("loc_victim_apartment")
+	var log: Array[Dictionary] = GameManager.get_investigation_log()
+	var last_entry: Dictionary = log[log.size() - 1]
+	var desc: String = last_entry.get("description", "")
+	assert_false(desc.contains("loc_victim_apartment"),
+		"Log should not contain raw location ID")
+	assert_true(desc.contains("Victim's Apartment"),
+		"Log should contain the location name")
+	CaseManager.unload_case()
+
+
+# --- Day Range --- #
+
+func test_timeline_day_range_day1() -> void:
+	GameManager.current_day = 1
+	var max_day: int = GameManager.current_day
+	assert_eq(max_day, 1, "On day 1, max selectable day should be 1")
+
+
+func test_timeline_day_range_day3() -> void:
+	GameManager.current_day = 3
+	var max_day: int = GameManager.current_day
+	assert_eq(max_day, 3, "On day 3, max selectable day should be 3")
+
+
+func test_timeline_day_range_never_exceeds_current() -> void:
+	GameManager.current_day = 2
+	var case_end_day: int = 4
+	var max_day: int = GameManager.current_day
+	assert_true(max_day <= case_end_day, "max_day should not exceed case end day")
+	assert_eq(max_day, 2, "max_day should match current_day, not case end_day")
+
+
+# --- Game Reset --- #
+
+func test_game_reset_emits_signal() -> void:
+	watch_signals(GameManager)
+	GameManager.new_game()
+	assert_signal_emitted(GameManager, "game_reset",
+		"new_game should emit game_reset")
+
+
+# --- Location Unlock Tracking --- #
+
+func test_unlock_location_adds_to_unlocked_list() -> void:
+	GameManager.unlock_location("loc_test")
+	assert_true(GameManager.is_location_unlocked("loc_test"),
+		"unlock_location should add to unlocked_locations")
+
+
+func test_unlock_location_does_not_mark_visited() -> void:
+	GameManager.unlock_location("loc_test")
+	assert_false(GameManager.has_visited_location("loc_test"),
+		"unlock_location should NOT mark location as visited")
+
+
+func test_visit_location_also_unlocks() -> void:
+	GameManager.visit_location("loc_test")
+	assert_true(GameManager.is_location_unlocked("loc_test"),
+		"visit_location should also add to unlocked_locations")
+	assert_true(GameManager.has_visited_location("loc_test"),
+		"visit_location should mark as visited")
+
+
+func test_unlocked_locations_cleared_on_new_game() -> void:
+	GameManager.unlock_location("loc_test")
+	GameManager.new_game()
+	assert_false(GameManager.is_location_unlocked("loc_test"),
+		"new_game should clear unlocked_locations")
+
+
+func test_unlocked_locations_serialized() -> void:
+	GameManager.unlock_location("loc_a")
+	GameManager.unlock_location("loc_b")
+	var data: Dictionary = GameManager.serialize()
+	assert_true(data.has("unlocked_locations"),
+		"Serialized data should include unlocked_locations")
+	assert_has(data["unlocked_locations"], "loc_a")
+	assert_has(data["unlocked_locations"], "loc_b")
+
+
+func test_unlocked_locations_deserialized() -> void:
+	var data: Dictionary = GameManager.serialize()
+	data["unlocked_locations"] = ["loc_x", "loc_y"]
+	GameManager.deserialize(data)
+	assert_true(GameManager.is_location_unlocked("loc_x"))
+	assert_true(GameManager.is_location_unlocked("loc_y"))

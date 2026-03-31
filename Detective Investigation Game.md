@@ -71,12 +71,14 @@ The purpose of the prototype is to test the investigation systems, not to build 
 6. Time System (Investigation Days)
 The case unfolds over multiple in-game days.
 Each day consists of:
+
 Morning
 New information arrives:
 lab results
 surveillance recordings
 financial records
 witness updates
+
 Daytime
 Player performs investigation actions.
 Examples:
@@ -86,6 +88,7 @@ request warrants
 analyze documents
 construct timeline
 build theories
+
 Night
 The case progresses and certain story events may trigger.
 
@@ -461,25 +464,24 @@ The player should constantly think:
 “What is the best thing to do today?”
 
 Investigation Day Structure
-Each day contains three investigation slots.
+Each day consists of exactly three phases:
 
-Morning
-Afternoon
-Evening
+Morning — Informational only. New information arrives (lab results, surveillance, story events). Player cannot perform actions. Automatically transitions to Daytime.
+Daytime — The only phase where the player can perform actions. The player has 4 actions per day.
+Night — Triggered automatically when actions reach 0, or manually via "End Day" button. Processes queued systems (lab, surveillance, delayed events). Automatically transitions to the next day's Morning.
 
-Each slot allows one major action.
-So the player gets:
+The player gets:
 
-3 actions per day
+4 actions per day
 4 days
-= 12 major investigation actions
+= 16 major investigation actions
 
 This creates meaningful planning.
 
 Types of Investigation Actions
-Actions consume one time slot unless otherwise noted.
+Actions consume one action point unless otherwise noted.
 Major Actions
-Cost: 1 time slot
+Cost: 1 action
 Examples:
 interrogate suspect
 visit location
@@ -488,7 +490,7 @@ examine digital device
 analyze large evidence group
 
 Passive Actions
-Cost: 0 time slots
+Cost: 0 actions
 Examples:
 reviewing evidence
 organizing detective board
@@ -642,9 +644,9 @@ Which feels extremely satisfying.
 
 Final System Overview
 Investigation Economy
-3 actions per day
+4 actions per day
 4 days
-12 major investigation actions
+16 major investigation actions
 
 
 Warrant System
@@ -1248,7 +1250,9 @@ LAYER 5
 Murder was done to prevent exposure
 
 This is how a story with 25 clues feels like 100 clues.
-Our First Prototype Case
+
+
+Our First Prototype Case
 Constraints we defined earlier:
 4 suspects
 5 locations
@@ -1667,7 +1671,9 @@ Players will constantly think they solved the case, then realize:
 "Wait… that doesn't explain this clue."
 
 That moment is the core pleasure of detective games.
-Visual Style Guide
+
+
+Visual Style Guide
 Overview
 The visual style of the game aims to support the core experience of serious investigative work and atmospheric mystery. The visuals should evoke the tone of modern true-crime documentaries and noir-inspired detective fiction while remaining clean and readable for investigation gameplay.
 The art direction prioritizes:

@@ -23,6 +23,11 @@ extends Control
 var _current_tab: String = "evidence"
 var _selected_evidence_id: String = ""
 
+# Stored callables for signal disconnection on exit
+var _on_evidence_discovered_cb: Callable
+var _on_evidence_pinned_cb: Callable
+var _on_evidence_unpinned_cb: Callable
+
 
 func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
@@ -37,10 +42,21 @@ func _ready() -> void:
 	_populate_pinned_bar()
 	_populate_evidence_list()
 
+	# Store callables so we can disconnect them in _exit_tree
+	_on_evidence_discovered_cb = func(_id: String) -> void: _refresh()
+	_on_evidence_pinned_cb = func(_id: String) -> void: _populate_pinned_bar()
+	_on_evidence_unpinned_cb = func(_id: String) -> void: _populate_pinned_bar()
+
 	# Connect to live updates
-	GameManager.evidence_discovered.connect(func(_id: String) -> void: _refresh())
-	EvidenceManager.evidence_pinned.connect(func(_id: String) -> void: _populate_pinned_bar())
-	EvidenceManager.evidence_unpinned.connect(func(_id: String) -> void: _populate_pinned_bar())
+	GameManager.evidence_discovered.connect(_on_evidence_discovered_cb)
+	EvidenceManager.evidence_pinned.connect(_on_evidence_pinned_cb)
+	EvidenceManager.evidence_unpinned.connect(_on_evidence_unpinned_cb)
+
+
+func _exit_tree() -> void:
+	GameManager.evidence_discovered.disconnect(_on_evidence_discovered_cb)
+	EvidenceManager.evidence_pinned.disconnect(_on_evidence_pinned_cb)
+	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
 
 
 ## Configures the filter dropdown with all evidence types.
@@ -147,7 +163,7 @@ func _on_evidence_selected(evidence_id: String) -> void:
 				lab_text = "\n[color=#33cc33]Lab: Complete[/color]"
 
 	var type_label: String = _get_type_label(ev.type)
-	var location_text: String = ev.location_found if not ev.location_found.is_empty() else "Unknown"
+	var location_text: String = _get_location_name(ev.location_found)
 
 	preview_label.text = "[b]%s%s[/b]\n%s\n\n[i]Type: %s[/i]\n[i]Location: %s[/i]%s" % [
 		ev.name, pin_status, ev.description, type_label, location_text, lab_text,
@@ -165,6 +181,14 @@ func _get_type_label(type: Enums.EvidenceType) -> String:
 		Enums.EvidenceType.DIGITAL: return "Digital"
 		Enums.EvidenceType.OBJECT: return "Object"
 	return "Unknown"
+
+
+## Resolves a location ID to its display name.
+func _get_location_name(location_id: String) -> String:
+	if location_id.is_empty():
+		return "Unknown"
+	var loc: LocationData = CaseManager.get_location(location_id)
+	return loc.name if loc else location_id
 
 
 ## Populates the pinned evidence bar.
@@ -216,7 +240,7 @@ func _populate_testimony_list() -> void:
 
 		var header_label: Label = Label.new()
 		header_label.text = "%s — Day %d" % [person_name, stmt.day_given]
-		header_label.add_theme_font_size_override("font_size", 14)
+		header_label.add_theme_font_size_override("font_size", 16)
 		vbox.add_child(header_label)
 
 		var text_label: RichTextLabel = RichTextLabel.new()

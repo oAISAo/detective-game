@@ -104,3 +104,17 @@ func test_serialize_returns_empty_dict() -> void:
 func test_deserialize_does_not_crash() -> void:
 	_fallback.deserialize({"some": "data"})
 	assert_true(true, "Deserialize should not crash")
+
+
+# --- Fallback Guarantees --- #
+
+func test_nonexistent_path_returns_texture() -> void:
+	var tex: Texture2D = _fallback.get_texture("res://nonexistent_path.png")
+	assert_not_null(tex, "AssetFallback should never return null")
+
+
+func test_loads_existing_placeholder() -> void:
+	var tex: Texture2D = _fallback.get_texture(
+		"res://assets/placeholders/placeholder_evidence_kitchen_knife.png"
+	)
+	assert_not_null(tex, "Should load existing placeholder image")

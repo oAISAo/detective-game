@@ -431,3 +431,28 @@ func test_get_all_persons_returns_typed_array() -> void:
 	CaseManager.load_case(TEST_CASE_FILE)
 	var all_p: Array[PersonData] = CaseManager.get_all_persons()
 	assert_eq(all_p.size(), 3)
+
+
+# --- Evidence Location Resolution --- #
+
+func test_evidence_location_resolves_to_name() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var ev: EvidenceData = CaseManager.get_evidence("ev_knife")
+	assert_not_null(ev, "ev_knife should exist")
+	assert_eq(ev.location_found, "loc_victim_apartment")
+	var loc: LocationData = CaseManager.get_location(ev.location_found)
+	assert_not_null(loc, "Location should be resolvable")
+	assert_eq(loc.name, "Victim's Apartment",
+		"Location ID should resolve to human-readable name")
+	CaseManager.unload_case()
+
+
+func test_evidence_data_has_image_field() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var ev: EvidenceData = CaseManager.get_evidence("ev_knife")
+	assert_not_null(ev)
+	assert_false(ev.image.is_empty(),
+		"Evidence should have an image path set")
+	assert_true(ev.image.ends_with(".png"),
+		"Evidence image should be a png path")
+	CaseManager.unload_case()

@@ -94,7 +94,8 @@ func is_at_location() -> bool:
 
 # --- Object Investigation --- #
 
-## Performs a visual inspection on an object. Returns discovered evidence IDs.
+## Performs an inspection on an object. Returns discovered evidence IDs.
+## Handles both visual_inspection and examine_device actions.
 func inspect_object(location_id: String, object_id: String) -> Array[String]:
 	var object_data: InvestigableObjectData = _get_object(location_id, object_id)
 	if object_data == null:
@@ -109,15 +110,20 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 		_performed_actions[action_key] = []
 	_performed_actions[action_key].append("visual_inspection")
 
-	# Discover evidence that doesn't require tools
+	# Discover evidence via inspection (visual_inspection or examine_device)
 	var discovered: Array[String] = []
-	if "visual_inspection" in object_data.available_actions:
-		if object_data.tool_requirements.is_empty():
-			# No tools required — visual inspection reveals evidence directly
-			for ev_id: String in object_data.evidence_results:
-				if GameManager.discover_evidence(ev_id):
-					discovered.append(ev_id)
-					evidence_found.emit(ev_id, object_id, "visual_inspection")
+	var inspectable_actions: Array[String] = ["visual_inspection", "examine_device"]
+	var has_inspection: bool = false
+	for action: String in object_data.available_actions:
+		if action in inspectable_actions:
+			has_inspection = true
+			break
+
+	if has_inspection:
+		for ev_id: String in object_data.evidence_results:
+			if GameManager.discover_evidence(ev_id):
+				discovered.append(ev_id)
+				evidence_found.emit(ev_id, object_id, "visual_inspection")
 
 	# Update investigation state
 	_update_object_state(location_id, object_id, object_data)

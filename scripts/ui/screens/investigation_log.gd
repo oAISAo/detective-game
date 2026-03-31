@@ -28,7 +28,11 @@ func _populate_log() -> void:
 		log_entries.add_child(empty_label)
 		return
 
-	for entry: Dictionary in entries:
+	# Show newest entries first
+	var reversed: Array[Dictionary] = entries.duplicate()
+	reversed.reverse()
+
+	for entry: Dictionary in reversed:
 		var entry_panel: PanelContainer = PanelContainer.new()
 		var entry_label: RichTextLabel = RichTextLabel.new()
 		entry_label.bbcode_enabled = true
@@ -36,13 +40,27 @@ func _populate_log() -> void:
 		entry_label.custom_minimum_size = Vector2(0, 40)
 
 		var day_text: String = "Day %d" % entry.get("day", 0)
-		var slot_text: String = entry.get("time_slot", "")
-		var action_text: String = entry.get("action", "")
-		var detail_text: String = entry.get("detail", "")
+		var slot_text: String = _format_phase(entry.get("phase", 0))
+		var description_text: String = entry.get("description", "")
 
-		entry_label.text = "[b]%s — %s[/b]\n%s: %s" % [day_text, slot_text, action_text, detail_text]
+		entry_label.text = "[b]%s — %s[/b]\n%s" % [day_text, slot_text, description_text]
 		entry_panel.add_child(entry_label)
 		log_entries.add_child(entry_panel)
+
+
+## Converts a DayPhase enum value to a display string.
+func _format_phase(phase_value: Variant) -> String:
+	if phase_value is String:
+		return phase_value
+	var phase_int: int = int(phase_value)
+	match phase_int:
+		Enums.DayPhase.MORNING:
+			return "Morning"
+		Enums.DayPhase.DAYTIME:
+			return "Daytime"
+		Enums.DayPhase.NIGHT:
+			return "Night"
+	return "Unknown"
 
 
 ## Navigates back to the previous screen.

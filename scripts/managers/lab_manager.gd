@@ -93,7 +93,9 @@ func submit_request(
 	GameManager.active_lab_requests.append(request.duplicate())
 
 	lab_submitted.emit(request_id, input_evidence_id)
-	GameManager._log_action("Lab request submitted: %s (%s)" % [analysis_type, input_evidence_id])
+	var ev: EvidenceData = CaseManager.get_evidence(input_evidence_id)
+	var ev_name: String = ev.name if ev else input_evidence_id
+	GameManager._log_action("Lab request submitted: %s (%s)" % [analysis_type, ev_name])
 	return request.duplicate()
 
 

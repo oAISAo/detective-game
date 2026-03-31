@@ -1,0 +1,605 @@
+{
+	"evidence": [
+		{
+			"id": "ev_knife",
+			"name": "Murder Weapon (Kitchen Knife)",
+			"image": "res://assets/placeholders/placeholder_evidence_kitchen_knife.png",
+			"description": "A bloody kitchen knife found in the victim's kitchen sink. Blood matches the victim.",
+			"type": "FORENSIC",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim"
+			],
+			"tags": [
+				"crime_scene",
+				"murder_weapon",
+				"forensic"
+			],
+			"weight": 0.9,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"CONNECTION"
+			]
+		},
+		{
+			"id": "ev_wine_glasses",
+			"name": "Two Wine Glasses on Table",
+			"image": "res://assets/placeholders/placeholder_evidence_wine_glasses.png",
+			"description": "Two wine glasses on the living room table. Indicates the victim had company before the murder.",
+			"type": "OBJECT",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [],
+			"tags": [
+				"crime_scene",
+				"visitor",
+				"fingerprints"
+			],
+			"weight": 0.5,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE"
+			]
+		},
+		{
+			"id": "ev_julia_fingerprint_glass",
+			"name": "Julia's Fingerprint on Wine Glass",
+			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_wine_glass.png",
+			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints. Contradicts her statement that she was not at the apartment that night.",
+			"type": "FORENSIC",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia"
+			],
+			"tags": [
+				"forensic",
+				"fingerprint",
+				"contradiction",
+				"critical"
+			],
+			"weight": 0.9,
+			"importance_level": "CRITICAL",
+			"discovery_method": "LAB",
+			"requires_lab_analysis": true,
+			"lab_result_text": "Fingerprint matched to Julia Ross. Clear ridge patterns confirm identity.",
+			"legal_categories": [
+				"PRESENCE",
+				"CONNECTION"
+			],
+			"hint_text": "Have the wine glasses analyzed for fingerprints at the lab."
+		},
+		{
+			"id": "ev_mark_fingerprint_desk",
+			"name": "Mark's Fingerprint on Desk",
+			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_desk.png",
+			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints. Confirms his earlier visit.",
+			"type": "FORENSIC",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_mark"
+			],
+			"tags": [
+				"forensic",
+				"fingerprint"
+			],
+			"weight": 0.4,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "LAB",
+			"requires_lab_analysis": true,
+			"lab_result_text": "Fingerprint matched to Mark Bennett.",
+			"legal_categories": [
+				"PRESENCE"
+			]
+		},
+		{
+			"id": "ev_broken_picture_frame",
+			"name": "Broken Picture Frame",
+			"image": "res://assets/placeholders/placeholder_evidence_broken_picture_frame.png",
+			"description": "A broken picture frame on the floor. The photo shows Daniel and Julia together. Suggests an argument took place.",
+			"type": "OBJECT",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim",
+				"p_julia"
+			],
+			"tags": [
+				"crime_scene",
+				"argument",
+				"relationship"
+			],
+			"weight": 0.4,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"CONNECTION"
+			]
+		},
+		{
+			"id": "ev_victim_phone",
+			"name": "Victim's Phone",
+			"image": "res://assets/placeholders/placeholder_evidence_victim_phone.png",
+			"description": "Daniel's phone found on the table. Contains messages and call history.",
+			"type": "OBJECT",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim"
+			],
+			"tags": [
+				"crime_scene",
+				"digital",
+				"phone"
+			],
+			"weight": 0.5,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": []
+		},
+		{
+			"id": "ev_julia_text_message",
+			"name": "Text Message From Julia",
+			"image": "res://assets/placeholders/placeholder_evidence_text_message_julia.png",
+			"description": "A text message from Julia to Daniel at 20:40: \"Are you home? We need to talk.\"",
+			"type": "DIGITAL",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia",
+				"p_victim"
+			],
+			"tags": [
+				"digital",
+				"timeline",
+				"motive"
+			],
+			"weight": 0.6,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE",
+				"CONNECTION"
+			],
+			"hint_text": "Check the victim's phone for recent messages."
+		},
+		{
+			"id": "ev_deleted_messages",
+			"name": "Deleted Messages (Recovered)",
+			"image": "res://assets/placeholders/placeholder_evidence_deleted_messages.png",
+			"description": "Recovered deleted messages between Daniel and Julia showing a heated argument about money. Unlocked via phone search warrant.",
+			"type": "DIGITAL",
+			"location_found": "",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim",
+				"p_julia"
+			],
+			"tags": [
+				"digital",
+				"warrant",
+				"motive",
+				"hidden"
+			],
+			"weight": 0.7,
+			"importance_level": "CRITICAL",
+			"discovery_method": "TOOL",
+			"legal_categories": [
+				"MOTIVE",
+				"CONNECTION"
+			],
+			"hint_text": "A warrant to search Julia's phone may reveal deleted messages."
+		},
+		{
+			"id": "ev_mark_call_log",
+			"name": "Call Log Between Mark and Daniel",
+			"image": "res://assets/placeholders/placeholder_evidence_call_log.png",
+			"description": "Phone call log showing multiple calls between Mark and Daniel about financial issues in the days before the murder.",
+			"type": "DIGITAL",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_mark",
+				"p_victim"
+			],
+			"tags": [
+				"digital",
+				"phone",
+				"financial",
+				"motive"
+			],
+			"weight": 0.5,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE",
+				"CONNECTION"
+			]
+		},
+		{
+			"id": "ev_daniel_email",
+			"name": "Email From Daniel to Mark",
+			"image": "res://assets/placeholders/placeholder_evidence_email_daniel_mark.png",
+			"description": "An email from Daniel to Mark. Subject: \"We need to fix this before tomorrow.\" References financial irregularities.",
+			"type": "DIGITAL",
+			"location_found": "loc_victim_office",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim",
+				"p_mark"
+			],
+			"tags": [
+				"digital",
+				"email",
+				"financial",
+				"motive"
+			],
+			"weight": 0.6,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE",
+				"CONNECTION"
+			]
+		},
+		{
+			"id": "ev_bank_transfer",
+			"name": "Suspicious Bank Transfer",
+			"image": "res://assets/placeholders/placeholder_evidence_bank_transfer.png",
+			"description": "Records showing money moved from the company account to an unknown destination. Suggests embezzlement.",
+			"type": "FINANCIAL",
+			"location_found": "loc_victim_office",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_mark"
+			],
+			"tags": [
+				"financial",
+				"embezzlement",
+				"motive"
+			],
+			"weight": 0.8,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE"
+			],
+			"hint_text": "Check the file cabinet in Daniel's office for financial records."
+		},
+		{
+			"id": "ev_accounting_files",
+			"name": "Accounting Files",
+			"image": "res://assets/placeholders/placeholder_evidence_accounting_files.png",
+			"description": "Detailed accounting files showing a pattern of embezzlement from the company. Found in the victim's office.",
+			"type": "FINANCIAL",
+			"location_found": "loc_victim_office",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_mark",
+				"p_victim"
+			],
+			"tags": [
+				"financial",
+				"embezzlement",
+				"motive"
+			],
+			"weight": 0.7,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE"
+			]
+		},
+		{
+			"id": "ev_julia_financial_records",
+			"name": "Julia's Financial Records",
+			"image": "res://assets/placeholders/placeholder_evidence_financial_records_julia.png",
+			"description": "Julia's personal financial records showing large debts. Provides additional financial motive.",
+			"type": "FINANCIAL",
+			"location_found": "",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia"
+			],
+			"tags": [
+				"financial",
+				"debt",
+				"motive"
+			],
+			"weight": 0.5,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE"
+			]
+		},
+		{
+			"id": "ev_parking_camera",
+			"name": "Parking Lot Camera Footage",
+			"image": "res://assets/placeholders/placeholder_evidence_parking_camera.png",
+			"description": "Security camera footage from the parking lot showing Mark Bennett leaving the building at 20:40.",
+			"type": "RECORDING",
+			"location_found": "loc_parking_lot",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_mark"
+			],
+			"tags": [
+				"surveillance",
+				"timeline",
+				"alibi",
+				"contradiction"
+			],
+			"weight": 0.7,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE"
+			],
+			"hint_text": "Check the security camera in the parking lot."
+		},
+		{
+			"id": "ev_hallway_camera",
+			"name": "Hallway Camera (Blurry Figure)",
+			"image": "res://assets/placeholders/placeholder_evidence_hallway_camera.png",
+			"description": "Security camera footage showing someone entering the apartment at approximately 20:50. The figure's height roughly matches Julia Ross.",
+			"type": "RECORDING",
+			"location_found": "loc_hallway",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia"
+			],
+			"tags": [
+				"surveillance",
+				"timeline",
+				"blurry"
+			],
+			"weight": 0.6,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE"
+			]
+		},
+		{
+			"id": "ev_elevator_logs",
+			"name": "Elevator Logs",
+			"image": "res://assets/placeholders/placeholder_evidence_elevator_logs.png",
+			"description": "Building elevator access logs showing Julia Ross's key card was used at 20:48 on the night of the murder.",
+			"type": "DOCUMENT",
+			"location_found": "loc_hallway",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia"
+			],
+			"tags": [
+				"digital",
+				"timeline",
+				"access",
+				"critical"
+			],
+			"weight": 0.8,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE",
+				"OPPORTUNITY"
+			],
+			"hint_text": "Check the building's elevator access records."
+		},
+		{
+			"id": "ev_sarah_testimony",
+			"name": "Sarah's Testimony",
+			"image": "res://assets/placeholders/placeholder_evidence_sarah_testimony.png",
+			"description": "Sarah Klein's initial statement: she heard an argument around 20:45 but claims she did not see anyone in the hallway.",
+			"type": "DOCUMENT",
+			"location_found": "loc_neighbor_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_sarah"
+			],
+			"tags": [
+				"witness",
+				"testimony",
+				"timeline"
+			],
+			"weight": 0.5,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": []
+		},
+		{
+			"id": "ev_sarah_second_testimony",
+			"name": "Sarah's Second Testimony",
+			"image": "res://assets/placeholders/placeholder_evidence_sarah_testimony_2.png",
+			"description": "Under pressure, Sarah admits hearing a female voice during the argument. She also remembers hearing quick footsteps in the hallway.",
+			"type": "DOCUMENT",
+			"location_found": "loc_neighbor_apartment",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_sarah"
+			],
+			"tags": [
+				"witness",
+				"testimony",
+				"pressure",
+				"female_voice"
+			],
+			"weight": 0.6,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"CONNECTION"
+			]
+		},
+		{
+			"id": "ev_lucas_work_log",
+			"name": "Lucas Work Log",
+			"image": "res://assets/placeholders/placeholder_evidence_lucas_work_log.png",
+			"description": "Maintenance work log showing Lucas Weber was working until 20:00, contradicting his claim of finishing at 19:00. However, he was in a different part of the building.",
+			"type": "DOCUMENT",
+			"location_found": "loc_hallway",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_lucas"
+			],
+			"tags": [
+				"alibi",
+				"work_log",
+				"contradiction"
+			],
+			"weight": 0.3,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE"
+			]
+		},
+		{
+			"id": "ev_shoe_print",
+			"name": "Shoe Print in Hallway",
+			"image": "res://assets/placeholders/placeholder_evidence_shoe_print.png",
+			"description": "A shoe print found in the hallway near the victim's apartment. Lab analysis matches Julia Ross's shoes.",
+			"type": "FORENSIC",
+			"location_found": "loc_hallway",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia"
+			],
+			"tags": [
+				"forensic",
+				"shoe_print",
+				"critical"
+			],
+			"weight": 0.8,
+			"importance_level": "CRITICAL",
+			"discovery_method": "TOOL",
+			"requires_lab_analysis": true,
+			"lab_result_text": "Shoe print pattern matches a pair of women's shoes, size 38. Consistent with Julia Ross's shoe size.",
+			"legal_categories": [
+				"PRESENCE"
+			],
+			"hint_text": "Examine the hallway floor for footprints."
+		},
+		{
+			"id": "ev_julia_shoes",
+			"name": "Julia's Shoes (Search Warrant)",
+			"image": "res://assets/placeholders/placeholder_evidence_julia_shoes.png",
+			"description": "Julia's shoes obtained via search warrant. The soles match the hallway shoe print exactly.",
+			"type": "OBJECT",
+			"location_found": "",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_julia"
+			],
+			"tags": [
+				"forensic",
+				"shoe_match",
+				"warrant",
+				"critical"
+			],
+			"weight": 0.8,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"PRESENCE",
+				"CONNECTION"
+			],
+			"hint_text": "A search warrant for Julia's residence may yield matching shoes."
+		},
+		{
+			"id": "ev_wine_bottle",
+			"name": "Wine Bottle",
+			"image": "res://assets/placeholders/placeholder_evidence_wine_bottle.png",
+			"description": "A recently opened bottle of wine on the table. Confirms the victim was sharing drinks with someone.",
+			"type": "OBJECT",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [],
+			"tags": [
+				"crime_scene",
+				"visitor"
+			],
+			"weight": 0.2,
+			"importance_level": "OPTIONAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": []
+		},
+		{
+			"id": "ev_knife_block",
+			"name": "Knife Block in Kitchen",
+			"image": "res://assets/placeholders/placeholder_evidence_knife_block.png",
+			"description": "A knife block on the kitchen counter with one knife missing. The missing knife matches the murder weapon.",
+			"type": "OBJECT",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [],
+			"tags": [
+				"crime_scene",
+				"murder_weapon"
+			],
+			"weight": 0.3,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
+			"legal_categories": []
+		},
+		{
+			"id": "ev_hidden_safe",
+			"name": "Hidden Safe in Office",
+			"image": "res://assets/placeholders/placeholder_evidence_hidden_safe.png",
+			"description": "A hidden safe found in Daniel's office containing documents about the embezzlement scheme. Reveals the full extent of Mark's financial crimes and Daniel's plan to expose him.",
+			"type": "DOCUMENT",
+			"location_found": "loc_victim_office",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_mark",
+				"p_victim"
+			],
+			"tags": [
+				"hidden",
+				"embezzlement",
+				"motive",
+				"critical"
+			],
+			"weight": 0.85,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE"
+			],
+			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments."
+		},
+		{
+			"id": "ev_personal_journal",
+			"name": "Daniel's Personal Journal",
+			"image": "res://assets/placeholders/placeholder_evidence_personal_journal.png",
+			"description": "Daniel's personal journal found in his office. Recent entries mention confronting both Mark about the embezzlement and Julia about their marriage. The last entry reads: \"I have to tell Julia everything tomorrow.\"",
+			"type": "DOCUMENT",
+			"location_found": "loc_victim_office",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim",
+				"p_mark",
+				"p_julia"
+			],
+			"tags": [
+				"personal",
+				"motive",
+				"critical",
+				"journal"
+			],
+			"weight": 0.85,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"MOTIVE",
+				"CONNECTION"
+			],
+			"hint_text": "Daniel may have kept personal notes at his office."
+		}
+	]
+}

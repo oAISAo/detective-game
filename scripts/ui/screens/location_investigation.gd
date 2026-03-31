@@ -172,10 +172,12 @@ func _populate_action_buttons(obj: InvestigableObjectData, loc_inv_mgr: Node) ->
 		detail_actions.add_child(label)
 		return
 
-	# Visual inspection button
-	if "visual_inspection" in obj.available_actions:
+	# Visual inspection / Examine button
+	var has_visual: bool = "visual_inspection" in obj.available_actions
+	var has_examine: bool = "examine_device" in obj.available_actions
+	if has_visual or has_examine:
 		var inspect_btn: Button = Button.new()
-		inspect_btn.text = "👁 Visual Inspection"
+		inspect_btn.text = "🔍 Examine" if has_examine else "👁 Visual Inspection"
 
 		var already_done: bool = false
 		if loc_inv_mgr:
@@ -235,11 +237,7 @@ func _show_discovery_feedback(evidence_ids: Array[String]) -> void:
 	for ev_id: String in evidence_ids:
 		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
 		if ev:
-			notif_mgr.send_notification(
-				"Evidence Found",
-				"Discovered: %s" % ev.name,
-				"evidence"
-			)
+			notif_mgr.notify_evidence(ev.name)
 
 
 ## Refreshes the entire UI after state changes.

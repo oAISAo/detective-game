@@ -1,0 +1,480 @@
+{
+	"events": [
+		{
+			"id": "evt_mark_arrives",
+			"description": "Mark Bennett visits Daniel Ross at his apartment.",
+			"time": "19:30",
+			"day": 1,
+			"location": "loc_victim_apartment",
+			"involved_persons": [
+				"p_mark",
+				"p_victim"
+			],
+			"supporting_evidence": [
+				"ev_mark_fingerprint_desk"
+			],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_argument_money",
+			"description": "Daniel confronts Mark about financial irregularities and the embezzlement.",
+			"time": "20:15",
+			"day": 1,
+			"location": "loc_victim_apartment",
+			"involved_persons": [
+				"p_mark",
+				"p_victim"
+			],
+			"supporting_evidence": [
+				"ev_daniel_email",
+				"ev_bank_transfer"
+			],
+			"certainty_level": "LIKELY"
+		},
+		{
+			"id": "evt_mark_leaves",
+			"description": "Mark Bennett exits the building. Captured on parking lot security camera.",
+			"time": "20:40",
+			"day": 1,
+			"location": "loc_parking_lot",
+			"involved_persons": [
+				"p_mark"
+			],
+			"supporting_evidence": [
+				"ev_parking_camera"
+			],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_julia_text",
+			"description": "Julia Ross sends a text message to Daniel: \"Are you home? We need to talk.\"",
+			"time": "20:40",
+			"day": 1,
+			"location": "",
+			"involved_persons": [
+				"p_julia"
+			],
+			"supporting_evidence": [
+				"ev_julia_text_message"
+			],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_julia_arrives",
+			"description": "Julia Ross enters the apartment building. Captured on hallway camera and elevator logs.",
+			"time": "20:50",
+			"day": 1,
+			"location": "loc_hallway",
+			"involved_persons": [
+				"p_julia"
+			],
+			"supporting_evidence": [
+				"ev_elevator_logs",
+				"ev_hallway_camera"
+			],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_loud_argument",
+			"description": "Sarah Klein hears loud shouting from Daniel's apartment.",
+			"time": "20:55",
+			"day": 1,
+			"location": "loc_victim_apartment",
+			"involved_persons": [
+				"p_victim",
+				"p_julia"
+			],
+			"supporting_evidence": [
+				"ev_sarah_testimony"
+			],
+			"certainty_level": "CLAIMED"
+		},
+		{
+			"id": "evt_murder",
+			"description": "Daniel Ross is stabbed with a kitchen knife.",
+			"time": "21:00",
+			"day": 1,
+			"location": "loc_victim_apartment",
+			"involved_persons": [
+				"p_victim",
+				"p_julia"
+			],
+			"supporting_evidence": [
+				"ev_knife"
+			],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_julia_leaves",
+			"description": "Footsteps heard in hallway as someone leaves quickly.",
+			"time": "21:05",
+			"day": 1,
+			"location": "loc_hallway",
+			"involved_persons": [
+				"p_julia"
+			],
+			"supporting_evidence": [
+				"ev_shoe_print",
+				"ev_sarah_second_testimony"
+			],
+			"certainty_level": "LIKELY"
+		}
+	],
+	"statements": [
+		{
+			"id": "stmt_mark_visit",
+			"person_id": "p_mark",
+			"text": "I stopped by to talk to Daniel.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_arrives",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_argument",
+			"person_id": "p_mark",
+			"text": "We argued a little.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_argument_money",
+			"contradicting_evidence": [
+				"ev_bank_transfer"
+			]
+		},
+		{
+			"id": "stmt_mark_departure_time",
+			"person_id": "p_mark",
+			"text": "I left around 20:30.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_leaves",
+			"contradicting_evidence": [
+				"ev_parking_camera"
+			]
+		},
+		{
+			"id": "stmt_mark_daniel_requested",
+			"person_id": "p_mark",
+			"text": "Daniel asked me to come by.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_arrives",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_departure_reinforced",
+			"person_id": "p_mark",
+			"text": "I was gone before 20:40.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "evt_mark_leaves",
+			"contradicting_evidence": [
+				"ev_parking_camera"
+			]
+		},
+		{
+			"id": "stmt_mark_corrected_departure",
+			"person_id": "p_mark",
+			"text": "Fine. I left closer to 20:40.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_parking_camera"
+			],
+			"related_event": "evt_mark_leaves",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_denies_financial",
+			"person_id": "p_mark",
+			"text": "The company accounts are complicated. That doesn't make me a killer.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_bank_transfer"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_deeper_admission",
+			"person_id": "p_mark",
+			"text": "Daniel found out about the missing money, but he was alive when I left.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_hidden_safe"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_final_lock",
+			"person_id": "p_mark",
+			"text": "Daniel had the records. He was going to destroy me.",
+			"day_given": 3,
+			"related_evidence": [
+				"ev_hidden_safe"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_julia_initial",
+			"person_id": "p_julia",
+			"text": "I wasn't at the apartment that night.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": [
+				"ev_julia_fingerprint_glass",
+				"ev_elevator_logs",
+				"ev_shoe_print"
+			]
+		},
+		{
+			"id": "stmt_sarah_initial",
+			"person_id": "p_sarah",
+			"text": "I heard some arguing but didn't see anything.",
+			"day_given": 1,
+			"related_evidence": [
+				"ev_sarah_testimony"
+			],
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": [
+				"ev_hallway_camera"
+			]
+		},
+		{
+			"id": "stmt_lucas_initial",
+			"person_id": "p_lucas",
+			"text": "I finished work at 19:00.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": [
+				"ev_lucas_work_log"
+			]
+		},
+		{
+			"id": "stmt_sarah_confronted",
+			"person_id": "p_sarah",
+			"text": "I may have heard a woman's voice...",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_hallway_camera"
+			],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_sarah_footsteps",
+			"person_id": "p_sarah",
+			"text": "Someone walked past my door quickly.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_shoe_print"
+			],
+			"related_event": "evt_julia_leaves",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_julia_fingerprint",
+			"person_id": "p_julia",
+			"text": "I visited earlier in the day.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_julia_fingerprint_glass"
+			],
+			"related_event": "",
+			"contradicting_evidence": [
+				"ev_elevator_logs"
+			]
+		},
+		{
+			"id": "stmt_julia_elevator",
+			"person_id": "p_julia",
+			"text": "Okay... I stopped by briefly. But Daniel was alive when I left.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_elevator_logs"
+			],
+			"related_event": "evt_julia_arrives",
+			"contradicting_evidence": [
+				"ev_shoe_print",
+				"ev_julia_shoes"
+			]
+		},
+		{
+			"id": "stmt_julia_confession",
+			"person_id": "p_julia",
+			"text": "He threatened to ruin everything. I just lost control.",
+			"day_given": 3,
+			"related_evidence": [
+				"ev_personal_journal"
+			],
+			"related_event": "evt_murder",
+			"contradicting_evidence": []
+		}
+	],
+	"actions": [
+		{
+			"id": "act_visit_apartment",
+			"name": "Visit Victim's Apartment",
+			"type": "VISIT_LOCATION",
+			"time_cost": 1,
+			"target": "loc_victim_apartment",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_visit_hallway",
+			"name": "Investigate Building Hallway",
+			"type": "VISIT_LOCATION",
+			"time_cost": 1,
+			"target": "loc_hallway",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_visit_parking",
+			"name": "Check Parking Lot",
+			"type": "VISIT_LOCATION",
+			"time_cost": 1,
+			"target": "loc_parking_lot",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_visit_neighbor",
+			"name": "Visit Neighbor's Apartment",
+			"type": "VISIT_LOCATION",
+			"time_cost": 1,
+			"target": "loc_neighbor_apartment",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_visit_office",
+			"name": "Visit Victim's Office",
+			"type": "VISIT_LOCATION",
+			"time_cost": 1,
+			"target": "loc_victim_office",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_interrogate_mark",
+			"name": "Interrogate Mark Bennett",
+			"type": "INTERROGATION",
+			"time_cost": 1,
+			"target": "p_mark",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_interrogate_sarah",
+			"name": "Interrogate Sarah Klein",
+			"type": "INTERROGATION",
+			"time_cost": 1,
+			"target": "p_sarah",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_interrogate_julia",
+			"name": "Interrogate Julia Ross",
+			"type": "INTERROGATION",
+			"time_cost": 1,
+			"target": "p_julia",
+			"requirements": [],
+			"results": []
+		},
+		{
+			"id": "act_interrogate_lucas",
+			"name": "Interrogate Lucas Weber",
+			"type": "INTERROGATION",
+			"time_cost": 1,
+			"target": "p_lucas",
+			"requirements": [],
+			"results": []
+		}
+	],
+	"insights": [
+		{
+			"id": "ins_embezzlement_scheme",
+			"description": "Mark was embezzling money from the company. Daniel discovered the missing funds and planned to expose him.",
+			"source_evidence": [
+				"ev_bank_transfer",
+				"ev_accounting_files",
+				"ev_hidden_safe"
+			],
+			"strengthens_theory": "",
+			"enables_warrant": "",
+			"unlocks_topic": "topic_missing_money"
+		},
+		{
+			"id": "ins_julia_presence",
+			"description": "Julia was at the apartment on the night of the murder, contradicting her initial statement.",
+			"source_evidence": [
+				"ev_julia_fingerprint_glass",
+				"ev_elevator_logs"
+			],
+			"strengthens_theory": "",
+			"enables_warrant": "warrant_julia_search",
+			"unlocks_topic": "topic_julia_presence"
+		},
+		{
+			"id": "ins_hidden_relationships",
+			"description": "Julia and Mark secretly met before the murder. Julia feared Daniel would expose the embezzlement and ruin them financially.",
+			"source_evidence": [
+				"ev_hidden_safe",
+				"ev_personal_journal"
+			],
+			"strengthens_theory": "",
+			"enables_warrant": "",
+			"unlocks_topic": ""
+		}
+	],
+	"lab_requests": [
+		{
+			"id": "lab_fingerprint_glass",
+			"input_evidence_id": "ev_wine_glasses",
+			"analysis_type": "fingerprint_analysis",
+			"day_submitted": 0,
+			"completion_day": 2,
+			"output_evidence_id": "ev_julia_fingerprint_glass"
+		},
+		{
+			"id": "lab_fingerprint_desk",
+			"input_evidence_id": "ev_mark_fingerprint_desk",
+			"analysis_type": "fingerprint_analysis",
+			"day_submitted": 0,
+			"completion_day": 2,
+			"output_evidence_id": "ev_mark_fingerprint_desk"
+		},
+		{
+			"id": "lab_shoe_print",
+			"input_evidence_id": "ev_shoe_print",
+			"analysis_type": "footwear_analysis",
+			"day_submitted": 0,
+			"completion_day": 2,
+			"output_evidence_id": "ev_shoe_print"
+		}
+	],
+	"surveillance_requests": [
+		{
+			"id": "surv_julia_phone",
+			"target_person": "p_julia",
+			"type": "PHONE_TAP",
+			"day_installed": 0,
+			"active_days": 2,
+			"result_events": []
+		},
+		{
+			"id": "surv_mark_financial",
+			"target_person": "p_mark",
+			"type": "FINANCIAL_MONITORING",
+			"day_installed": 0,
+			"active_days": 2,
+			"result_events": []
+		}
+	]
+}

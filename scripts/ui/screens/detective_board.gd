@@ -166,20 +166,20 @@ func _create_node_control(node_data: Dictionary) -> void:
 	var type_label: Label = Label.new()
 	type_label.text = _get_display_name(node_data)
 	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_label.add_theme_font_size_override("font_size", 13)
+	type_label.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(type_label)
 
 	var type_badge: Label = Label.new()
 	type_badge.text = "[%s]" % node_data["type"].to_upper()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.add_theme_font_size_override("font_size", 10)
+	type_badge.add_theme_font_size_override("font_size", 12)
 	type_badge.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
 	vbox.add_child(type_badge)
 
 	if not node_data.get("note", "").is_empty():
 		var note_label: Label = Label.new()
 		note_label.text = "📝 %s" % node_data["note"]
-		note_label.add_theme_font_size_override("font_size", 10)
+		note_label.add_theme_font_size_override("font_size", 12)
 		note_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 		vbox.add_child(note_label)
 

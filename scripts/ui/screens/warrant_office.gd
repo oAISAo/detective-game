@@ -59,7 +59,7 @@ func _clear_warrant_list() -> void:
 func _add_section_header(text: String) -> void:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
 	warrant_list.add_child(label)
 
@@ -73,7 +73,7 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 	var header := Label.new()
 	var type_name: String = _get_warrant_type_name(w.get("type", 0))
 	header.text = "%s — Target: %s" % [type_name, w.get("target", "?")]
-	header.add_theme_font_size_override("font_size", 14)
+	header.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(header)
 
 	# Status and details
@@ -85,7 +85,7 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 		var feedback: String = w.get("feedback", "Insufficient evidence.")
 		status.text = "Denied — %s" % feedback
 		status.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
-	status.add_theme_font_size_override("font_size", 12)
+	status.add_theme_font_size_override("font_size", 14)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(status)
 
@@ -97,7 +97,7 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 		for cat: int in cats:
 			cat_names.append(_get_category_name(cat))
 		cat_label.text = "Categories: %s" % ", ".join(cat_names)
-		cat_label.add_theme_font_size_override("font_size", 11)
+		cat_label.add_theme_font_size_override("font_size", 13)
 		cat_label.add_theme_color_override("font_color", Color(0.55, 0.52, 0.48))
 		vbox.add_child(cat_label)
 
@@ -111,7 +111,7 @@ func _update_arrest_section(warrant_mgr: Node) -> void:
 
 	var header := Label.new()
 	header.text = "Arrested Suspects"
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", 18)
 	header.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
 	arrest_section.add_child(header)
 
@@ -120,7 +120,7 @@ func _update_arrest_section(warrant_mgr: Node) -> void:
 		var name_text: String = person.name if person else person_id
 		var label := Label.new()
 		label.text = "  %s — In custody" % name_text
-		label.add_theme_font_size_override("font_size", 13)
+		label.add_theme_font_size_override("font_size", 15)
 		arrest_section.add_child(label)
 
 

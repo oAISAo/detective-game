@@ -1,0 +1,21 @@
+{
+	"id": "riverside_apartment",
+	"title": "The Riverside Apartment Murder",
+	"description": "Daniel Ross, a 42-year-old financial consultant, is found dead in his apartment from a knife wound. Estimated time of death: 21:00. As the lead detective, you have four days to investigate the crime scene, interrogate suspects, analyze evidence, and build a case for the prosecutor.",
+	"start_day": 1,
+	"end_day": 4,
+	"solution": {
+		"suspect": "p_julia",
+		"motive": "Daniel discovered Mark was stealing money and planned to expose him. Julia learned about it and feared financial ruin. She killed Daniel during a confrontation.",
+		"weapon": "Kitchen knife",
+		"time_minutes": 1260,
+		"time_day": 1,
+		"access": "Julia was Daniel's wife and had access to the apartment"
+	},
+	"critical_evidence_ids": [
+		"ev_julia_fingerprint_glass",
+		"ev_elevator_logs",
+		"ev_shoe_print",
+		"ev_personal_journal"
+	]
+}

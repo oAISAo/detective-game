@@ -375,8 +375,16 @@ func test_send_to_board() -> void:
 	assert_false(node.is_empty())
 	assert_eq(node["type"], "evidence")
 	assert_eq(node["ref_id"], "ev_test")
-	assert_eq(node["x"], BoardManager.BOARD_WIDTH / 2.0)
-	assert_eq(node["y"], BoardManager.BOARD_HEIGHT / 2.0)
+	# First node placed at top-left visible area
+	assert_eq(node["x"], 40.0)
+	assert_eq(node["y"], 40.0)
+
+
+func test_send_to_board_staggers_positions() -> void:
+	BoardManager.clear_board()
+	var node1: Dictionary = BoardManager.send_to_board("evidence", "ev_1")
+	var node2: Dictionary = BoardManager.send_to_board("person", "p_1")
+	assert_ne(node1["x"], node2["x"], "Nodes should be placed at different positions")
 
 
 func test_reset_clears_everything() -> void:

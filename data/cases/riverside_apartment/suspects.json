@@ -1,0 +1,81 @@
+{
+	"persons": [
+		{
+			"id": "p_victim",
+			"name": "Daniel Ross",
+			"role": "VICTIM",
+			"personality_traits": [],
+			"relationships": [
+				{
+					"person_b": "p_mark",
+					"type": "BUSINESS_PARTNER"
+				},
+				{
+					"person_b": "p_julia",
+					"type": "SPOUSE"
+				}
+			],
+			"pressure_threshold": 0
+		},
+		{
+			"id": "p_mark",
+			"name": "Mark Bennett",
+			"role": "SUSPECT",
+			"personality_traits": [
+				"ANXIOUS"
+			],
+			"relationships": [
+				{
+					"person_b": "p_victim",
+					"type": "BUSINESS_PARTNER"
+				}
+			],
+			"pressure_threshold": 2
+		},
+		{
+			"id": "p_sarah",
+			"name": "Sarah Klein",
+			"role": "SUSPECT",
+			"personality_traits": [
+				"CALM"
+			],
+			"relationships": [
+				{
+					"person_b": "p_victim",
+					"type": "FRIEND"
+				}
+			],
+			"pressure_threshold": 3
+		},
+		{
+			"id": "p_julia",
+			"name": "Julia Ross",
+			"role": "SUSPECT",
+			"personality_traits": [
+				"AGGRESSIVE",
+				"MANIPULATIVE"
+			],
+			"relationships": [
+				{
+					"person_b": "p_victim",
+					"type": "SPOUSE"
+				},
+				{
+					"person_b": "p_mark",
+					"type": "FRIEND"
+				}
+			],
+			"pressure_threshold": 6
+		},
+		{
+			"id": "p_lucas",
+			"name": "Lucas Weber",
+			"role": "SUSPECT",
+			"personality_traits": [
+				"CALM"
+			],
+			"relationships": [],
+			"pressure_threshold": 2
+		}
+	]
+}

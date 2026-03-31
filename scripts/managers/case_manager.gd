@@ -46,11 +46,17 @@ var _interrogation_topics: Dictionary = {}
 ## Interrogation trigger lookup: { trigger_id: InterrogationTriggerData }
 var _interrogation_triggers: Dictionary = {}
 
+## Interrogation session lookup: { person_id: InterrogationSessionData }
+var _interrogation_sessions: Dictionary = {}
+
 ## Action lookup: { action_id: ActionData }
 var _actions: Dictionary = {}
 
 ## Insight lookup: { insight_id: InsightData }
 var _insights: Dictionary = {}
+
+## Discovery rule lookup: { rule_id: DiscoveryRuleData }
+var _discovery_rules: Dictionary = {}
 
 ## Whether a case is currently loaded.
 var case_loaded_flag: bool = false
@@ -114,6 +120,43 @@ func load_case(case_filename: String) -> bool:
 	return true
 
 
+## Loads a case from a multi-file folder structure under data/cases/.
+## Folder should contain case.json, suspects.json, locations.json, evidence.json,
+## and optionally timeline.json, events.json, discovery_rules.json.
+func load_case_folder(folder_name: String) -> bool:
+	var errors: Array[String] = []
+	var case_data: CaseData = CaseLoader.load_from_folder(folder_name, errors)
+
+	if case_data == null:
+		var error_msg: String = "Failed to load case folder '%s': %s" % [
+			folder_name, "; ".join(errors)
+		]
+		push_error(error_msg)
+		case_load_failed.emit(error_msg)
+		return false
+
+	_case = case_data
+
+	# Report validation warnings
+	var validation_errors: Array[String] = _case.validate()
+	if not validation_errors.is_empty():
+		for err: String in validation_errors:
+			push_warning("[CaseManager] Validation: %s" % err)
+		case_validation_warnings.emit(validation_errors)
+
+	# Report load errors as warnings
+	if not errors.is_empty():
+		for err: String in errors:
+			push_warning("[CaseManager] Load warning: %s" % err)
+
+	_build_lookups()
+	case_loaded_flag = true
+
+	case_loaded.emit(_case.id)
+	print("[CaseManager] Case loaded from folder: %s" % _case.id)
+	return true
+
+
 ## Clears all loaded case data.
 func unload_case() -> void:
 	_case = null
@@ -125,8 +168,10 @@ func unload_case() -> void:
 	_event_triggers.clear()
 	_interrogation_topics.clear()
 	_interrogation_triggers.clear()
+	_interrogation_sessions.clear()
 	_actions.clear()
 	_insights.clear()
+	_discovery_rules.clear()
 	case_loaded_flag = false
 	print("[CaseManager] Case unloaded.")
 
@@ -141,8 +186,10 @@ func _build_lookups() -> void:
 	_event_triggers.clear()
 	_interrogation_topics.clear()
 	_interrogation_triggers.clear()
+	_interrogation_sessions.clear()
 	_actions.clear()
 	_insights.clear()
+	_discovery_rules.clear()
 
 	if _case == null:
 		return
@@ -171,11 +218,17 @@ func _build_lookups() -> void:
 	for item: InterrogationTriggerData in _case.interrogation_triggers:
 		_interrogation_triggers[item.id] = item
 
+	for item: InterrogationSessionData in _case.interrogation_sessions:
+		_interrogation_sessions[item.person_id] = item
+
 	for item: ActionData in _case.actions:
 		_actions[item.id] = item
 
 	for item: InsightData in _case.insights:
 		_insights[item.id] = item
+
+	for item: DiscoveryRuleData in _case.discovery_rules:
+		_discovery_rules[item.id] = item
 
 
 # --- Query Functions: Single Item --- #
@@ -223,6 +276,10 @@ func get_action(action_id: String) -> ActionData:
 ## Returns insight data by ID, or null if not found.
 func get_insight(insight_id: String) -> InsightData:
 	return _insights.get(insight_id, null)
+
+## Returns discovery rule data by ID, or null if not found.
+func get_discovery_rule(rule_id: String) -> DiscoveryRuleData:
+	return _discovery_rules.get(rule_id, null)
 
 
 # --- Query Functions: Filtered Lists --- #
@@ -318,6 +375,27 @@ func get_trigger_by_evidence(person_id: String, evidence_id: String) -> Interrog
 	return null
 
 
+## Returns the interrogation trigger matching a person, evidence, and current focus.
+## Focus is a Dictionary with "type" ("statement" or "topic") and "id".
+## Returns null if no trigger matches the focus target.
+func get_trigger_by_evidence_and_focus(person_id: String, evidence_id: String, focus: Dictionary) -> InterrogationTriggerData:
+	var focus_type: String = focus.get("type", "")
+	var focus_id: String = focus.get("id", "")
+	for trigger: InterrogationTriggerData in _interrogation_triggers.values():
+		if trigger.person_id != person_id or trigger.evidence_id != evidence_id:
+			continue
+		if focus_type == "statement" and trigger.target_statement_id == focus_id:
+			return trigger
+		if focus_type == "topic" and trigger.target_topic_id == focus_id:
+			return trigger
+	return null
+
+
+## Returns the InterrogationSessionData for a specific person, or null.
+func get_interrogation_session(person_id: String) -> InterrogationSessionData:
+	return _interrogation_sessions.get(person_id, null)
+
+
 ## Returns all actions of a specific type.
 func get_actions_by_type(action_type: Enums.ActionType) -> Array[ActionData]:
 	var result: Array[ActionData] = []
@@ -383,4 +461,27 @@ func get_all_interrogation_triggers() -> Array[InterrogationTriggerData]:
 	var result: Array[InterrogationTriggerData] = []
 	for t in _interrogation_triggers.values():
 		result.append(t)
+	return result
+
+## Returns all discovery rule data as an array.
+func get_all_discovery_rules() -> Array[DiscoveryRuleData]:
+	var result: Array[DiscoveryRuleData] = []
+	for r in _discovery_rules.values():
+		result.append(r)
+	return result
+
+## Returns all discovery rules for a specific location.
+func get_discovery_rules_for_location(location_id: String) -> Array[DiscoveryRuleData]:
+	var result: Array[DiscoveryRuleData] = []
+	for rule: DiscoveryRuleData in _discovery_rules.values():
+		if rule.location_id == location_id:
+			result.append(rule)
+	return result
+
+## Returns all discovery rules for a specific evidence item.
+func get_discovery_rules_for_evidence(evidence_id: String) -> Array[DiscoveryRuleData]:
+	var result: Array[DiscoveryRuleData] = []
+	for rule: DiscoveryRuleData in _discovery_rules.values():
+		if rule.evidence_id == evidence_id:
+			result.append(rule)
 	return result

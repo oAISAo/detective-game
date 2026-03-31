@@ -11,7 +11,7 @@ const LINE_COLOR: Color = Color(0.85, 0.82, 0.75, 0.8)
 const LINE_WIDTH: float = 2.0
 
 ## Font size for connection note labels.
-const NOTE_FONT_SIZE: int = 10
+const NOTE_FONT_SIZE: int = 12
 
 ## Color for connection note text.
 const NOTE_COLOR: Color = Color(0.7, 0.68, 0.65)

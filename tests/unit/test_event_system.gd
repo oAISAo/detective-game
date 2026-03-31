@@ -187,7 +187,7 @@ func test_dispatch_action_unlock_event() -> void:
 
 func test_dispatch_action_unlock_location() -> void:
 	EventSystem._dispatch_action("unlock_location:loc_warehouse", "trig_test")
-	assert_true(GameManager.has_visited_location("loc_warehouse"), "Should visit location")
+	assert_true(GameManager.is_location_unlocked("loc_warehouse"), "Should unlock location")
 
 
 func test_dispatch_action_add_mandatory() -> void:
@@ -341,3 +341,73 @@ func test_action_dispatched_signal() -> void:
 	trigger.result_events = []
 	EventSystem._dispatch_trigger_actions(trigger)
 	assert_signal_emitted(EventSystem, "action_dispatched")
+
+
+# --- Briefing Text Conversion --- #
+
+func test_action_to_briefing_text_unlock_location() -> void:
+	var text: String = EventSystem._action_to_briefing_text("unlock_location:loc_test")
+	assert_true(text.begins_with("New location available:"),
+		"unlock_location should produce human-readable briefing text")
+	assert_false(text.contains("unlock_location"),
+		"Briefing text should not contain raw action prefix")
+
+
+func test_action_to_briefing_text_notify() -> void:
+	var text: String = EventSystem._action_to_briefing_text("notify:A murder has occurred")
+	assert_eq(text, "A murder has occurred",
+		"notify: prefix should be stripped from briefing text")
+
+
+func test_action_to_briefing_text_unlock_evidence() -> void:
+	var text: String = EventSystem._action_to_briefing_text("unlock_evidence:ev_test")
+	assert_true(text.begins_with("New evidence:"),
+		"unlock_evidence should produce briefing text")
+
+
+func test_action_to_briefing_text_unlock_interrogation() -> void:
+	var text: String = EventSystem._action_to_briefing_text("unlock_interrogation:p_test")
+	assert_true(text.begins_with("New suspect available"),
+		"unlock_interrogation should produce briefing text")
+
+
+func test_action_to_briefing_text_internal_action_returns_empty() -> void:
+	var text: String = EventSystem._action_to_briefing_text("add_mandatory:do_something")
+	assert_eq(text, "", "Internal actions should return empty string")
+	var text2: String = EventSystem._action_to_briefing_text("show_dialogue:some_key")
+	assert_eq(text2, "", "show_dialogue should return empty string")
+
+
+func test_action_to_briefing_text_plain_text() -> void:
+	var text: String = EventSystem._action_to_briefing_text("Something happened")
+	assert_eq(text, "Something happened",
+		"Plain text actions should pass through unchanged")
+
+
+func test_evaluate_day_start_dispatches_actions() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	GameManager.new_game()
+	EventSystem.reset()
+	var briefing: Array[String] = []
+	briefing.assign(EventSystem.evaluate_day_start_triggers())
+	assert_true(GameManager.is_location_unlocked("loc_victim_apartment"),
+		"Day 1 trigger should have unlocked victim's apartment")
+	for line: String in briefing:
+		assert_false(line.begins_with("unlock_location:"),
+			"Briefing should not contain raw unlock_location tokens")
+		assert_false(line.begins_with("unlock_interrogation:"),
+			"Briefing should not contain raw unlock_interrogation tokens")
+	CaseManager.unload_case()
+
+
+func test_trigger_fired_not_in_log() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	GameManager.new_game()
+	EventSystem.reset()
+	EventSystem.evaluate_day_start_triggers()
+	var log: Array[Dictionary] = GameManager.get_investigation_log()
+	for entry: Dictionary in log:
+		var desc: String = entry.get("description", "")
+		assert_false(desc.begins_with("Trigger fired:"),
+			"Log should not contain raw 'Trigger fired:' entries")
+	CaseManager.unload_case()

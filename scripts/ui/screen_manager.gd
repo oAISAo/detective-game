@@ -33,6 +33,7 @@ const SCREEN_SCENES: Dictionary = {
 	"evidence_detail": "res://scenes/ui/evidence_detail.tscn",
 	"location_investigation": "res://scenes/ui/location_investigation.tscn",
 	"interrogation": "res://scenes/ui/interrogation.tscn",
+	"suspect_list": "res://scenes/ui/suspect_list.tscn",
 	"theory_builder": "res://scenes/ui/theory_builder.tscn",
 	"lab_queue": "res://scenes/ui/lab_queue.tscn",
 	"surveillance_panel": "res://scenes/ui/surveillance_panel.tscn",

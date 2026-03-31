@@ -284,3 +284,14 @@ func test_serialize_round_trip() -> void:
 
 	assert_eq(restored["dialogue_history"].size(), original["dialogue_history"].size())
 	assert_eq(restored["dialogue_queue"].size(), original["dialogue_queue"].size())
+
+
+# --- Morning Briefing Queue --- #
+
+func test_morning_briefing_can_be_queued() -> void:
+	DialogueSystem.reset()
+	var items: Array[String] = ["Lab results ready", "New suspect available"]
+	DialogueSystem.queue_briefing(items, 1)
+	assert_true(DialogueSystem.is_active(),
+		"DialogueSystem should be active after queuing briefing")
+	DialogueSystem.reset()

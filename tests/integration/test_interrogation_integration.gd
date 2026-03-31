@@ -1,7 +1,7 @@
 ## test_interrogation_integration.gd
 ## Integration tests for the interrogation system.
-## Tests the full pipeline: evidence → trigger → statement → contradiction,
-## and the complete interrogation arc from open conversation to break.
+## Tests the full pipeline: evidence → focus → trigger → statement → contradiction,
+## and the complete interrogation arc from statement intake to break.
 extends GutTest
 
 
@@ -123,6 +123,8 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_suspect_a",
 			"evidence_id": "ev_photo",
 			"requires_statement_id": "s_initial_claim",
+			"target_statement_id": "s_initial_claim",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "OK I was nearby but I did not go in.",
@@ -135,12 +137,26 @@ var _test_case_data: Dictionary = {
 			"person_id": "p_suspect_a",
 			"evidence_id": "ev_records",
 			"requires_statement_id": "",
+			"target_statement_id": "",
+			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "REVELATION",
 			"dialogue": "I called him that evening to discuss business.",
 			"new_statement_id": "s_records_revelation",
 			"unlocks": [],
 			"pressure_points": 1,
+		},
+	],
+	"interrogation_sessions": [
+		{
+			"person_id": "p_suspect_a",
+			"initial_dialogue": "Suspect Alpha sits down nervously.",
+			"initial_statement_ids": ["s_initial_claim"],
+			"base_topic_ids": ["topic_whereabouts"],
+			"pressure_gate": 1,
+			"rejection_texts": [
+				"He shrugs dismissively.",
+			],
 		},
 	],
 }
@@ -171,18 +187,14 @@ func after_all() -> void:
 
 
 # =========================================================================
-# Evidence → Trigger → Statement → Contradiction Pipeline
+# Evidence → Focus → Trigger → Statement → Contradiction Pipeline
 # =========================================================================
 
 func test_evidence_trigger_statement_contradiction_pipeline() -> void:
 	GameManager.discover_evidence("ev_photo")
 
-	# Start interrogation
+	# Start interrogation — s_initial_claim auto-heard from session data
 	InterrogationManager.start_interrogation("p_suspect_a")
-
-	# Phase 1: Open conversation — discuss alibi topic
-	var topic_result: Dictionary = InterrogationManager.discuss_topic("topic_whereabouts")
-	assert_eq(topic_result.get("statements", []).size(), 1, "Topic should produce a statement")
 	assert_has(InterrogationManager.get_heard_statements(), "s_initial_claim")
 
 	# Verify contradiction is detected (ev_photo contradicts s_initial_claim)
@@ -190,16 +202,17 @@ func test_evidence_trigger_statement_contradiction_pipeline() -> void:
 	assert_eq(contradictions.size(), 1, "Should detect contradiction")
 	assert_eq(contradictions[0]["statement_id"], "s_initial_claim")
 
-	# Phase 2: Advance to confrontation and present evidence
-	InterrogationManager.advance_phase()
+	# Advance to interrogation and set focus on the contradicted statement
+	InterrogationManager.advance_to_interrogation()
 	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.EVIDENCE_CONFRONTATION)
+		Enums.InterrogationPhase.INTERROGATION)
 
+	InterrogationManager.select_focus("statement", "s_initial_claim")
 	var trigger_result: Dictionary = InterrogationManager.present_evidence("ev_photo")
 	assert_true(trigger_result.get("triggered", false), "Trigger should fire")
 	assert_eq(trigger_result["trigger_id"], "trig_photo")
 	assert_eq(trigger_result["reaction_type"], Enums.ReactionType.ADMISSION)
-	assert_false(trigger_result.get("weakened", true), "Should not be weakened (prereq met)")
+	assert_false(trigger_result.get("weakened", true), "Should not be weakened (prereq auto-heard)")
 
 	# New statement recorded
 	assert_has(InterrogationManager.get_heard_statements(), "s_photo_admission")
@@ -210,48 +223,43 @@ func test_evidence_trigger_statement_contradiction_pipeline() -> void:
 	# Pressure increased
 	assert_eq(InterrogationManager.get_current_pressure(), 1)
 
+	# Contradiction logged via focus
+	var session_contras: Array[Dictionary] = InterrogationManager.get_session_contradictions()
+	assert_eq(session_contras.size(), 1)
+	assert_eq(session_contras[0]["statement_id"], "s_initial_claim")
+
 	InterrogationManager.end_interrogation()
 
 
 # =========================================================================
-# Full Interrogation Arc: Open → Confrontation → Pressure → Break
+# Full Interrogation Arc: Statement Intake → Interrogation → Break
 # =========================================================================
 
 func test_full_interrogation_arc_to_break() -> void:
 	GameManager.discover_evidence("ev_photo")
 	GameManager.discover_evidence("ev_records")
 
-	# Start interrogation
+	# Start interrogation — s_initial_claim auto-heard
 	InterrogationManager.start_interrogation("p_suspect_a")
 	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.OPEN_CONVERSATION)
+		Enums.InterrogationPhase.INTERROGATION)
 
-	# Phase 1: Discuss topic
-	InterrogationManager.discuss_topic("topic_whereabouts")
-
-	# Phase 2: Evidence Confrontation
-	InterrogationManager.advance_phase()
-	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.EVIDENCE_CONFRONTATION)
-
-	# Present first evidence → +1 pressure
+	# Present first evidence with focus → +1 pressure
+	InterrogationManager.select_focus("statement", "s_initial_claim")
 	var result1: Dictionary = InterrogationManager.present_evidence("ev_photo")
 	assert_true(result1.get("triggered", false))
 	assert_eq(InterrogationManager.get_current_pressure(), 1)
 
-	# Phase 3: Psychological pressure
-	InterrogationManager.advance_phase()
-	assert_eq(InterrogationManager.get_current_phase(),
-		Enums.InterrogationPhase.PSYCHOLOGICAL_PRESSURE)
-
-	# Present second evidence → +1 pressure → threshold (2) reached
-	watch_signals(InterrogationManager)
+	# Present second evidence (target_statement_id is empty, so use any statement as focus)
+	InterrogationManager.select_focus("statement", "s_photo_admission")
 	var result2: Dictionary = InterrogationManager.present_evidence("ev_records")
 	assert_true(result2.get("triggered", false))
 	assert_eq(InterrogationManager.get_current_pressure(), 2)
 
-	# Break moment
-	assert_true(result2.get("break_moment", false), "Should trigger break moment")
+	# Break moment (threshold = 2) — triggered via apply_pressure
+	watch_signals(InterrogationManager)
+	var pressure_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(pressure_result.get("break_moment", false), "Should trigger break moment")
 	assert_signal_emitted_with_parameters(
 		InterrogationManager, "break_moment_reached", ["p_suspect_a"]
 	)
@@ -270,14 +278,40 @@ func test_full_interrogation_arc_to_break() -> void:
 
 
 # =========================================================================
+# Apply Pressure Gating Integration
+# =========================================================================
+
+func test_apply_pressure_gating_in_full_flow() -> void:
+	GameManager.discover_evidence("ev_photo")
+
+	InterrogationManager.start_interrogation("p_suspect_a")
+	InterrogationManager.advance_to_interrogation()
+
+	# Before any contradictions, can't apply pressure
+	assert_false(InterrogationManager.can_apply_pressure())
+
+	# Present evidence with focus → logs contradiction
+	InterrogationManager.select_focus("statement", "s_initial_claim")
+	InterrogationManager.present_evidence("ev_photo")
+
+	# pressure_gate is 1, and we have 1 contradiction now
+	assert_true(InterrogationManager.can_apply_pressure())
+	var result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(result.get("success", false))
+	assert_eq(InterrogationManager.get_current_phase(), Enums.InterrogationPhase.PRESSURE)
+
+	InterrogationManager.end_interrogation()
+
+
+# =========================================================================
 # GameManager Serialization Integration
 # =========================================================================
 
 func test_game_manager_serializes_interrogation_state() -> void:
 	GameManager.discover_evidence("ev_photo")
 	InterrogationManager.start_interrogation("p_suspect_a")
-	InterrogationManager.discuss_topic("topic_whereabouts")
-	InterrogationManager.advance_phase()
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_initial_claim")
 	InterrogationManager.present_evidence("ev_photo")
 	InterrogationManager.end_interrogation()
 

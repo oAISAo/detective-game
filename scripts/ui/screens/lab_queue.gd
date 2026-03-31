@@ -54,7 +54,7 @@ func _clear_request_list() -> void:
 func _add_section_header(text: String) -> void:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
 	request_list.add_child(label)
 
@@ -70,7 +70,7 @@ func _add_request_card(req: Dictionary, is_pending: bool) -> void:
 		req.get("analysis_type", "Unknown"),
 		req.get("input_evidence_id", "?"),
 	]
-	header.add_theme_font_size_override("font_size", 14)
+	header.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(header)
 
 	# Status line
@@ -86,7 +86,7 @@ func _add_request_card(req: Dictionary, is_pending: bool) -> void:
 	else:
 		status.text = "Completed — Output: %s" % req.get("output_evidence_id", "?")
 		status.add_theme_color_override("font_color", Color(0.5, 0.7, 0.5))
-	status.add_theme_font_size_override("font_size", 12)
+	status.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(status)
 
 	# Cancel button for pending

@@ -1,0 +1,246 @@
+{
+	"locations": [
+		{
+			"id": "loc_victim_apartment",
+			"name": "Victim's Apartment",
+			"description": "Daniel Ross's apartment where his body was found. The crime scene. Contains the kitchen, living room, and personal belongings.",
+			"searchable": true,
+			"investigable_objects": [
+				{
+					"id": "obj_kitchen",
+					"name": "Kitchen",
+					"description": "The kitchen area. A knife block sits on the counter with one knife missing. The murder weapon was found in the kitchen sink.",
+					"available_actions": [
+						"visual_inspection"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_knife",
+						"ev_knife_block"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_living_room",
+					"name": "Living Room",
+					"description": "The main living area. Two wine glasses sit on the table beside an open wine bottle. A broken picture frame lies on the floor.",
+					"available_actions": [
+						"visual_inspection",
+						"fingerprint_analysis"
+					],
+					"tool_requirements": [
+						"fingerprint_powder"
+					],
+					"evidence_results": [
+						"ev_wine_glasses",
+						"ev_broken_picture_frame",
+						"ev_wine_bottle"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_victim_phone",
+					"name": "Victim's Phone",
+					"description": "Daniel's phone found on the table. Contains messages and call logs.",
+					"available_actions": [
+						"examine_device"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_victim_phone",
+						"ev_julia_text_message",
+						"ev_mark_call_log"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				}
+			],
+			"evidence_pool": [
+				"ev_knife",
+				"ev_wine_glasses",
+				"ev_julia_fingerprint_glass",
+				"ev_mark_fingerprint_desk",
+				"ev_broken_picture_frame",
+				"ev_victim_phone",
+				"ev_julia_text_message",
+				"ev_mark_call_log",
+				"ev_wine_bottle",
+				"ev_knife_block"
+			]
+		},
+		{
+			"id": "loc_hallway",
+			"name": "Building Hallway",
+			"description": "The hallway of the apartment building. Security cameras and elevator access logs are available here.",
+			"searchable": true,
+			"investigable_objects": [
+				{
+					"id": "obj_hallway_floor",
+					"name": "Hallway Floor",
+					"description": "The hallway floor near the apartment entrance. Forensic examination may reveal traces.",
+					"available_actions": [
+						"visual_inspection",
+						"fingerprint_analysis"
+					],
+					"tool_requirements": [
+						"forensic_kit"
+					],
+					"evidence_results": [
+						"ev_shoe_print"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_security_system",
+					"name": "Building Security System",
+					"description": "Security camera recordings and elevator access logs for the building.",
+					"available_actions": [
+						"examine_device"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_hallway_camera",
+						"ev_elevator_logs"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_maintenance_office",
+					"name": "Maintenance Office",
+					"description": "The building maintenance office. Work logs and key records are kept here.",
+					"available_actions": [
+						"visual_inspection"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_lucas_work_log"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				}
+			],
+			"evidence_pool": [
+				"ev_hallway_camera",
+				"ev_elevator_logs",
+				"ev_shoe_print",
+				"ev_lucas_work_log"
+			]
+		},
+		{
+			"id": "loc_parking_lot",
+			"name": "Parking Lot",
+			"description": "The parking lot adjacent to the apartment building. A security camera covers the entrance and exit.",
+			"searchable": true,
+			"investigable_objects": [
+				{
+					"id": "obj_parking_camera",
+					"name": "Parking Lot Security Camera",
+					"description": "A security camera that records vehicles and people entering and leaving the parking area.",
+					"available_actions": [
+						"examine_device"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_parking_camera"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				}
+			],
+			"evidence_pool": [
+				"ev_parking_camera"
+			]
+		},
+		{
+			"id": "loc_neighbor_apartment",
+			"name": "Neighbor's Apartment",
+			"description": "Sarah Klein's apartment, located next door to the victim. Sarah is the victim's neighbor and a potential witness.",
+			"searchable": false,
+			"investigable_objects": [
+				{
+					"id": "obj_sarah_interview",
+					"name": "Interview Sarah Klein",
+					"description": "Talk to Sarah Klein about what she heard on the night of the murder.",
+					"available_actions": [
+						"visual_inspection"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_sarah_testimony"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				}
+			],
+			"evidence_pool": [
+				"ev_sarah_testimony",
+				"ev_sarah_second_testimony"
+			]
+		},
+		{
+			"id": "loc_victim_office",
+			"name": "Victim's Office",
+			"description": "Daniel Ross's office at his financial consulting firm. Contains business records, personal files, and a hidden safe.",
+			"searchable": true,
+			"investigable_objects": [
+				{
+					"id": "obj_office_desk",
+					"name": "Office Desk",
+					"description": "Daniel's office desk with his computer and correspondence.",
+					"available_actions": [
+						"visual_inspection",
+						"examine_device"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_daniel_email"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_file_cabinet",
+					"name": "File Cabinet",
+					"description": "A locked file cabinet containing financial documents and client records.",
+					"available_actions": [
+						"visual_inspection"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_bank_transfer",
+						"ev_accounting_files"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_office_safe",
+					"name": "Hidden Safe",
+					"description": "A safe concealed behind a bookshelf. Contains confidential documents about the embezzlement.",
+					"available_actions": [
+						"visual_inspection"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_hidden_safe"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				},
+				{
+					"id": "obj_personal_items",
+					"name": "Personal Items",
+					"description": "Daniel's personal belongings at the office, including a journal.",
+					"available_actions": [
+						"visual_inspection"
+					],
+					"tool_requirements": [],
+					"evidence_results": [
+						"ev_personal_journal"
+					],
+					"investigation_state": "NOT_INSPECTED"
+				}
+			],
+			"evidence_pool": [
+				"ev_daniel_email",
+				"ev_bank_transfer",
+				"ev_accounting_files",
+				"ev_hidden_safe",
+				"ev_personal_journal"
+			]
+		}
+	]
+}

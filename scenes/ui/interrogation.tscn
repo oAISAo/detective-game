@@ -68,11 +68,12 @@ theme_override_constants/separation = 12
 [node name="DialogueSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_stretch_ratio = 1.2
 
 [node name="DialogueSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/DialogueSection"]
 layout_mode = 2
 text = "Dialogue"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="DialogueLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/DialogueSection"]
 unique_name_in_owner = true
@@ -83,15 +84,17 @@ text = "..."
 
 [node name="TopicSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="TopicSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection"]
 layout_mode = 2
 text = "Topics"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="TopicScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 100)
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 150)
 
 [node name="TopicList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection/TopicScroll"]
 unique_name_in_owner = true
@@ -106,11 +109,18 @@ theme_override_constants/separation = 12
 [node name="StatementSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel"]
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_stretch_ratio = 1.2
 
 [node name="StatementSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
 layout_mode = 2
-text = "Statement Log"
-theme_override_font_sizes/font_size = 18
+text = "Statements"
+theme_override_font_sizes/font_size = 20
+
+[node name="CurrentFocusLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Current Focus: None"
+theme_override_font_sizes/font_size = 16
 
 [node name="StatementScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
 layout_mode = 2
@@ -123,15 +133,17 @@ size_flags_horizontal = 3
 
 [node name="EvidenceSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel"]
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="EvidenceSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection"]
 layout_mode = 2
 text = "Evidence Inventory"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="EvidenceScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 120)
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 150)
 
 [node name="EvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection/EvidenceScroll"]
 unique_name_in_owner = true
@@ -148,10 +160,10 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Present Evidence"
 
-[node name="AdvancePhaseButton" type="Button" parent="MarginContainer/VBoxContainer/Controls"]
+[node name="ApplyPressureButton" type="Button" parent="MarginContainer/VBoxContainer/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Advance Phase"
+text = "Apply Pressure"
 
 [node name="EndSessionButton" type="Button" parent="MarginContainer/VBoxContainer/Controls"]
 unique_name_in_owner = true

@@ -149,3 +149,20 @@ func test_clear_all_emits_signal() -> void:
 	watch_signals(NotificationManager)
 	NotificationManager.clear_all()
 	assert_signal_emitted(NotificationManager, "notifications_cleared")
+
+
+# --- API Method Existence --- #
+
+func test_has_notify_method() -> void:
+	assert_true(NotificationManager.has_method("notify"),
+		"NotificationManager should have 'notify' method")
+
+
+func test_has_notify_evidence_method() -> void:
+	assert_true(NotificationManager.has_method("notify_evidence"),
+		"NotificationManager should have 'notify_evidence' method")
+
+
+func test_no_send_notification_method() -> void:
+	assert_false(NotificationManager.has_method("send_notification"),
+		"NotificationManager should NOT have 'send_notification' method")

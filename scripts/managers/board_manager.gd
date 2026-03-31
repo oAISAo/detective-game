@@ -231,11 +231,16 @@ func get_connection_count() -> int:
 
 # --- Convenience --- #
 
-## Sends an item to the board at center of viewport. Returns node data.
+## Sends an item to the board in the visible area. Returns node data.
+## Staggers position so multiple nodes don't overlap.
 func send_to_board(type: String, ref_id: String) -> Dictionary:
-	var center_x: float = BOARD_WIDTH / 2.0
-	var center_y: float = BOARD_HEIGHT / 2.0
-	return add_node(type, ref_id, center_x, center_y)
+	# Place in visible area, offset each new node to avoid overlap
+	var existing: int = _nodes.size()
+	var col: int = existing % 4
+	var row: int = existing / 4
+	var x: float = 40.0 + col * 200.0
+	var y: float = 40.0 + row * 120.0
+	return add_node(type, ref_id, x, y)
 
 
 ## Clears all nodes and connections from the board.

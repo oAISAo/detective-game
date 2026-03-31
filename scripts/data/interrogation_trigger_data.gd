@@ -15,6 +15,15 @@ extends Resource
 ## ID of the evidence that activates this trigger.
 @export var evidence_id: String = ""
 
+## ID of the statement this trigger targets. Evidence must be presented while this statement is
+## the current focus for the trigger to fire.
+@export var target_statement_id: String = ""
+
+## ID of the topic this trigger targets. Evidence must be presented while this topic is
+## the current focus for the trigger to fire. Either target_statement_id or target_topic_id
+## should be set, not both.
+@export var target_topic_id: String = ""
+
 ## Optional: ID of a statement that must have been heard before this trigger fires at full strength.
 ## If the player presents evidence before hearing the relevant claim, the reaction is weaker.
 @export var requires_statement_id: String = ""
@@ -47,6 +56,8 @@ static func from_dict(data: Dictionary) -> InterrogationTriggerData:
 	res.id = data.get("id", "")
 	res.person_id = data.get("person_id", "")
 	res.evidence_id = data.get("evidence_id", "")
+	res.target_statement_id = data.get("target_statement_id", "")
+	res.target_topic_id = data.get("target_topic_id", "")
 	res.requires_statement_id = data.get("requires_statement_id", "")
 	res.impact_level = EnumHelper.parse_enum(
 		Enums.ImpactLevel,
@@ -75,6 +86,8 @@ func validate() -> Array[String]:
 		errors.append("InterrogationTriggerData: person_id is required")
 	if evidence_id.is_empty():
 		errors.append("InterrogationTriggerData: evidence_id is required")
+	if target_statement_id.is_empty() and target_topic_id.is_empty():
+		errors.append("InterrogationTriggerData: target_statement_id or target_topic_id is required")
 	if dialogue.is_empty():
 		errors.append("InterrogationTriggerData: dialogue is required")
 	if reaction_type == Enums.ReactionType.DEFLECTION and deflection_target_id.is_empty():
@@ -88,6 +101,8 @@ func to_dict() -> Dictionary:
 		"id": id,
 		"person_id": person_id,
 		"evidence_id": evidence_id,
+		"target_statement_id": target_statement_id,
+		"target_topic_id": target_topic_id,
 		"requires_statement_id": requires_statement_id,
 		"impact_level": EnumHelper.enum_to_string(Enums.ImpactLevel, impact_level),
 		"reaction_type": EnumHelper.enum_to_string(Enums.ReactionType, reaction_type),

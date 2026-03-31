@@ -41,7 +41,7 @@ layout_mode = 2
 
 [node name="ActionsLabel" type="Label" parent="CommandBar/HBoxContainer"]
 layout_mode = 2
-text = "Actions: 2"
+text = "Actions: 4 / 4"
 
 [node name="Separator2" type="VSeparator" parent="CommandBar/HBoxContainer"]
 layout_mode = 2
@@ -71,6 +71,11 @@ layout_mode = 2
 text = "🗺️ Map"
 flat = true
 
+[node name="NavSuspectsButton" type="Button" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+text = "🔍 Suspects"
+flat = true
+
 [node name="NavLogButton" type="Button" parent="CommandBar/HBoxContainer"]
 layout_mode = 2
 text = "📋 Log"
@@ -83,6 +88,11 @@ size_flags_horizontal = 3
 [node name="NotificationButton" type="Button" parent="CommandBar/HBoxContainer"]
 layout_mode = 2
 text = "🔔"
+flat = true
+
+[node name="EndDayButton" type="Button" parent="CommandBar/HBoxContainer"]
+layout_mode = 2
+text = "End Day"
 flat = true
 
 [node name="ScreenContainer" type="Control" parent="."]

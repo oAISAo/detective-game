@@ -88,6 +88,9 @@ func _ready() -> void:
 ## Submits a full case report. Returns true if valid.
 ## report_data format: { "suspect": { "answer": "p_mark", "evidence": ["ev1"] }, ... }
 func submit_report(report_data: Dictionary) -> bool:
+	if has_report():
+		push_warning("[ConclusionManager] Report already submitted.")
+		return false
 	# Validate all sections present
 	for section: String in REPORT_SECTIONS:
 		if section not in report_data:
@@ -251,9 +254,20 @@ func _calculate_alternatives_score() -> float:
 	if suspects.size() <= 1:
 		return 1.0  # Only one suspect, trivially eliminated alternatives
 
+	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
 	var investigated_count: int = 0
 	for suspect: PersonData in suspects:
-		# Consider a suspect "investigated" if they've been interrogated
+		# Consider a suspect "investigated" if they have any fired triggers
+		# or accumulated pressure (meaning an interrogation session occurred).
+		if interr_mgr != null:
+			var fired: Array = interr_mgr.get_fired_triggers_for_person(suspect.id)
+			if not fired.is_empty():
+				investigated_count += 1
+				continue
+			if interr_mgr.get_pressure_for_person(suspect.id) > 0:
+				investigated_count += 1
+				continue
+		# Fallback: check GameManager.completed_interrogations for legacy saves
 		if GameManager.completed_interrogations.has(suspect.id):
 			investigated_count += 1
 

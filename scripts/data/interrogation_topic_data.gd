@@ -32,6 +32,10 @@ extends Resource
 ## How impactful this topic is during interrogation.
 @export var impact_level: Enums.ImpactLevel = Enums.ImpactLevel.MINOR
 
+## Optional dialogue shown when this topic is discussed.
+## If empty, the first statement's text is used instead.
+@export var dialogue: String = ""
+
 
 ## Creates an InterrogationTopicData from a JSON dictionary.
 static func from_dict(data: Dictionary) -> InterrogationTopicData:
@@ -49,6 +53,7 @@ static func from_dict(data: Dictionary) -> InterrogationTopicData:
 		data.get("impact_level", "MINOR"),
 		Enums.ImpactLevel.MINOR
 	) as Enums.ImpactLevel
+	res.dialogue = data.get("dialogue", "")
 	return res
 
 
@@ -76,4 +81,5 @@ func to_dict() -> Dictionary:
 		"required_evidence": required_evidence.duplicate(),
 		"requires_statement_id": requires_statement_id,
 		"impact_level": EnumHelper.enum_to_string(Enums.ImpactLevel, impact_level),
+		"dialogue": dialogue,
 	}

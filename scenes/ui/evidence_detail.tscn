@@ -87,7 +87,7 @@ layout_mode = 2
 [node name="InfoHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/InfoSection"]
 layout_mode = 2
 text = "Details"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="InfoGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/InfoSection"]
 unique_name_in_owner = true
@@ -102,7 +102,7 @@ layout_mode = 2
 [node name="TagsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/TagsSection"]
 layout_mode = 2
 text = "Tags"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="TagsContainer" type="HFlowContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/TagsSection"]
 unique_name_in_owner = true
@@ -146,7 +146,7 @@ layout_mode = 2
 [node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
 layout_mode = 2
 text = "Related Persons"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
 unique_name_in_owner = true
@@ -158,7 +158,7 @@ layout_mode = 2
 [node name="StatementsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
 layout_mode = 2
 text = "Referenced Statements"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
 unique_name_in_owner = true
@@ -170,7 +170,7 @@ layout_mode = 2
 [node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
 layout_mode = 2
 text = "Legal Categories"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
 unique_name_in_owner = true

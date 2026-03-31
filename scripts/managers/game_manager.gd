@@ -10,8 +10,8 @@ extends Node
 ## Emitted when the current day changes.
 signal day_changed(new_day: int)
 
-## Emitted when the time slot changes.
-signal time_slot_changed(new_slot: Enums.TimeSlot)
+## Emitted when the day phase changes.
+signal phase_changed(new_phase: Enums.DayPhase)
 
 ## Emitted when the number of remaining actions changes.
 signal actions_remaining_changed(remaining: int)
@@ -24,6 +24,12 @@ signal insight_discovered(insight_id: String)
 
 ## Emitted when a location is visited for the first time.
 signal location_visited(location_id: String)
+
+## Emitted when a location is unlocked.
+signal location_unlocked(location_id: String)
+
+## Emitted when a suspect becomes available for interrogation.
+signal interrogation_unlocked(person_id: String)
 
 ## Emitted when an interrogation is completed.
 @warning_ignore("unused_signal")
@@ -42,7 +48,7 @@ signal game_reset
 const TOTAL_DAYS: int = 4
 
 ## Number of major actions the player gets per day.
-const ACTIONS_PER_DAY: int = 2
+const ACTIONS_PER_DAY: int = 4
 
 ## Maximum number of hints per case.
 const MAX_HINTS_PER_CASE: int = 3
@@ -56,8 +62,8 @@ const MAX_INTERROGATIONS_PER_DAY: int = 1
 ## The current investigation day (1-4).
 var current_day: int = 1
 
-## The current time slot within the day.
-var current_time_slot: Enums.TimeSlot = Enums.TimeSlot.MORNING
+## The current phase within the day (Morning, Daytime, Night).
+var current_phase: Enums.DayPhase = Enums.DayPhase.MORNING
 
 ## How many major actions the player has left today.
 var actions_remaining: int = ACTIONS_PER_DAY
@@ -70,6 +76,12 @@ var discovered_insights: Array[String] = []
 
 ## IDs of all locations the player has visited.
 var visited_locations: Array[String] = []
+
+## IDs of all locations available to the player (unlocked via events).
+var unlocked_locations: Array[String] = []
+
+## IDs of suspects available for interrogation (unlocked via events).
+var unlocked_interrogations: Array[String] = []
 
 ## Tracks completed interrogations: { person_id: [trigger_ids_fired] }
 var completed_interrogations: Dictionary = {}
@@ -120,11 +132,13 @@ func _ready() -> void:
 ## Starts a new investigation, resetting all state.
 func new_game() -> void:
 	current_day = 1
-	current_time_slot = Enums.TimeSlot.MORNING
+	current_phase = Enums.DayPhase.MORNING
 	actions_remaining = ACTIONS_PER_DAY
 	discovered_evidence.clear()
 	discovered_insights.clear()
 	visited_locations.clear()
+	unlocked_locations.clear()
+	unlocked_interrogations.clear()
 	completed_interrogations.clear()
 	interrogation_counts_today.clear()
 	active_lab_requests.clear()
@@ -221,7 +235,9 @@ func discover_evidence(evidence_id: String) -> bool:
 		return false
 	discovered_evidence.append(evidence_id)
 	evidence_discovered.emit(evidence_id)
-	_log_action("Evidence discovered: %s" % evidence_id)
+	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
+	var ev_name: String = ev.name if ev else evidence_id
+	_log_action("Evidence discovered: %s" % ev_name)
 	return true
 
 
@@ -238,25 +254,66 @@ func discover_insight(insight_id: String) -> bool:
 		return false
 	discovered_insights.append(insight_id)
 	insight_discovered.emit(insight_id)
-	_log_action("Insight discovered: %s" % insight_id)
+	_log_action("New insight discovered")
 	return true
 
 
 # --- Locations --- #
+
+## Unlocks a location, making it available on the map. Returns true if newly unlocked.
+func unlock_location(location_id: String) -> bool:
+	if location_id in unlocked_locations:
+		return false
+	unlocked_locations.append(location_id)
+	location_unlocked.emit(location_id)
+	var loc: LocationData = CaseManager.get_location(location_id)
+	var loc_name: String = loc.name if loc else location_id
+	_log_action("New location available: %s" % loc_name)
+	return true
+
+
+## Returns true if the given location has been unlocked.
+func is_location_unlocked(location_id: String) -> bool:
+	return location_id in unlocked_locations
+
 
 ## Marks a location as visited. Returns true if first visit.
 func visit_location(location_id: String) -> bool:
 	if location_id in visited_locations:
 		return false
 	visited_locations.append(location_id)
+	# Also ensure it's in unlocked list
+	if location_id not in unlocked_locations:
+		unlocked_locations.append(location_id)
 	location_visited.emit(location_id)
-	_log_action("Location visited: %s" % location_id)
+	var loc: LocationData = CaseManager.get_location(location_id)
+	var loc_name: String = loc.name if loc else location_id
+	_log_action("Location visited: %s" % loc_name)
 	return true
 
 
 ## Returns true if the given location has been visited.
 func has_visited_location(location_id: String) -> bool:
 	return location_id in visited_locations
+
+
+# --- Interrogation Unlocking --- #
+
+## Unlocks a suspect for interrogation. Returns true if newly unlocked.
+func unlock_interrogation(person_id: String) -> bool:
+	if person_id in unlocked_interrogations:
+		return false
+	unlocked_interrogations.append(person_id)
+	interrogation_unlocked.emit(person_id)
+	var person: PersonData = CaseManager.get_person(person_id)
+	var person_name: String = person.name if person else person_id
+	_log_action("Suspect available for questioning: %s" % person_name)
+	return true
+
+
+## Returns true if the given suspect is unlocked for interrogation.
+func is_interrogation_unlocked(person_id: String) -> bool:
+	return person_id in unlocked_interrogations
 
 
 # --- Actions --- #
@@ -306,58 +363,23 @@ func get_remaining_mandatory_actions() -> Array[String]:
 	return remaining
 
 
-# --- Day Progression --- #
+# --- Day Phase --- #
 
-## Advances the time slot. Returns the new time slot.
-func advance_time_slot() -> Enums.TimeSlot:
-	match current_time_slot:
-		Enums.TimeSlot.MORNING:
-			current_time_slot = Enums.TimeSlot.AFTERNOON
-		Enums.TimeSlot.AFTERNOON:
-			current_time_slot = Enums.TimeSlot.EVENING
-		Enums.TimeSlot.EVENING:
-			current_time_slot = Enums.TimeSlot.NIGHT
-		Enums.TimeSlot.NIGHT:
-			# Night triggers day transition
-			_advance_day()
-			return current_time_slot
-	time_slot_changed.emit(current_time_slot)
-	return current_time_slot
-
-
-## Returns a display string for the current time slot.
-func get_time_slot_display() -> String:
-	match current_time_slot:
-		Enums.TimeSlot.MORNING:
+## Returns a display string for the current phase.
+func get_phase_display() -> String:
+	match current_phase:
+		Enums.DayPhase.MORNING:
 			return "Morning"
-		Enums.TimeSlot.AFTERNOON:
-			return "Afternoon"
-		Enums.TimeSlot.EVENING:
-			return "Evening"
-		Enums.TimeSlot.NIGHT:
+		Enums.DayPhase.DAYTIME:
+			return "Daytime"
+		Enums.DayPhase.NIGHT:
 			return "Night"
 	return "Unknown"
 
 
-## Advances to the next day. Called internally from night processing.
-func _advance_day() -> void:
-	if current_day >= TOTAL_DAYS:
-		_log_action("Investigation complete — Day %d ended." % current_day)
-		# Phase 12: Signal that investigation time has ended
-		var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
-		if concl_mgr:
-			print("[GameManager] Investigation time expired. Case conclusion available.")
-		return
-
-	current_day += 1
-	current_time_slot = Enums.TimeSlot.MORNING
-	actions_remaining = ACTIONS_PER_DAY
-	interrogation_counts_today.clear()
-
-	day_changed.emit(current_day)
-	time_slot_changed.emit(current_time_slot)
-	actions_remaining_changed.emit(actions_remaining)
-	_log_action("Day %d begins." % current_day)
+## Returns true if the current phase is Daytime (the only phase allowing actions).
+func is_daytime() -> bool:
+	return current_phase == Enums.DayPhase.DAYTIME
 
 
 # --- Investigation Log --- #
@@ -366,7 +388,7 @@ func _advance_day() -> void:
 func _log_action(description: String) -> void:
 	var entry: Dictionary = {
 		"day": current_day,
-		"time_slot": current_time_slot,
+		"phase": current_phase,
 		"description": description,
 		"timestamp": Time.get_unix_time_from_system(),
 	}
@@ -417,11 +439,13 @@ func get_hints_remaining() -> int:
 func serialize() -> Dictionary:
 	var data: Dictionary = {
 		"current_day": current_day,
-		"current_time_slot": current_time_slot,
+		"current_phase": current_phase,
 		"actions_remaining": actions_remaining,
 		"discovered_evidence": discovered_evidence.duplicate(),
 		"discovered_insights": discovered_insights.duplicate(),
 		"visited_locations": visited_locations.duplicate(),
+		"unlocked_locations": unlocked_locations.duplicate(),
+		"unlocked_interrogations": unlocked_interrogations.duplicate(),
 		"completed_interrogations": completed_interrogations.duplicate(true),
 		"interrogation_counts_today": interrogation_counts_today.duplicate(),
 		"active_lab_requests": active_lab_requests.duplicate(true),
@@ -502,11 +526,13 @@ func serialize() -> Dictionary:
 ## Restores game state from a saved dictionary.
 func deserialize(data: Dictionary) -> void:
 	current_day = data.get("current_day", 1)
-	current_time_slot = data.get("current_time_slot", Enums.TimeSlot.MORNING) as Enums.TimeSlot
+	current_phase = data.get("current_phase", Enums.DayPhase.MORNING) as Enums.DayPhase
 	actions_remaining = data.get("actions_remaining", ACTIONS_PER_DAY)
 	discovered_evidence.assign(data.get("discovered_evidence", []))
 	discovered_insights.assign(data.get("discovered_insights", []))
 	visited_locations.assign(data.get("visited_locations", []))
+	unlocked_locations.assign(data.get("unlocked_locations", []))
+	unlocked_interrogations.assign(data.get("unlocked_interrogations", []))
 	completed_interrogations = data.get("completed_interrogations", {})
 	interrogation_counts_today = data.get("interrogation_counts_today", {})
 	active_lab_requests = data.get("active_lab_requests", [])

@@ -51,7 +51,7 @@ var _test_case_data: Dictionary = {
 			"title": "Julia arrives",
 			"description": "Julia arrives at the building.",
 			"day": 1,
-			"time_slot": "EVENING",
+			"time_slot": "DAYTIME",
 			"persons_involved": ["p_julia"],
 			"evidence_ids": [],
 			"certainty_level": "CONFIRMED",

@@ -497,17 +497,16 @@ func test_visit_examine_discover_flow() -> void:
 func test_tool_reveals_hidden_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apartment")
 
-	# Visual inspection of wine glass — has tool requirement, no evidence from visual
+	# Visual inspection of wine glass — evidence discovered even with tool requirements
 	var visual: Array[String] = _loc_inv_mgr.inspect_object("loc_apartment", "obj_wine_glass")
-	assert_eq(visual.size(), 0, "Tool-required evidence not revealed by visual")
-	assert_false(GameManager.has_evidence("E1"))
+	assert_eq(visual.size(), 1, "Visual inspection should discover evidence")
+	assert_true(GameManager.has_evidence("E1"))
 
-	# Use fingerprint powder on wine glass
+	# Using tool afterwards discovers nothing new (already found)
 	var tool_result: Array[String] = _loc_inv_mgr.use_tool_on_object(
 		"loc_apartment", "obj_wine_glass", "fingerprint_powder"
 	)
-	assert_eq(tool_result.size(), 1, "Tool should reveal E1")
-	assert_has(tool_result, "E1")
+	assert_eq(tool_result.size(), 0, "Tool should not re-discover already found evidence")
 	assert_true(GameManager.has_evidence("E1"))
 
 
@@ -573,10 +572,8 @@ func test_all_evidence_discoverable_across_locations() -> void:
 	_loc_inv_mgr.leave_location()
 
 	# Need more actions — advance day
-	GameManager.advance_time_slot()  # MORNING -> AFTERNOON
-	GameManager.advance_time_slot()  # AFTERNOON -> EVENING
-	GameManager.advance_time_slot()  # EVENING -> NIGHT
-	GameManager.advance_time_slot()  # NIGHT -> next day MORNING
+	DaySystem.process_morning()
+	DaySystem.try_end_day()
 	# New day = new actions
 
 	# Location 3: Parking Lot
@@ -591,10 +588,8 @@ func test_all_evidence_discoverable_across_locations() -> void:
 	_loc_inv_mgr.leave_location()
 
 	# Need more actions — advance another day
-	GameManager.advance_time_slot()  # MORNING -> AFTERNOON
-	GameManager.advance_time_slot()  # AFTERNOON -> EVENING
-	GameManager.advance_time_slot()  # EVENING -> NIGHT
-	GameManager.advance_time_slot()  # NIGHT -> next day MORNING
+	DaySystem.process_morning()
+	DaySystem.try_end_day()
 
 	# Location 5: Victim's Office
 	_loc_inv_mgr.start_investigation("loc_office")
@@ -610,16 +605,19 @@ func test_all_evidence_discoverable_across_locations() -> void:
 
 
 func test_visit_costs_action_economy() -> void:
-	# Day 1: 2 actions
-	assert_eq(GameManager.actions_remaining, 2)
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 
 	_loc_inv_mgr.start_investigation("loc_apartment")
-	assert_eq(GameManager.actions_remaining, 1, "1st visit costs 1 action")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "1st visit costs 1 action")
 	_loc_inv_mgr.leave_location()
 
 	_loc_inv_mgr.start_investigation("loc_hallway")
-	assert_eq(GameManager.actions_remaining, 0, "2nd visit costs 1 action")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "2nd visit costs 1 action")
 	_loc_inv_mgr.leave_location()
+
+	# Exhaust remaining actions
+	for i in GameManager.actions_remaining:
+		GameManager.use_action()
 
 	# Cannot visit another location
 	var result: bool = _loc_inv_mgr.start_investigation("loc_parking")
@@ -629,12 +627,12 @@ func test_visit_costs_action_economy() -> void:
 func test_quick_revisit_is_free() -> void:
 	_loc_inv_mgr.start_investigation("loc_apartment")
 	_loc_inv_mgr.leave_location()
-	assert_eq(GameManager.actions_remaining, 1)
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
 
 	# Quick revisit should be free
 	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment", false)
 	assert_true(result, "Quick revisit should succeed")
-	assert_eq(GameManager.actions_remaining, 1, "Quick revisit should be free")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Quick revisit should be free")
 
 
 func test_multi_location_state_persistence() -> void:
@@ -701,8 +699,8 @@ func test_screen_manager_knows_location_investigation() -> void:
 
 func test_screen_manager_has_thirteen_screens() -> void:
 	assert_eq(
-		ScreenManager.SCREEN_SCENES.size(), 16,
-		"Should have 16 screens (13 through Phase 11 + 3 Phase 12 screens)"
+		ScreenManager.SCREEN_SCENES.size(), 17,
+		"Should have 17 screens (13 through Phase 11 + 3 Phase 12 screens + case_outcome)"
 	)
 
 
