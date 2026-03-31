@@ -18,6 +18,7 @@ signal investigation_started(location_id: String, is_first_visit: bool)
 
 ## Emitted when a location reaches full completion (all objects fully examined).
 signal location_completed(location_id: String)
+signal state_loaded
 
 
 # --- State --- #
@@ -121,6 +122,12 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 
 	if has_inspection:
 		for ev_id: String in object_data.evidence_results:
+			# Only discover evidence matching visual/comparison methods
+			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+			if ev and ev.discovery_method not in [
+				Enums.DiscoveryMethod.VISUAL, Enums.DiscoveryMethod.COMPARISON
+			]:
+				continue
 			if GameManager.discover_evidence(ev_id):
 				discovered.append(ev_id)
 				evidence_found.emit(ev_id, object_id, "visual_inspection")
@@ -157,10 +164,15 @@ func use_tool_on_object(location_id: String, object_id: String, tool_id: String)
 		_performed_actions[action_key] = []
 	_performed_actions[action_key].append(tool_action)
 
-	# Use tool to reveal evidence
+	# Use tool to reveal evidence (only TOOL/LAB discovery method)
 	var tool_results: Array[String] = tool_mgr.use_tool(tool_id, object_data)
 	var discovered: Array[String] = []
 	for ev_id: String in tool_results:
+		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+		if ev and ev.discovery_method not in [
+			Enums.DiscoveryMethod.TOOL, Enums.DiscoveryMethod.LAB
+		]:
+			continue
 		if GameManager.discover_evidence(ev_id):
 			discovered.append(ev_id)
 			evidence_found.emit(ev_id, object_id, tool_id)
@@ -340,3 +352,4 @@ func deserialize(data: Dictionary) -> void:
 	_object_states = data.get("object_states", {})
 	_performed_actions = data.get("performed_actions", {})
 	current_location_id = data.get("current_location_id", "")
+	state_loaded.emit()

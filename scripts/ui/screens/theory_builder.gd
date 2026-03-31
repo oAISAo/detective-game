@@ -60,6 +60,7 @@ func _ready() -> void:
 	TheoryManager.theory_updated.connect(_on_theory_changed)
 	TheoryManager.theory_removed.connect(_on_theory_removed)
 	TheoryManager.theories_cleared.connect(_on_theories_cleared)
+	TheoryManager.state_loaded.connect(_on_theories_loaded)
 
 	_rebuild_theory_list()
 	_show_no_selection()
@@ -70,6 +71,7 @@ func _exit_tree() -> void:
 	_safe_disconnect(TheoryManager.theory_updated, _on_theory_changed)
 	_safe_disconnect(TheoryManager.theory_removed, _on_theory_removed)
 	_safe_disconnect(TheoryManager.theories_cleared, _on_theories_cleared)
+	_safe_disconnect(TheoryManager.state_loaded, _on_theories_loaded)
 
 
 func _safe_disconnect(sig: Signal, callable: Callable) -> void:
@@ -159,8 +161,7 @@ func _add_theory_header(theory: Dictionary) -> void:
 
 func _add_step_suspect(theory: Dictionary) -> void:
 	var panel: PanelContainer = _create_step_panel("suspect")
-	var vbox: VBoxContainer = VBoxContainer.new()
-	panel.add_child(vbox)
+	var vbox: VBoxContainer = panel.get_node("StepContent") as VBoxContainer
 
 	var suspect_id: String = theory["suspect_id"]
 	var value_label: Label = Label.new()
@@ -184,8 +185,7 @@ func _add_step_suspect(theory: Dictionary) -> void:
 
 func _add_step_motive(theory: Dictionary) -> void:
 	var panel: PanelContainer = _create_step_panel("motive")
-	var vbox: VBoxContainer = VBoxContainer.new()
-	panel.add_child(vbox)
+	var vbox: VBoxContainer = panel.get_node("StepContent") as VBoxContainer
 
 	var motive: String = theory["motive"]
 	var value_label: Label = Label.new()
@@ -208,8 +208,7 @@ func _add_step_motive(theory: Dictionary) -> void:
 
 func _add_step_time(theory: Dictionary) -> void:
 	var panel: PanelContainer = _create_step_panel("time")
-	var vbox: VBoxContainer = VBoxContainer.new()
-	panel.add_child(vbox)
+	var vbox: VBoxContainer = panel.get_node("StepContent") as VBoxContainer
 
 	var t_min: int = theory["time_minutes"]
 	var t_day: int = theory["time_day"]
@@ -233,8 +232,7 @@ func _add_step_time(theory: Dictionary) -> void:
 
 func _add_step_method(theory: Dictionary) -> void:
 	var panel: PanelContainer = _create_step_panel("method")
-	var vbox: VBoxContainer = VBoxContainer.new()
-	panel.add_child(vbox)
+	var vbox: VBoxContainer = panel.get_node("StepContent") as VBoxContainer
 
 	var method: String = theory["method"]
 	var value_label: Label = Label.new()
@@ -257,8 +255,7 @@ func _add_step_method(theory: Dictionary) -> void:
 
 func _add_step_timeline(theory: Dictionary) -> void:
 	var panel: PanelContainer = _create_step_panel("timeline")
-	var vbox: VBoxContainer = VBoxContainer.new()
-	panel.add_child(vbox)
+	var vbox: VBoxContainer = panel.get_node("StepContent") as VBoxContainer
 
 	var entry_ids: Array = theory.get("timeline_entry_ids", [])
 	var value_label: Label = Label.new()
@@ -323,13 +320,15 @@ func _create_step_panel(step: String) -> PanelContainer:
 	style.border_color = config.get("color", Color(0.5, 0.5, 0.5))
 	panel.add_theme_stylebox_override("panel", style)
 
-	# Add step title as first element (caller adds VBox after)
+	# Add step title inside a VBox (PanelContainer only supports one child)
+	var inner_vbox: VBoxContainer = VBoxContainer.new()
+	inner_vbox.name = "StepContent"
 	var title: Label = Label.new()
 	title.text = config.get("label", step)
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", config.get("color", Color.WHITE))
-	# Title will be child 0; caller's VBox child 1
-	panel.add_child(title)
+	inner_vbox.add_child(title)
+	panel.add_child(inner_vbox)
 	return panel
 
 
@@ -564,6 +563,12 @@ func _on_theory_removed(theory_id: String) -> void:
 
 
 func _on_theories_cleared() -> void:
+	_selected_theory_id = ""
+	_rebuild_theory_list()
+	_show_no_selection()
+
+
+func _on_theories_loaded() -> void:
 	_selected_theory_id = ""
 	_rebuild_theory_list()
 	_show_no_selection()

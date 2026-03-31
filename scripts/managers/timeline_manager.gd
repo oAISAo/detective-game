@@ -15,6 +15,7 @@ signal hypothesis_removed(hypothesis_id: String)
 signal hypothesis_updated(hypothesis_id: String)
 signal overlap_detected(overlap: Dictionary)
 signal timeline_cleared
+signal state_loaded
 
 
 # --- Constants --- #
@@ -404,6 +405,7 @@ func deserialize(data: Dictionary) -> void:
 
 	_next_entry_id = data.get("next_entry_id", _entries.size() + 1)
 	_next_hypothesis_id = data.get("next_hypothesis_id", _hypotheses.size() + 1)
+	state_loaded.emit()
 
 
 ## Resets all timeline state for a new game.

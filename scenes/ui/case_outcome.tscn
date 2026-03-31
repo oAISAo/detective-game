@@ -46,3 +46,8 @@ text = ""
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
+
+[node name="ReturnToTitleButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Return to Title"

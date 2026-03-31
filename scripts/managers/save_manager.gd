@@ -52,19 +52,29 @@ func save_game(slot: int) -> bool:
 	var save_data: Dictionary = _build_save_data()
 	var json_string: String = JSON.stringify(save_data, "\t")
 	var path: String = _get_save_path(slot)
-	
-	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	var tmp_path: String = path + ".tmp"
+
+	# Write to a temp file first so a crash mid-write won't corrupt the real save
+	var file: FileAccess = FileAccess.open(tmp_path, FileAccess.WRITE)
 	if file == null:
 		var error_msg: String = "Failed to open save file: %s (Error: %s)" % [
-			path, error_string(FileAccess.get_open_error())
+			tmp_path, error_string(FileAccess.get_open_error())
 		]
 		push_error(error_msg)
 		save_error.emit(error_msg)
 		return false
-	
+
 	file.store_string(json_string)
 	file.close()
-	
+
+	# Atomic rename: replaces the target file in one operation
+	var rename_err: Error = DirAccess.rename_absolute(tmp_path, path)
+	if rename_err != OK:
+		var error_msg: String = "Failed to rename temp save to final path: %s" % error_string(rename_err)
+		push_error(error_msg)
+		save_error.emit(error_msg)
+		return false
+
 	game_saved.emit(slot)
 	print("[SaveManager] Game saved to slot %d." % slot)
 	return true

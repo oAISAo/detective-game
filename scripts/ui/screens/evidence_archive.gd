@@ -51,12 +51,15 @@ func _ready() -> void:
 	GameManager.evidence_discovered.connect(_on_evidence_discovered_cb)
 	EvidenceManager.evidence_pinned.connect(_on_evidence_pinned_cb)
 	EvidenceManager.evidence_unpinned.connect(_on_evidence_unpinned_cb)
+	EvidenceManager.state_loaded.connect(_refresh)
 
 
 func _exit_tree() -> void:
 	GameManager.evidence_discovered.disconnect(_on_evidence_discovered_cb)
 	EvidenceManager.evidence_pinned.disconnect(_on_evidence_pinned_cb)
 	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
+	if EvidenceManager.state_loaded.is_connected(_refresh):
+		EvidenceManager.state_loaded.disconnect(_refresh)
 
 
 ## Configures the filter dropdown with all evidence types.

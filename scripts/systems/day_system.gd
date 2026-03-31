@@ -46,6 +46,9 @@ signal phase_transitioned(new_phase: Enums.DayPhase)
 ## Whether morning briefing has been processed for the current day.
 var _morning_briefing_shown: bool = false
 
+## Tracks fired trigger IDs for the legacy fallback (prevents re-firing).
+var _legacy_fired_triggers: Array[String] = []
+
 
 # --- Lifecycle --- #
 
@@ -142,10 +145,7 @@ func _process_night() -> void:
 	phase_transitioned.emit(Enums.DayPhase.NIGHT)
 	night_processing_started.emit()
 
-	# 1. Advance lab request timers
-	_advance_lab_timers()
-
-	# 2. Advance surveillance timers (deactivate expired ones)
+	# 1. Advance surveillance timers (deactivate expired ones)
 	_advance_surveillance_timers()
 
 	# 3. Evaluate TIMED triggers for the next day via EventSystem
@@ -200,16 +200,15 @@ func _process_lab_completions() -> Array[Dictionary]:
 			var output_id: String = req.get("output_evidence_id", "")
 			if not output_id.is_empty():
 				GameManager.discover_evidence(output_id)
+			# Sync authoritative state in LabManager
+			var lab_mgr: Node = get_node_or_null("/root/LabManager")
+			if lab_mgr and lab_mgr.has_method("_on_lab_result_ready"):
+				lab_mgr._on_lab_result_ready(req.get("id", ""), output_id)
 		else:
 			remaining.append(req)
 
 	GameManager.active_lab_requests = remaining
 	return completed
-
-
-## Advances lab request timers (hook for future timer-based processing).
-func _advance_lab_timers() -> void:
-	pass
 
 
 # --- Surveillance Processing --- #
@@ -233,6 +232,7 @@ func _check_surveillance_results() -> Array[Dictionary]:
 ## Removes expired surveillance operations during Night processing.
 func _advance_surveillance_timers() -> void:
 	var still_active: Array = []
+	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
 
 	for surv in GameManager.active_surveillance:
 		var s: Dictionary = surv as Dictionary
@@ -240,6 +240,11 @@ func _advance_surveillance_timers() -> void:
 		var active_days: int = s.get("active_days", 0)
 		if GameManager.current_day + 1 < installed_day + active_days:
 			still_active.append(s)
+		else:
+			# Sync authoritative state in SurveillanceManager
+			var surv_id: String = s.get("id", "")
+			if surv_mgr and not surv_id.is_empty() and surv_mgr.has_method("mark_expired"):
+				surv_mgr.mark_expired(surv_id)
 
 	GameManager.active_surveillance = still_active
 
@@ -255,8 +260,11 @@ func _evaluate_day_start_triggers() -> Array[String]:
 
 	var triggers: Array[EventTriggerData] = CaseManager.get_triggers_by_type("DAY_START")
 	for trigger: EventTriggerData in triggers:
+		if trigger.id in _legacy_fired_triggers:
+			continue
 		if trigger.trigger_day != -1 and trigger.trigger_day != GameManager.current_day:
 			continue
+		_legacy_fired_triggers.append(trigger.id)
 		for action_str: String in trigger.actions:
 			results.append(action_str)
 		GameManager._log_action("Trigger fired (legacy): %s" % trigger.id)
@@ -272,8 +280,11 @@ func _evaluate_timed_triggers() -> void:
 	var next_day: int = GameManager.current_day + 1
 	var triggers: Array[EventTriggerData] = CaseManager.get_triggers_by_type("TIMED")
 	for trigger: EventTriggerData in triggers:
+		if trigger.id in _legacy_fired_triggers:
+			continue
 		if trigger.trigger_day != next_day:
 			continue
+		_legacy_fired_triggers.append(trigger.id)
 		GameManager._log_action("Timed trigger queued (legacy): %s (fires Day %d)" % [trigger.id, next_day])
 
 
@@ -283,14 +294,20 @@ func _evaluate_timed_triggers() -> void:
 func serialize() -> Dictionary:
 	return {
 		"morning_briefing_shown": _morning_briefing_shown,
+		"legacy_fired_triggers": _legacy_fired_triggers.duplicate(),
 	}
 
 
 ## Restores state from saved data.
 func deserialize(data: Dictionary) -> void:
 	_morning_briefing_shown = data.get("morning_briefing_shown", false)
+	_legacy_fired_triggers.clear()
+	var saved_triggers: Array = data.get("legacy_fired_triggers", [])
+	for t in saved_triggers:
+		_legacy_fired_triggers.append(str(t))
 
 
 ## Resets all DaySystem state for a new game.
 func reset() -> void:
 	_morning_briefing_shown = false
+	_legacy_fired_triggers.clear()

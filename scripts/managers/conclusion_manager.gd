@@ -117,6 +117,14 @@ func has_report() -> bool:
 	return not _report.is_empty()
 
 
+## Clears the submitted report so the player can revise and resubmit.
+func _retract_report() -> void:
+	_report.clear()
+	_confidence_score = 0.0
+	_confidence_level = Enums.ConfidenceLevel.WEAK
+	_evaluated = false
+
+
 # --- Scoring Engine --- #
 
 ## Internal: evaluates the submitted report and computes confident score.
@@ -361,8 +369,15 @@ func make_choice(choice: String) -> bool:
 	_player_choice = choice
 	player_choice_made.emit(choice)
 
-	if choice == CHOICE_CHARGE:
-		_determine_outcome()
+	match choice:
+		CHOICE_CHARGE:
+			_determine_outcome()
+		CHOICE_INVESTIGATE:
+			# Return to investigation — clear report so the player can resubmit later
+			_retract_report()
+		CHOICE_REVIEW:
+			# Let the player revise their report
+			_retract_report()
 
 	return true
 

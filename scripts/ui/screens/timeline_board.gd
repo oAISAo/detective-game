@@ -52,6 +52,7 @@ func _ready() -> void:
 	TimelineManager.hypothesis_added.connect(_on_timeline_changed)
 	TimelineManager.hypothesis_removed.connect(_on_entry_removed)
 	TimelineManager.timeline_cleared.connect(_on_timeline_cleared)
+	TimelineManager.state_loaded.connect(_rebuild_timeline)
 
 	_setup_day_selector()
 	_rebuild_timeline()
@@ -63,6 +64,7 @@ func _exit_tree() -> void:
 	_safe_disconnect(TimelineManager.hypothesis_added, _on_timeline_changed)
 	_safe_disconnect(TimelineManager.hypothesis_removed, _on_entry_removed)
 	_safe_disconnect(TimelineManager.timeline_cleared, _on_timeline_cleared)
+	_safe_disconnect(TimelineManager.state_loaded, _rebuild_timeline)
 
 
 func _safe_disconnect(sig: Signal, callable: Callable) -> void:
@@ -131,8 +133,42 @@ func _place_hypothesis_cards() -> void:
 
 
 ## Inserts a card at the correct position based on time.
-func _insert_card_at_time(card: PanelContainer, _time_minutes: int) -> void:
+## Finds the hour marker for the card's hour and inserts after it and any
+## existing cards for earlier times within the same hour bracket.
+func _insert_card_at_time(card: PanelContainer, time_minutes: int) -> void:
+	var card_hour: int = clampi(time_minutes / 60, START_HOUR, END_HOUR)
+	var child_count: int = timeline_container.get_child_count()
+
+	# Find the index of the hour marker for this card's hour
+	var marker_index: int = -1
+	for i: int in child_count:
+		var child: Node = timeline_container.get_child(i)
+		if child is Label:
+			var label: Label = child as Label
+			var label_text: String = label.text.strip_edges()
+			if label_text.begins_with("%02d:00" % card_hour):
+				marker_index = i
+				break
+
+	if marker_index == -1:
+		# No matching marker found — append at end
+		timeline_container.add_child(card)
+		return
+
+	# Find the next hour marker after this one to know our insertion boundary
+	var next_marker_index: int = child_count
+	for i: int in range(marker_index + 1, child_count):
+		var child: Node = timeline_container.get_child(i)
+		if child is Label:
+			var label: Label = child as Label
+			var label_text: String = label.text.strip_edges()
+			if label_text.find(":00 ─") >= 0:
+				next_marker_index = i
+				break
+
+	# Insert right before the next marker (i.e. at the end of this hour's block)
 	timeline_container.add_child(card)
+	timeline_container.move_child(card, next_marker_index)
 
 
 # --- Entry Card Creation --- #

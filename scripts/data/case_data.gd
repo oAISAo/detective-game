@@ -308,4 +308,16 @@ func to_dict() -> Dictionary:
 		arr.append(dr.to_dict())
 	result["discovery_rules"] = arr
 
+	# Solution data
+	result["solution"] = {
+		"suspect": solution_suspect,
+		"motive": solution_motive,
+		"weapon": solution_weapon,
+		"time_minutes": solution_time_minutes,
+		"time_day": solution_time_day,
+		"access": solution_access,
+	}
+
+	result["critical_evidence_ids"] = critical_evidence_ids.duplicate()
+
 	return result
