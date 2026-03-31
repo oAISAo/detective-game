@@ -59,6 +59,16 @@ static func load_from_folder(folder_name: String, errors: Array[String]) -> Case
 
 	# Convert merged dictionary to CaseData
 	var case_data: CaseData = CaseData.from_dict(merged)
+
+	# Validate the loaded data
+	var validation_errors: Array[String] = case_data.validate()
+	if not validation_errors.is_empty():
+		for err: String in validation_errors:
+			errors.append(err)
+		push_warning("[CaseLoader] Case '%s' loaded with %d validation warning(s)." % [
+			folder_name, validation_errors.size()
+		])
+
 	return case_data
 
 

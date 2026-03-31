@@ -8,9 +8,11 @@ extends Control
 @onready var score_label: Label = %ScoreLabel
 @onready var discovered_label: Label = %DiscoveredLabel
 @onready var missed_label: Label = %MissedLabel
+@onready var return_to_title_button: Button = %ReturnToTitleButton
 
 
 func _ready() -> void:
+	return_to_title_button.pressed.connect(_on_return_to_title)
 	_refresh()
 
 
@@ -37,3 +39,11 @@ func _refresh() -> void:
 	for m: Dictionary in miss:
 		miss_text += "  ✗ %s\n" % m.get("name", m.get("id", "?"))
 	missed_label.text = miss_text
+
+
+func _on_return_to_title() -> void:
+	var game_root: Node = get_tree().current_scene
+	if game_root.has_method("return_to_title"):
+		game_root.return_to_title()
+	else:
+		push_error("[CaseOutcome] GameRoot.return_to_title() not found.")

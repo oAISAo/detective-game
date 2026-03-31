@@ -15,6 +15,7 @@ signal connection_added(connection_data: Dictionary)
 signal connection_removed(connection_id: String)
 signal connection_note_changed(connection_id: String, note: String)
 signal board_cleared
+signal state_loaded
 
 
 # --- Constants --- #
@@ -164,6 +165,12 @@ func add_connection(from_id: String, to_id: String, note: String = "") -> Dictio
 		push_warning("[BoardManager] Cannot connect node to itself.")
 		return {}
 
+	# Check for existing connection between the same pair (either direction)
+	for conn: Dictionary in _connections.values():
+		if (conn["from"] == from_id and conn["to"] == to_id) or \
+			(conn["from"] == to_id and conn["to"] == from_id):
+			return conn.duplicate()
+
 	var conn_id: String = "conn_%d" % _next_connection_id
 	_next_connection_id += 1
 
@@ -297,6 +304,7 @@ func deserialize(data: Dictionary) -> void:
 
 	_next_node_id = data.get("next_node_id", _nodes.size() + 1)
 	_next_connection_id = data.get("next_connection_id", _connections.size() + 1)
+	state_loaded.emit()
 
 
 ## Resets all board state for a new game.

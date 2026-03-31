@@ -167,6 +167,14 @@ func get_operation_count() -> int:
 	return _operations.size()
 
 
+## Returns all operations regardless of status.
+func get_all_operations() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for op: Dictionary in _operations.values():
+		result.append(op.duplicate())
+	return result
+
+
 ## Returns whether the given person is currently under surveillance.
 func is_person_under_surveillance(person_id: String) -> bool:
 	for op: Dictionary in _operations.values():
@@ -211,6 +219,13 @@ func _on_surveillance_result(surveillance_id: String, result_event_ids: Array[St
 		_received_results[surveillance_id] = []
 	_received_results[surveillance_id].append(result_event_ids.duplicate())
 	surveillance_result_received.emit(surveillance_id, result_event_ids)
+
+
+## Called by DaySystem when a surveillance operation expires.
+func mark_expired(surveillance_id: String) -> void:
+	if surveillance_id in _operations and _operations[surveillance_id].get("status", "") == "active":
+		_operations[surveillance_id]["status"] = "expired"
+		surveillance_expired.emit(surveillance_id)
 
 
 ## Removes an operation from GameManager.active_surveillance by ID.

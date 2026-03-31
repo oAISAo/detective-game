@@ -437,7 +437,12 @@ func get_hints_remaining() -> int:
 
 ## Returns the full game state as a dictionary for saving.
 func serialize() -> Dictionary:
+	# Record which case is loaded so deserialize can restore it
+	var case_data: CaseData = CaseManager.get_case_data()
+	var case_id: String = case_data.id if case_data else ""
+
 	var data: Dictionary = {
+		"case_id": case_id,
 		"current_day": current_day,
 		"current_phase": current_phase,
 		"actions_remaining": actions_remaining,
@@ -525,6 +530,16 @@ func serialize() -> Dictionary:
 
 ## Restores game state from a saved dictionary.
 func deserialize(data: Dictionary) -> void:
+	# Restore the case data first — all other managers depend on it
+	var saved_case_id: String = data.get("case_id", "")
+	if not saved_case_id.is_empty():
+		var current_case: CaseData = CaseManager.get_case_data()
+		if current_case == null or current_case.id != saved_case_id:
+			CaseManager.unload_case()
+			if not CaseManager.load_case_folder(saved_case_id):
+				push_error("[GameManager] Failed to load case '%s' from save." % saved_case_id)
+				return
+
 	current_day = data.get("current_day", 1)
 	current_phase = data.get("current_phase", Enums.DayPhase.MORNING) as Enums.DayPhase
 	actions_remaining = data.get("actions_remaining", ACTIONS_PER_DAY)
@@ -533,10 +548,10 @@ func deserialize(data: Dictionary) -> void:
 	visited_locations.assign(data.get("visited_locations", []))
 	unlocked_locations.assign(data.get("unlocked_locations", []))
 	unlocked_interrogations.assign(data.get("unlocked_interrogations", []))
-	completed_interrogations = data.get("completed_interrogations", {})
-	interrogation_counts_today = data.get("interrogation_counts_today", {})
-	active_lab_requests = data.get("active_lab_requests", [])
-	active_surveillance = data.get("active_surveillance", [])
+	completed_interrogations = data.get("completed_interrogations", {}).duplicate(true)
+	interrogation_counts_today = data.get("interrogation_counts_today", {}).duplicate(true)
+	active_lab_requests = data.get("active_lab_requests", []).duplicate(true)
+	active_surveillance = data.get("active_surveillance", []).duplicate(true)
 	mandatory_actions_required.assign(data.get("mandatory_actions_required", []))
 	mandatory_actions_completed.assign(data.get("mandatory_actions_completed", []))
 	warrants_obtained.assign(data.get("warrants_obtained", []))
@@ -605,3 +620,8 @@ func deserialize(data: Dictionary) -> void:
 	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
 	if concl_mgr and concl_mgr.has_method("deserialize") and data.has("conclusion_manager"):
 		concl_mgr.call("deserialize", data["conclusion_manager"])
+
+	# Re-emit core state signals so any listening UI refreshes after load
+	day_changed.emit(current_day)
+	phase_changed.emit(current_phase)
+	actions_remaining_changed.emit(actions_remaining)

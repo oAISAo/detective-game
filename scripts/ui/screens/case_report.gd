@@ -50,12 +50,14 @@ func _on_submit_pressed() -> void:
 			theory = t
 			break
 
+	var theory_id: String = theory.get("id", "")
+
 	var report: Dictionary = {
-		"suspect": {"answer": theory.get("suspect_id", ""), "evidence": []},
-		"motive": {"answer": theory.get("motive", ""), "evidence": []},
-		"weapon": {"answer": theory.get("method", ""), "evidence": []},
-		"time": {"answer": "%d %d" % [theory.get("time_minutes", 0), theory.get("time_day", 1)], "evidence": []},
-		"access": {"answer": theory.get("access", "Unknown"), "evidence": []},
+		"suspect": {"answer": theory.get("suspect_id", ""), "evidence": th_mgr.get_step_evidence(theory_id, "suspect")},
+		"motive": {"answer": theory.get("motive", ""), "evidence": th_mgr.get_step_evidence(theory_id, "motive")},
+		"weapon": {"answer": theory.get("method", ""), "evidence": th_mgr.get_step_evidence(theory_id, "method")},
+		"time": {"answer": "%d %d" % [theory.get("time_minutes", 0), theory.get("time_day", 1)], "evidence": th_mgr.get_step_evidence(theory_id, "time")},
+		"access": {"answer": "", "evidence": []},
 	}
 
 	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")

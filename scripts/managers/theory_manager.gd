@@ -11,6 +11,7 @@ signal theory_updated(theory_id: String)
 signal theory_removed(theory_id: String)
 signal theories_cleared
 signal inconsistency_detected(theory_id: String, inconsistencies: Array)
+signal state_loaded
 
 
 # --- Constants --- #
@@ -380,6 +381,7 @@ func deserialize(data: Dictionary) -> void:
 			_theories[tid] = theory
 
 	_next_id = data.get("next_id", _theories.size() + 1)
+	state_loaded.emit()
 
 
 ## Resets all theory state for a new game.

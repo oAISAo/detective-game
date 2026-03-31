@@ -17,6 +17,7 @@ signal break_moment_reached(person_id: String)
 signal interrogation_ended(person_id: String)
 signal focus_changed(focus: Dictionary)
 signal contradiction_logged(statement_id: String, evidence_id: String)
+signal state_loaded
 
 
 # --- Session State --- #
@@ -115,6 +116,12 @@ func end_interrogation() -> void:
 	interrogation_ended.emit(person_id)
 	print("[InterrogationManager] Interrogation ended with %s" % person_id)
 
+	# Clear session state after signal handlers have read it
+	_clear_session_state.call_deferred()
+
+
+## Resets transient session state after an interrogation ends.
+func _clear_session_state() -> void:
 	_current_person_id = ""
 	_current_phase = Enums.InterrogationPhase.INACTIVE
 	_current_focus = {}
@@ -194,13 +201,10 @@ func present_evidence(evidence_id: String) -> Dictionary:
 
 	var result: Dictionary = _evaluate_trigger(trigger)
 
-	# Record trigger as fired (include sibling triggers for same person+evidence)
+	# Record trigger as fired
 	if not _fired_triggers.has(_current_person_id):
 		_fired_triggers[_current_person_id] = []
 	_fired_triggers[_current_person_id].append(trigger.id)
-	for sibling: InterrogationTriggerData in CaseManager.get_interrogation_triggers_for_person(_current_person_id):
-		if sibling.evidence_id == trigger.evidence_id and sibling.id not in _fired_triggers[_current_person_id]:
-			_fired_triggers[_current_person_id].append(sibling.id)
 
 	# Record new statement
 	if not result.get("new_statement_id", "").is_empty():
@@ -213,10 +217,12 @@ func present_evidence(evidence_id: String) -> Dictionary:
 		else:
 			GameManager.discover_evidence(unlock_id)
 
-	# Log contradiction
+	# Log contradiction only if the suspect resisted (not admissions/revelations)
 	var focus_id: String = _current_focus.get("id", "")
 	if _current_focus.get("type", "") == "statement":
-		_log_contradiction(focus_id, evidence_id)
+		var reaction: Enums.ReactionType = result.get("reaction_type", Enums.ReactionType.DENIAL)
+		if reaction not in [Enums.ReactionType.ADMISSION, Enums.ReactionType.REVELATION, Enums.ReactionType.PARTIAL_CONFESSION]:
+			_log_contradiction(focus_id, evidence_id)
 
 	# Apply pressure
 	var pressure_added: int = result.get("pressure_added", 0)
@@ -641,3 +647,4 @@ func deserialize(data: Dictionary) -> void:
 	_heard_statements.assign(data.get("heard_statements", []))
 	_accumulated_pressure = data.get("accumulated_pressure", {})
 	_break_moments = data.get("break_moments", {})
+	state_loaded.emit()

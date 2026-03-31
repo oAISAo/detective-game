@@ -54,10 +54,9 @@ func _clear_operation_list() -> void:
 
 
 func _get_all_operation_ids(surv_mgr: Node) -> Array[String]:
-	# Build list from active + checking state
 	var ids: Array[String] = []
-	var active: Array[Dictionary] = surv_mgr.get_active_operations()
-	for op: Dictionary in active:
+	var all_ops: Array[Dictionary] = surv_mgr.get_all_operations()
+	for op: Dictionary in all_ops:
 		ids.append(op.get("id", ""))
 	return ids
 

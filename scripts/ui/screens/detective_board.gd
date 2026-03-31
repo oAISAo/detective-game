@@ -71,6 +71,7 @@ func _ready() -> void:
 	BoardManager.connection_added.connect(_on_connection_added)
 	BoardManager.connection_removed.connect(_on_connection_removed)
 	BoardManager.board_cleared.connect(_on_board_cleared)
+	BoardManager.state_loaded.connect(_rebuild_board)
 
 	_rebuild_board()
 
@@ -81,6 +82,7 @@ func _exit_tree() -> void:
 	_safe_disconnect(BoardManager.connection_added, _on_connection_added)
 	_safe_disconnect(BoardManager.connection_removed, _on_connection_removed)
 	_safe_disconnect(BoardManager.board_cleared, _on_board_cleared)
+	_safe_disconnect(BoardManager.state_loaded, _rebuild_board)
 
 
 ## Safely disconnects a signal if connected.
@@ -303,6 +305,7 @@ func _prompt_node_note(node_id: String) -> void:
 	dialog.confirmed.connect(func() -> void:
 		BoardManager.set_node_note(node_id, line_edit.text)
 		_rebuild_board()
+		dialog.queue_free()
 	)
 	dialog.canceled.connect(func() -> void: dialog.queue_free())
 	dialog.close_requested.connect(func() -> void: dialog.queue_free())

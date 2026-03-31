@@ -72,6 +72,16 @@ func request_warrant(
 	target: String,
 	supporting_evidence_ids: Array[String]
 ) -> Dictionary:
+	# Check for existing approved warrant of the same type+target
+	if has_approved_warrant(warrant_type, target):
+		return {
+			"approved": false,
+			"warrant_id": "",
+			"feedback": "An approved %s for %s already exists." % [
+				WARRANT_TYPE_NAMES.get(warrant_type, "warrant"), target
+			],
+		}
+
 	var warrant_id: String = "warrant_%d" % _next_id
 	_next_id += 1
 
@@ -235,6 +245,14 @@ func get_arrested_suspects() -> Array[String]:
 
 
 # --- Query --- #
+
+## Returns whether an approved warrant of the given type+target already exists.
+func has_approved_warrant(warrant_type: Enums.WarrantType, target: String) -> bool:
+	for w: Dictionary in _warrants.values():
+		if w.get("approved", false) and w.get("type", -1) == warrant_type and w.get("target", "") == target:
+			return true
+	return false
+
 
 ## Returns a specific warrant by ID.
 func get_warrant(warrant_id: String) -> Dictionary:

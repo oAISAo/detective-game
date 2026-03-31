@@ -91,19 +91,20 @@ func evaluate_day_start_triggers() -> Array[String]:
 				continue
 			if _check_conditions(trigger.conditions):
 				_fire_trigger(trigger, "DAY_START")
+				_dispatch_trigger_actions(trigger)
 				for action_str: String in trigger.actions:
-					_dispatch_action(action_str, trigger.id)
 					var briefing_line: String = _action_to_briefing_text(action_str)
 					if not briefing_line.is_empty():
 						results.append(briefing_line)
-					action_dispatched.emit(action_str, trigger.id)
 				day_start_trigger_fired.emit(trigger.id, trigger.actions)
 
 	# Always drain pending morning actions from timed triggers that fired overnight
 	for pending: Dictionary in _pending_morning_actions:
 		var actions: Array = pending.get("actions", [])
+		var trigger_id: String = pending.get("trigger_id", "")
 		for action_str in actions:
-			_dispatch_action(action_str as String, pending.get("trigger_id", ""))
+			_dispatch_action(action_str as String, trigger_id)
+			action_dispatched.emit(action_str as String, trigger_id)
 			var briefing_line: String = _action_to_briefing_text(action_str as String)
 			if not briefing_line.is_empty():
 				results.append(briefing_line)
@@ -174,8 +175,6 @@ func evaluate_timed_triggers(target_day: int) -> void:
 				"target_day": target_day,
 			})
 			timed_trigger_fired.emit(trigger.id, target_day)
-			for action_str: String in trigger.actions:
-				action_dispatched.emit(action_str, trigger.id)
 
 
 # --- Trigger Evaluation: CONDITIONAL --- #
@@ -236,7 +235,8 @@ func _check_conditions(conditions: Array[String]) -> bool:
 	for condition: String in conditions:
 		var parts: PackedStringArray = condition.split(":", true, 1)
 		if parts.size() < 2:
-			continue
+			push_warning("[EventSystem] Malformed condition (no colon): '%s'" % condition)
+			return false
 		var cond_type: String = parts[0].strip_edges()
 		var cond_value: String = parts[1].strip_edges()
 
@@ -248,7 +248,12 @@ func _check_conditions(conditions: Array[String]) -> bool:
 				if not GameManager.has_visited_location(cond_value):
 					return false
 			"action_completed":
-				if cond_value not in GameManager.mandatory_actions_completed:
+				var action_sys: Node = get_node_or_null("/root/ActionSystem")
+				if action_sys and cond_value in action_sys.executed_actions:
+					pass  # condition met
+				elif cond_value in GameManager.mandatory_actions_completed:
+					pass  # fallback for mandatory-only tracking
+				else:
 					return false
 			"warrant_obtained":
 				if cond_value not in GameManager.warrants_obtained:
@@ -260,13 +265,20 @@ func _check_conditions(conditions: Array[String]) -> bool:
 				if GameManager.current_day < int(cond_value):
 					return false
 			"lab_complete":
-				var still_active: bool = false
-				for req in GameManager.active_lab_requests:
-					if (req as Dictionary).get("id", "") == cond_value:
-						still_active = true
-						break
-				if still_active:
-					return false
+				var lab_mgr: Node = get_node_or_null("/root/LabManager")
+				if lab_mgr and lab_mgr.has_method("get_request"):
+					var req: Dictionary = lab_mgr.get_request(cond_value)
+					if req.is_empty() or req.get("status", "") != "completed":
+						return false
+				else:
+					# Fallback: request must have existed and no longer be active
+					var was_active: bool = false
+					for req in GameManager.active_lab_requests:
+						if (req as Dictionary).get("id", "") == cond_value:
+							was_active = true
+							break
+					if was_active:
+						return false
 			"insight_discovered":
 				if cond_value not in GameManager.discovered_insights:
 					return false
