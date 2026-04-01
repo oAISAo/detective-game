@@ -38,7 +38,6 @@ signal version_mismatch(save_version: int, current_version: int)
 
 func _ready() -> void:
 	_ensure_save_directory()
-	print("[SaveManager] Initialized. Save directory: %s" % SAVE_DIR)
 
 
 # --- Public API --- #
@@ -76,7 +75,6 @@ func save_game(slot: int) -> bool:
 		return false
 
 	game_saved.emit(slot)
-	print("[SaveManager] Game saved to slot %d." % slot)
 	return true
 
 
@@ -126,7 +124,6 @@ func load_game(slot: int) -> bool:
 	_restore_save_data(save_data)
 	
 	game_loaded.emit(slot)
-	print("[SaveManager] Game loaded from slot %d." % slot)
 	return true
 
 
@@ -143,8 +140,7 @@ func delete_save(slot: int) -> bool:
 	if err != OK:
 		push_error("[SaveManager] Failed to delete save in slot %d." % slot)
 		return false
-	
-	print("[SaveManager] Save slot %d deleted." % slot)
+
 	return true
 
 
@@ -206,9 +202,6 @@ func _build_save_data() -> Dictionary:
 		"save_version": SAVE_VERSION,
 		"save_timestamp": Time.get_datetime_string_from_system(),
 		"game_state": GameManager.serialize(),
-		"player_board": GameManager.player_board_state.duplicate(true),
-		"player_timeline": GameManager.player_timeline.duplicate(true),
-		"player_theories": GameManager.player_theories.duplicate(true),
 	}
 
 
@@ -216,6 +209,3 @@ func _build_save_data() -> Dictionary:
 func _restore_save_data(data: Dictionary) -> void:
 	var game_state: Dictionary = data.get("game_state", {})
 	GameManager.deserialize(game_state)
-	GameManager.player_board_state = data.get("player_board", {})
-	GameManager.player_timeline = data.get("player_timeline", [])
-	GameManager.player_theories = data.get("player_theories", [])

@@ -26,13 +26,14 @@ func _ready() -> void:
 ## Refreshes the notification list display.
 func _refresh() -> void:
 	for child: Node in notification_list.get_children():
+		notification_list.remove_child(child)
 		child.queue_free()
 
 	var all_notifications: Array[Dictionary] = NotificationManager.get_all()
 	if all_notifications.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No notifications."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		notification_list.add_child(empty_label)
 		clear_all_button.visible = false
 		return

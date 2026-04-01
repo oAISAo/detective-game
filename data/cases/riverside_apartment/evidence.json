@@ -73,6 +73,25 @@
 			"hint_text": "Have the wine glasses analyzed for fingerprints at the lab."
 		},
 		{
+			"id": "ev_desk_fingerprint_raw",
+			"name": "Fingerprint on Desk (Unanalyzed)",
+			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_desk.png",
+			"description": "A clear fingerprint found on the victim's desk. Needs lab analysis to identify the owner.",
+			"type": "FORENSIC",
+			"location_found": "loc_victim_apartment",
+			"discovered_day": 0,
+			"related_persons": [],
+			"tags": [
+				"forensic",
+				"fingerprint",
+				"unanalyzed"
+			],
+			"weight": 0.2,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "TOOL",
+			"legal_categories": []
+		},
+		{
 			"id": "ev_mark_fingerprint_desk",
 			"name": "Mark's Fingerprint on Desk",
 			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_desk.png",
@@ -458,6 +477,25 @@
 			"legal_categories": [
 				"PRESENCE"
 			]
+		},
+		{
+			"id": "ev_shoe_print_raw",
+			"name": "Shoe Print in Hallway (Unanalyzed)",
+			"image": "res://assets/placeholders/placeholder_evidence_shoe_print.png",
+			"description": "A shoe print found in the hallway near the victim's apartment. Needs lab analysis to determine the shoe type and size.",
+			"type": "FORENSIC",
+			"location_found": "loc_hallway",
+			"discovered_day": 0,
+			"related_persons": [],
+			"tags": [
+				"forensic",
+				"shoe_print",
+				"unanalyzed"
+			],
+			"weight": 0.3,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "TOOL",
+			"legal_categories": []
 		},
 		{
 			"id": "ev_shoe_print",

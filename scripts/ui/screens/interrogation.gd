@@ -50,10 +50,12 @@ func _ready() -> void:
 
 	if _person_id.is_empty():
 		push_error("[Interrogation] No person_id in navigation data.")
+		_show_error_state("No suspect selected for interrogation.")
 		return
 
 	if not InterrogationManager.start_interrogation(_person_id):
 		push_error("[Interrogation] Failed to start interrogation with %s" % _person_id)
+		_show_error_state("Could not start interrogation.")
 		return
 
 	_setup_ui()
@@ -81,6 +83,19 @@ func _exit_tree() -> void:
 	for i: int in signals.size():
 		if signals[i].is_connected(callbacks[i]):
 			signals[i].disconnect(callbacks[i])
+
+
+func _show_error_state(message: String) -> void:
+	suspect_name_label.text = "—"
+	phase_label.text = ""
+	pressure_label.text = ""
+	dialogue_label.text = message
+	present_button.disabled = true
+	apply_pressure_button.disabled = true
+	end_session_button.disabled = true
+	statement_list.visible = false
+	evidence_list.visible = false
+	topic_list.visible = false
 
 
 func _setup_ui() -> void:
@@ -133,7 +148,7 @@ func _update_focus_display() -> void:
 	var focus: Dictionary = InterrogationManager.get_current_focus()
 	if focus.is_empty():
 		current_focus_label.text = "No focus selected — pick a statement or topic"
-		current_focus_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		current_focus_label.add_theme_color_override("font_color", UIColors.MUTED)
 		return
 
 	current_focus_label.add_theme_color_override("font_color", FOCUS_ACCENT_COLOR)
@@ -147,7 +162,7 @@ func _update_focus_display() -> void:
 		current_focus_label.text = "► Topic: %s" % (topic.topic_name if topic else focus_id)
 	else:
 		current_focus_label.text = "No focus selected — pick a statement or topic"
-		current_focus_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		current_focus_label.add_theme_color_override("font_color", UIColors.MUTED)
 
 
 func _show_dialogue(text: String) -> void:
@@ -174,13 +189,14 @@ func _apply_focus_style(btn: Button) -> void:
 
 func _populate_topics() -> void:
 	for child: Node in topic_list.get_children():
+		topic_list.remove_child(child)
 		child.queue_free()
 
 	var topics: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
 	if topics.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "No topics available."
-		empty.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty.add_theme_color_override("font_color", UIColors.MUTED)
 		topic_list.add_child(empty)
 		return
 
@@ -202,6 +218,7 @@ func _populate_topics() -> void:
 
 func _populate_evidence() -> void:
 	for child: Node in evidence_list.get_children():
+		evidence_list.remove_child(child)
 		child.queue_free()
 
 	_selected_evidence_id = ""
@@ -210,7 +227,7 @@ func _populate_evidence() -> void:
 	if discovered.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "No evidence collected."
-		empty.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty.add_theme_color_override("font_color", UIColors.MUTED)
 		evidence_list.add_child(empty)
 		return
 
@@ -219,12 +236,14 @@ func _populate_evidence() -> void:
 		var btn: Button = Button.new()
 		btn.text = ev.name if ev else ev_id
 		btn.toggle_mode = true
+		btn.set_meta("evidence_id", ev_id)
 		btn.pressed.connect(_on_evidence_selected.bind(ev_id))
 		evidence_list.add_child(btn)
 
 
 func _populate_statements() -> void:
 	for child: Node in statement_list.get_children():
+		statement_list.remove_child(child)
 		child.queue_free()
 
 	var session_stmts: Array[String] = InterrogationManager.get_session_statements()
@@ -238,7 +257,7 @@ func _populate_statements() -> void:
 	if session_stmts.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "No statements recorded yet."
-		empty.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty.add_theme_color_override("font_color", UIColors.MUTED)
 		statement_list.add_child(empty)
 		return
 
@@ -414,14 +433,7 @@ func _on_evidence_selected(evidence_id: String) -> void:
 	for child: Node in evidence_list.get_children():
 		if child is Button:
 			var btn: Button = child as Button
-			btn.button_pressed = false
-	for child: Node in evidence_list.get_children():
-		if child is Button:
-			var btn: Button = child as Button
-			var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
-			if ev and btn.text == ev.name:
-				btn.button_pressed = true
-				break
+			btn.button_pressed = (btn.get_meta("evidence_id", "") == evidence_id)
 	_update_button_states()
 
 

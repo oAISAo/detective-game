@@ -75,13 +75,14 @@ func _refresh() -> void:
 ## Refreshes the notification list area.
 func _refresh_notifications() -> void:
 	for child: Node in notification_list.get_children():
+		notification_list.remove_child(child)
 		child.queue_free()
 
 	var unread: Array[Dictionary] = NotificationManager.get_unread()
 	if unread.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No new notifications."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		notification_list.add_child(empty_label)
 		return
 

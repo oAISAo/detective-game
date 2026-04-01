@@ -14,17 +14,37 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	_populate_log()
 
+	# Refresh when new log entries arrive
+	if GameManager.has_signal("log_entry_added"):
+		GameManager.log_entry_added.connect(_populate_log)
+	if GameManager.has_signal("investigation_log_changed"):
+		GameManager.investigation_log_changed.connect(_populate_log)
+
+	# Also refresh on common state changes that produce log entries
+	if EvidenceManager.has_signal("evidence_discovered"):
+		EvidenceManager.evidence_discovered.connect(func(_id: String) -> void: _populate_log())
+	if DaySystem.has_signal("day_advanced"):
+		DaySystem.day_advanced.connect(func(_day: int) -> void: _populate_log())
+
+
+func _exit_tree() -> void:
+	if GameManager.has_signal("log_entry_added") and GameManager.log_entry_added.is_connected(_populate_log):
+		GameManager.log_entry_added.disconnect(_populate_log)
+	if GameManager.has_signal("investigation_log_changed") and GameManager.investigation_log_changed.is_connected(_populate_log):
+		GameManager.investigation_log_changed.disconnect(_populate_log)
+
 
 ## Populates the investigation log from GameManager.
 func _populate_log() -> void:
 	for child: Node in log_entries.get_children():
+		log_entries.remove_child(child)
 		child.queue_free()
 
 	var entries: Array[Dictionary] = GameManager.get_investigation_log()
 	if entries.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "Investigation log is empty."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		log_entries.add_child(empty_label)
 		return
 

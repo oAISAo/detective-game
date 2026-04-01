@@ -6,12 +6,11 @@
 			"trigger_day": 1,
 			"conditions": [],
 			"actions": [
-				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Mark Bennett and Sarah Klein are available for questioning.",
+				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Sarah Klein is available for questioning.",
 				"unlock_location:loc_victim_apartment",
 				"unlock_location:loc_hallway",
 				"unlock_location:loc_parking_lot",
 				"unlock_location:loc_neighbor_apartment",
-				"unlock_interrogation:p_mark",
 				"unlock_interrogation:p_sarah"
 			],
 			"result_events": []
@@ -23,9 +22,10 @@
 			"conditions": [],
 			"actions": [
 				"unlock_location:loc_victim_office",
+				"unlock_interrogation:p_mark",
 				"unlock_interrogation:p_julia",
 				"unlock_interrogation:p_lucas",
-				"notify:Day 2 Briefing - Lab results are arriving. Julia Ross and Lucas Weber have been identified as additional persons of interest. Daniel's office is now accessible for investigation."
+				"notify:Day 2 Briefing - Lab results are arriving. Mark Bennett, Julia Ross, and Lucas Weber have been identified as additional persons of interest. Daniel's office is now accessible for investigation."
 			],
 			"result_events": []
 		},
@@ -38,8 +38,20 @@
 			],
 			"actions": [
 				"deliver_lab_results:ev_julia_fingerprint_glass",
-				"deliver_lab_results:ev_mark_fingerprint_desk",
 				"notify:Lab results are in - fingerprints from the crime scene have been identified."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_lab_desk_fingerprint",
+			"trigger_type": "TIMED",
+			"trigger_day": 2,
+			"conditions": [
+				"evidence_discovered:ev_desk_fingerprint_raw"
+			],
+			"actions": [
+				"deliver_lab_results:ev_mark_fingerprint_desk",
+				"notify:Lab results are in - the desk fingerprint has been identified as Mark Bennett's."
 			],
 			"result_events": []
 		},
@@ -48,11 +60,11 @@
 			"trigger_type": "TIMED",
 			"trigger_day": 2,
 			"conditions": [
-				"evidence_discovered:ev_shoe_print"
+				"evidence_discovered:ev_shoe_print_raw"
 			],
 			"actions": [
 				"deliver_lab_results:ev_shoe_print",
-				"notify:Lab results are in - the hallway shoe print has been analyzed."
+				"notify:Lab results are in - the hallway shoe print has been analyzed and matches women's size 38."
 			],
 			"result_events": []
 		},
@@ -475,7 +487,11 @@
 			"rejection_texts": [
 				"Sarah shakes her head. 'I don't know anything about that.'",
 				"She looks confused. 'I... I don't understand what you're showing me.'"
-			]
+			],
+			"pressure_dialogue": "Sarah fidgets. 'Please... I just want to stay out of this. I'm scared enough already.'",
+			"break_dialogue": "Sarah breaks down crying.\n'I saw her. I saw a woman leave his apartment that night.\nShe was in a hurry and her hands... I think there was something on them.\nI was too afraid to say anything. I thought she might come for me next.'",
+			"break_statement_ids": ["stmt_sarah_saw_woman"],
+			"break_unlocks": []
 		},
 		{
 			"person_id": "p_julia",
@@ -498,7 +514,11 @@
 			"rejection_texts": [
 				"Lucas shrugs. 'Don't know what that has to do with me.'",
 				"He looks bored. 'I was in the basement. That's my story.'"
-			]
+			],
+			"pressure_dialogue": "Lucas shifts uncomfortably. 'Look, I just fix pipes. I don't get involved in tenants' business.'",
+			"break_dialogue": "Lucas sighs heavily.\n'Alright, fine. I wasn't in the basement the whole time.\nI came up to grab a tool from the supply closet on the third floor around 20:45.\nI heard yelling from the apartment — a man and a woman going at it.\nI didn't see anything, but the voice... it wasn't the neighbor lady.'",
+			"break_statement_ids": ["stmt_lucas_heard_argument"],
+			"break_unlocks": []
 		}
 	]
 }

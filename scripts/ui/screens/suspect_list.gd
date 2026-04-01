@@ -16,13 +16,14 @@ func _ready() -> void:
 ## Populates the suspect list with unlocked suspects.
 func _populate_suspects() -> void:
 	for child: Node in suspect_list_container.get_children():
+		suspect_list_container.remove_child(child)
 		child.queue_free()
 
 	var unlocked_ids: Array[String] = GameManager.unlocked_interrogations
 	if unlocked_ids.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No suspects available for questioning yet."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		suspect_list_container.add_child(empty_label)
 		return
 
@@ -45,8 +46,7 @@ func _populate_suspects() -> void:
 		var status_label: Label = Label.new()
 		status_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
-		var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
-		var has_broken: bool = interr_mgr.has_break_moment(person_id) if interr_mgr else false
+		var has_broken: bool = InterrogationManager.has_break_moment(person_id)
 		var can_today: bool = GameManager.can_interrogate_today(person_id)
 
 		if has_broken:
@@ -54,7 +54,7 @@ func _populate_suspects() -> void:
 			status_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
 		elif not can_today:
 			status_label.text = "Questioned today"
-			status_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.4))
+			status_label.add_theme_color_override("font_color", UIColors.SECONDARY)
 		else:
 			status_label.text = "Available"
 			status_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
@@ -96,7 +96,7 @@ func _on_interrogate_pressed(person_id: String) -> void:
 
 	# Consume one action point (interrogation tracking is handled by InterrogationManager)
 	GameManager.use_action()
-	GameManager._log_action("Interrogation started with suspect")
+	GameManager.log_action("Interrogation started with suspect")
 
 	ScreenManager.navigate_to("interrogation", {"person_id": person_id})
 

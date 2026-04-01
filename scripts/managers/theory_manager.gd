@@ -1,7 +1,7 @@
 ## TheoryManager.gd
 ## Manages crime theories as structured 5-step narratives.
 ## Phase 10: Pure data layer — no UI dependency.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -37,7 +37,7 @@ var _next_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[TheoryManager] Initialized.")
+	super()
 
 
 # --- Theory CRUD --- #

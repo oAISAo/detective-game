@@ -70,9 +70,7 @@ func _ready() -> void:
 	end_day_button.pressed.connect(_on_end_day_pressed)
 
 	# Connect to DaySystem for night-to-morning transition
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
-	if day_sys:
-		day_sys.night_processing_completed.connect(_on_night_processing_completed)
+	DaySystem.night_processing_completed.connect(_on_night_processing_completed)
 
 	# Connect to ScreenManager for nav button highlighting
 	ScreenManager.screen_changed.connect(_on_screen_changed)
@@ -187,9 +185,8 @@ func _start_investigation(case_folder: String) -> void:
 
 	# Process the first morning (day-start events, briefing)
 	var briefing_items: Array[String] = []
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
-	if day_sys and day_sys.has_method("process_morning"):
-		briefing_items.assign(day_sys.call("process_morning"))
+	if DaySystem.has_method("process_morning"):
+		briefing_items.assign(DaySystem.call("process_morning"))
 
 	# Show the command bar and navigate to the desk hub
 	command_bar.visible = true
@@ -208,6 +205,7 @@ func _start_investigation(case_folder: String) -> void:
 ## Clears all children from the screen container.
 func _clear_screen_container() -> void:
 	for child: Node in screen_container.get_children():
+		screen_container.remove_child(child)
 		child.queue_free()
 
 
@@ -272,17 +270,15 @@ func _on_screen_changed(_screen_id: String) -> void:
 
 
 func _on_end_day_pressed() -> void:
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
-	if day_sys and day_sys.has_method("try_end_day"):
-		day_sys.call("try_end_day")
+	if DaySystem.has_method("try_end_day"):
+		DaySystem.call("try_end_day")
 
 
 func _on_night_processing_completed(new_day: int) -> void:
 	# Process the new day's morning briefing
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
 	var briefing_items: Array[String] = []
-	if day_sys and day_sys.has_method("process_morning"):
-		briefing_items.assign(day_sys.call("process_morning"))
+	if DaySystem.has_method("process_morning"):
+		briefing_items.assign(DaySystem.call("process_morning"))
 
 	_update_command_bar()
 	ScreenManager.navigate_to("desk_hub")
@@ -305,6 +301,7 @@ func _on_notification_button_pressed() -> void:
 ## Prefer ScreenManager.navigate_to() for new code.
 func load_screen(scene_path: String) -> void:
 	for child: Node in screen_container.get_children():
+		screen_container.remove_child(child)
 		child.queue_free()
 
 	var scene: PackedScene = load(scene_path) as PackedScene
@@ -340,4 +337,5 @@ func close_modal(modal_node: Node) -> void:
 ## Closes all modals.
 func close_all_modals() -> void:
 	for child: Node in modal_layer.get_children():
+		modal_layer.remove_child(child)
 		child.queue_free()

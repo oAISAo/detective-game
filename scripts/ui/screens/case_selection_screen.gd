@@ -87,6 +87,7 @@ func _read_case_metadata(path: String) -> Dictionary:
 ## Creates a button for each discovered case.
 func _build_case_list() -> void:
 	for child: Node in case_list_container.get_children():
+		case_list_container.remove_child(child)
 		child.queue_free()
 
 	if _cases.is_empty():
@@ -101,6 +102,7 @@ func _build_case_list() -> void:
 		btn.custom_minimum_size = Vector2(0, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var folder: String = case_info.get("folder", "")
+		btn.set_meta("case_folder", folder)
 		btn.pressed.connect(func() -> void: _on_case_button_pressed(folder))
 		case_list_container.add_child(btn)
 
@@ -129,10 +131,7 @@ func _select_case(folder: String) -> void:
 	# Highlight the selected button
 	for child: Node in case_list_container.get_children():
 		if child is Button:
-			child.disabled = false
-	for child: Node in case_list_container.get_children():
-		if child is Button and child.text == case_info.get("title", ""):
-			child.disabled = true
+			child.disabled = (child.get_meta("case_folder", "") == folder)
 
 
 func _on_start_case_pressed() -> void:

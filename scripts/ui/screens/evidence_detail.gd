@@ -34,6 +34,12 @@ func _ready() -> void:
 
 	if _evidence_id.is_empty():
 		title_label.text = "No Evidence Selected"
+		pin_button.visible = false
+		compare_button.visible = false
+		send_to_board_button.visible = false
+		evidence_image.visible = false
+		comparison_panel.visible = false
+		description_label.text = ""
 		return
 
 	_populate_detail()
@@ -44,6 +50,12 @@ func _populate_detail() -> void:
 	var ev: EvidenceData = CaseManager.get_evidence(_evidence_id)
 	if ev == null:
 		title_label.text = "Evidence Not Found"
+		pin_button.visible = false
+		compare_button.visible = false
+		send_to_board_button.visible = false
+		evidence_image.visible = false
+		comparison_panel.visible = false
+		description_label.text = ""
 		return
 
 	title_label.text = ev.name
@@ -77,10 +89,11 @@ func _populate_detail() -> void:
 
 func _populate_info_grid(ev: EvidenceData) -> void:
 	for child: Node in info_grid.get_children():
+		info_grid.remove_child(child)
 		child.queue_free()
 
-	_add_info_row("Type", _get_type_label(ev.type))
-	_add_info_row("Location", _get_location_name(ev.location_found))
+	_add_info_row("Type", UIHelper.get_evidence_type_label(ev.type))
+	_add_info_row("Location", UIHelper.get_location_name(ev.location_found))
 	_add_info_row("Discovery Method", _get_discovery_method_label(ev.discovery_method))
 	_add_info_row("Importance", _get_importance_label(ev.importance_level))
 	_add_info_row("Weight", "%.0f%%" % (ev.weight * 100.0))
@@ -104,6 +117,7 @@ func _add_info_row(key: String, value: String) -> void:
 
 func _populate_tags(ev: EvidenceData) -> void:
 	for child: Node in tags_container.get_children():
+		tags_container.remove_child(child)
 		child.queue_free()
 
 	if ev.tags.is_empty():
@@ -112,18 +126,19 @@ func _populate_tags(ev: EvidenceData) -> void:
 	for tag: String in ev.tags:
 		var tag_label: Label = Label.new()
 		tag_label.text = "  %s  " % tag
-		tag_label.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
+		tag_label.add_theme_color_override("font_color", UIColors.HEADER)
 		tags_container.add_child(tag_label)
 
 
 func _populate_related_persons(ev: EvidenceData) -> void:
 	for child: Node in related_persons_list.get_children():
+		related_persons_list.remove_child(child)
 		child.queue_free()
 
 	if ev.related_persons.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		related_persons_list.add_child(none_label)
 		return
 
@@ -136,6 +151,7 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 
 func _populate_related_statements(ev: EvidenceData) -> void:
 	for child: Node in related_statements_list.get_children():
+		related_statements_list.remove_child(child)
 		child.queue_free()
 
 	# Find statements that reference this evidence
@@ -148,7 +164,7 @@ func _populate_related_statements(ev: EvidenceData) -> void:
 	if related.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		related_statements_list.add_child(none_label)
 		return
 
@@ -164,18 +180,19 @@ func _populate_related_statements(ev: EvidenceData) -> void:
 
 func _populate_legal_categories(ev: EvidenceData) -> void:
 	for child: Node in legal_categories_list.get_children():
+		legal_categories_list.remove_child(child)
 		child.queue_free()
 
 	if ev.legal_categories.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		legal_categories_list.add_child(none_label)
 		return
 
 	for cat_val: int in ev.legal_categories:
 		var cat_label: Label = Label.new()
-		cat_label.text = "• %s" % _get_legal_category_label(cat_val)
+		cat_label.text = "• %s" % UIHelper.get_legal_category_label(cat_val)
 		legal_categories_list.add_child(cat_label)
 
 
@@ -203,6 +220,7 @@ func _on_compare_pressed() -> void:
 
 func _populate_comparison_targets() -> void:
 	for child: Node in comparison_list.get_children():
+		comparison_list.remove_child(child)
 		child.queue_free()
 
 	var targets: Array[String] = EvidenceManager.get_valid_comparisons_for(_evidence_id)
@@ -210,7 +228,7 @@ func _populate_comparison_targets() -> void:
 	if targets.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "No valid comparisons available."
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		comparison_list.add_child(none_label)
 		return
 
@@ -227,6 +245,7 @@ func _populate_comparison_targets() -> void:
 func _on_compare_with(other_id: String) -> void:
 	var insight: InsightData = EvidenceManager.compare_evidence(_evidence_id, other_id)
 	for child: Node in comparison_list.get_children():
+		comparison_list.remove_child(child)
 		child.queue_free()
 
 	if insight != null:
@@ -238,7 +257,7 @@ func _on_compare_with(other_id: String) -> void:
 	else:
 		var result_label: Label = Label.new()
 		result_label.text = "No new insights from this comparison."
-		result_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		result_label.add_theme_color_override("font_color", UIColors.MUTED)
 		comparison_list.add_child(result_label)
 
 
@@ -254,25 +273,6 @@ func _on_send_to_board_pressed() -> void:
 
 
 # --- Label Helpers --- #
-
-func _get_type_label(type: Enums.EvidenceType) -> String:
-	match type:
-		Enums.EvidenceType.FORENSIC: return "Forensic"
-		Enums.EvidenceType.DOCUMENT: return "Document"
-		Enums.EvidenceType.PHOTO: return "Photo"
-		Enums.EvidenceType.RECORDING: return "Recording"
-		Enums.EvidenceType.FINANCIAL: return "Financial"
-		Enums.EvidenceType.DIGITAL: return "Digital"
-		Enums.EvidenceType.OBJECT: return "Object"
-	return "Unknown"
-
-
-func _get_location_name(location_id: String) -> String:
-	if location_id.is_empty():
-		return "Unknown"
-	var loc: LocationData = CaseManager.get_location(location_id)
-	return loc.name if loc else location_id
-
 
 func _get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
 	match method:
@@ -297,13 +297,4 @@ func _get_lab_status_label(status: Enums.LabStatus) -> String:
 		Enums.LabStatus.NOT_SUBMITTED: return "Not Submitted"
 		Enums.LabStatus.PROCESSING: return "Processing..."
 		Enums.LabStatus.COMPLETED: return "Complete"
-	return "Unknown"
-
-
-func _get_legal_category_label(cat: int) -> String:
-	match cat:
-		Enums.LegalCategory.PRESENCE: return "Presence"
-		Enums.LegalCategory.MOTIVE: return "Motive"
-		Enums.LegalCategory.OPPORTUNITY: return "Opportunity"
-		Enums.LegalCategory.CONNECTION: return "Connection"
 	return "Unknown"

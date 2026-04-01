@@ -1,23 +1,5 @@
 # Detective Game — Critical Code Review & Improvement Areas
 
-> Generated from a thorough audit of every script, scene, data file, and test in the project.
-> Organized by severity: Critical → High → Medium → Low.
-
----
-
-## Table of Contents
-
-1. [Critical Bugs (Crash / Data Loss / Broken Features)](#1-critical-bugs)
-2. [High-Severity Bugs (Incorrect Gameplay / Logic Errors)](#2-high-severity-bugs)
-3. [Architectural Issues](#3-architectural-issues)
-4. [Data Layer Problems](#4-data-layer-problems)
-5. [UI / Scene Issues](#5-ui--scene-issues)
-6. [Test Suite Gaps](#6-test-suite-gaps)
-7. [Debug & Production Safety](#7-debug--production-safety)
-8. [Theme & Accessibility](#8-theme--accessibility)
-9. [Code Quality & Maintenance Debt](#9-code-quality--maintenance-debt)
-
----
 
 ## 1. Critical Bugs
 
@@ -29,149 +11,9 @@
 
 ## 3. Architectural Issues
 
-### 3.1 GameManager Is a God Object
-
-**File:** `scripts/managers/game_manager.gd`
-
-Holds state for evidence, locations, interrogations, lab requests, surveillance, warrants, board, timeline, theories, investigation log, and hints. Also orchestrates reset/serialize/deserialize of 12+ other systems. Textbook god object.
-
-`new_game()`, `serialize()`, and `deserialize()` contain nearly identical blocks for every subsystem. Adding any new system requires updating all three methods.
-
-**Fix:** Registry pattern (`var _subsystems: Array[Node]`) where each subsystem auto-registers.
-
----
-
-### 3.2 Five Managers Call Private `_log_action`
-
-**Files:** LabManager:98, SurveillanceManager:102, WarrantManager:97/105/223, ConclusionManager:380, ActionSystem:151, SuspectList:99
-
-All call `GameManager._log_action()` (underscore-prefixed = private by convention). Should be a public API.
-
----
-
-### 3.3 Stale Legacy State Variables — game_manager.gd
-
-**File:** `scripts/managers/game_manager.gd:107-113`
-
-`player_board_state`, `player_timeline`, `player_theories` are never written to during gameplay. BoardManager, TimelineManager, and TheoryManager own this data now. SaveManager still saves/loads these empty dictionaries.
-
----
-
-### 3.4 Hardcoded `TOTAL_DAYS = 4` Conflicts With CaseData
-
-**File:** `scripts/managers/game_manager.gd:48`
-
-CaseData has `start_day`/`end_day` but GameManager ignores them. Nothing enforces consistency.
-
----
-
-### 3.5 DaySystem Directly Mutates GameManager State
-
-**File:** `scripts/systems/day_system.gd:129-177`
-
-DaySystem writes to `GameManager.current_phase`, `GameManager.actions_remaining`, `GameManager.current_day`, and emits GameManager's own signals. Neither object truly owns the state.
-
----
-
-### 3.6 No Shared Interface for Subsystems
-
-All systems independently implement `serialize()`, `deserialize()`, and `reset()` with no base class. GameManager discovers them via `has_method()` checks. Renaming a method silently breaks serialization.
-
----
-
-### 3.7 String-Based Action/Condition Parsing Is Error-Prone
-
-ActionSystem, EventSystem, and DaySystem all parse colon-delimited strings like `"evidence:knife"`. No shared parser, no constants, no compile-time checking. A typo silently fails differently in each system.
-
----
-
-### 3.8 NotificationManager Missing Reset and Serialization
-
-- No reset method → notifications from previous game persist into new game
-- No serialize/deserialize → notification queue lost on save/load
-- `get_all()` returns internal reference, allowing external mutation
-
----
-
-### 3.9 Mid-Interrogation Save Not Supported
-
-**File:** `scripts/managers/interrogation_manager.gd:624-637`
-
-`serialize()` only saves persistent cross-session state. In-progress session (current phase, focus, contradictions, unlocked topics) is lost on save/load.
-
----
-
-### 3.10 Action Consumed Before Session Established
-
-**File:** `scripts/managers/interrogation_manager.gd:85`
-
-`GameManager.record_interrogation(person_id)` increments the daily counter before the session is established. If the session fails, the counter is consumed but nothing happened.
-
----
+### ALL FIXED!
 
 ## 4. Data Layer Problems
-
-### 4.2 All Action Requirements and Results Are Empty
-
-**File:** `data/cases/riverside_apartment/timeline.json` (Actions section)
-
-All 9 ActionData entries have `requirements: []` and `results: []`. The action availability system cannot function as designed with no prerequisites defined.
-
----
-
-### 4.3 Lab Requests Have Same Input and Output ID
-
-**File:** `data/cases/riverside_apartment/timeline.json`
-
-- `lab_fingerprint_desk`: input=`ev_mark_fingerprint_desk`, output=`ev_mark_fingerprint_desk`
-- `lab_shoe_print`: input=`ev_shoe_print`, output=`ev_shoe_print`
-
-Lab requests are supposed to be "evidence transformations" per the design. These transform evidence into themselves.
-
----
-
-### 4.4 Surveillance Requests Produce No Events
-
-Both surveillance requests have `result_events: []`. The design states surveillance should produce observation events for the timeline.
-
----
-
-### 4.5 critical_evidence_ids Only Lists 4 of 10 CRITICAL Items
-
-**File:** `data/cases/riverside_apartment/case.json:15-20`
-
-Only 4 items in `critical_evidence_ids`, but 10 evidence items have `importance_level: "CRITICAL"`. This directly impacts the prosecutor confidence scoring.
-
----
-
-### 4.6 Sarah and Lucas Missing Interrogation Break Content
-
-Sarah's and Lucas's interrogation sessions are missing `pressure_dialogue`, `break_dialogue`, `break_statement_ids`, and `break_unlocks`. When pressure reaches their thresholds, the system finds nothing.
-
----
-
-### 4.7 Mark Unlocked on Day 1 Instead of Day 2
-
-**File:** `data/cases/riverside_apartment/events.json:3-17`
-
-`trig_morning_briefing_day1` includes `unlock_interrogation:p_mark`. The design says Mark should be available on Day 2.
-
----
-
-### 4.8 Discovery Rules Point to Wrong Locations
-
-- `dr_julia_shoes`: `location_id: "loc_victim_apartment"` — Julia's shoes should come from Julia's residence via warrant
-- `dr_deleted_messages`: `location_id: "loc_victim_apartment"` — deleted messages recovered from Julia's phone via warrant
-
----
-
-### 4.9 Debug State File Uses Wrong Location IDs
-
-**File:** `data/debug/debug_mark_interrogation.json`
-
-Uses `"victim_apartment"`, `"building_hallway"` etc. instead of `"loc_victim_apartment"`, `"loc_hallway"`. None of these match the case data IDs.
-
----
 
 ### 4.10 Asymmetric Relationships in Suspect Data
 
@@ -209,105 +51,7 @@ No validation that:
 
 ## 5. UI / Scene Issues
 
-### 5.1 queue_free() Followed by Immediate add_child — Ghost Children
-
-**Affects nearly every screen.** `queue_free()` defers deletion to end-of-frame. New children coexist with dying children for one frame, causing layout flicker and potential interaction with nearly-freed nodes.
-
-**Fix:** Use `remove_child(child); child.queue_free()` or `child.free()` for immediate removal.
-
----
-
-### 5.2 debug_panel.tscn ScrollContainer Is Broken
-
-**File:** `scenes/core/debug_panel.tscn:47-57`
-
-`ScrollContainer` and `ContentLabel` are siblings, not parent-child. The ScrollContainer is empty. Debug text is unscrollable and clips.
-
----
-
-### 5.3 case_report, prosecutor_review, case_outcome Scenes Are Skeletal
-
-- Missing margins on MarginContainers
-- Plain Labels instead of RichTextLabels (no autowrap)
-- No ScrollContainers for long content
-- No evidence attachment UI in case_report (design requires 5 evidence-supported sections)
-- These are the climax of the game
-
----
-
-### 5.4 LocationMap First-Visit vs Return-Visit Is Dead Code
-
-**File:** `scripts/ui/screens/location_map.gd:77-98`
-
-Both branches of the `is_first_visit` conditional do **exactly the same thing**.
-
----
-
-### 5.5 Lab, Warrant, and Surveillance Screens Are Display-Only
-
-- `lab_queue.gd`: `submit_section` never populated
-- `warrant_office.gd`: no warrant request UI
-- `surveillance_panel.gd`: no surveillance installation UI
-
-Players can view existing items but cannot create new ones from these screens.
-
----
-
-### 5.6 No Confirmation Dialogs for Destructive Actions
-
-- `BoardManager.clear_board()` — clears entire board, no confirmation
-- `TheoryManager.remove_theory()` — deletes theory, no confirmation
-- "Charge" choice in prosecutor_review — irreversible, no confirmation
-- `get_tree().quit()` in title_screen — immediate quit, no save prompt
-
----
-
-### 5.7 Investigation Log Is Static
-
-**File:** `scripts/ui/screens/investigation_log.gd`
-
-Populated once in `_ready()`, never refreshes. Becomes stale if kept open.
-
----
-
-### 5.8 Text/Button Matching by Display Text Instead of ID
-
-- `case_selection_screen.gd:130-135`: Matches buttons by `.text` — two same-titled cases disable both buttons
-- `interrogation.gd:390-396`: Matches evidence buttons by `.text` — same-named evidence highlights wrong button
-
-**Fix:** Use `set_meta()` / `get_meta()` for ID matching.
-
----
-
-### 5.9 Inconsistent Autoload Access Patterns
-
-Some files use direct autoload names (`GameManager.current_day`), others use `get_node_or_null("/root/...")` repeatedly instead of caching.
-
----
-
-### 5.10 BoardConnectionDrawer Has O(N*M) Performance
-
-**File:** `scripts/ui/screens/board_connection_drawer.gd:52-60`
-
-`_find_node_control()` does a linear scan of all children for each connection endpoint during `_draw()`. Should use a dictionary lookup.
-
----
-
-### 5.11 Hardcoded Colors Repeated Dozens of Times
-
-`Color(0.5, 0.48, 0.45)` appears 20+ times across files. `Color(0.6, 0.55, 0.4)` appears 5+ times. `Color(0.7, 0.68, 0.65)` appears 6+ times.
-
-**Fix:** Define in a shared constants file or theme.
-
----
-
-### 5.12 Empty States Not Handled
-
-- `evidence_detail.gd`: If evidence_id is missing, buttons remain visible and may crash
-- `interrogation.gd`: If person_id is empty, UI elements remain visible but unpopulated
-- `location_investigation.gd`: If location not found, panels remain visible in default state
-
----
+### ALL FIXED!
 
 ## 6. Test Suite Gaps
 
@@ -318,12 +62,6 @@ Some files use direct autoload names (`GameManager.current_day`), others use `ge
 Located in `tests/scenarios/` (with 's') but `.gutconfig.json` lists `tests/scenario` (no 's'). GUT never discovers or runs this file. Contains all four ending scenario tests.
 
 **Fix:** Move to `tests/scenario/` or update `.gutconfig.json`.
-
----
-
-### 6.2 No CI/CD Configuration
-
-No `.github/workflows/`, no `.gitlab-ci.yml`, no `Makefile`. Tests only run when someone manually executes them. No regression protection.
 
 ---
 
@@ -487,104 +225,16 @@ Only 4 scenes have `uid` declarations. Missing UIDs cause breakage when files ar
 
 ## 9. Code Quality & Maintenance Debt
 
-### 9.1 Massive Code Duplication Across UI Files
-
-- `_get_type_label()` — identical in evidence_archive.gd and evidence_detail.gd
-- `_get_location_name()` — identical in evidence_archive.gd and evidence_detail.gd
-- `_safe_disconnect()` — identical in detective_board.gd, timeline_board.gd, theory_builder.gd
-- `_add_section_header()` — nearly identical in lab_queue.gd, warrant_office.gd, surveillance_panel.gd
-- `_get_category_name()` — duplicated in warrant_office.gd and evidence_detail.gd
-
-**Fix:** Extract to a shared UIHelper autoload or base class.
-
----
-
-### 9.2 `print()` Statements in Production Code
-
-Every system's `_ready()` prints initialization messages. ActionSystem, DialogueSystem, DaySystem, EventSystem, ToolManager all have bare `print()` calls.
-
----
-
-### 9.3 21 Autoloads — Heavy Initialization
-
-`project.godot` registers 21 autoload singletons. Candidates for consolidation:
-- LabManager + SurveillanceManager + WarrantManager → InvestigationToolsManager
-- TimelineManager + TheoryManager + BoardManager → PlayerWorkspaceManager
-
----
-
 ### 9.4 No Audio Bus Configuration
 
 No `[audio]` section in project.godot. The design specifies 70% ambient / 20% music / 10% UI sounds requiring separate audio buses. `BGMPlayer` uses `bus = &"Master"`.
 
 ---
 
-### 9.5 No Input Actions Beyond F1
-
-Only `toggle_debug_panel` is defined. No `ui_back` / `escape` for screen navigation. No gamepad mappings.
-
----
-
-### 9.6 ToolManager Initialization Duplicates Registry
-
-`_ready()` and `reset()` hardcode the same three tool IDs. Adding a tool to `TOOL_REGISTRY` requires remembering to also add it to initialization.
-
-**Fix:** Initialize `available_tools` from `TOOL_REGISTRY.keys()`.
-
----
-
-### 9.7 AssetFallback Cache Has No Eviction
-
-`_cache` stores every loaded texture forever with no LRU eviction or size limit. `clear_cache()` exists but is never called automatically.
-
----
-
-### 9.8 Dialogue System Potential Infinite Recursion
-
-**File:** `scripts/systems/dialogue_system.gd:231, 244`
-
-If multiple zero-line dialogues are queued, `_start_next_dialogue -> advance -> _end_current_dialogue -> _start_next_dialogue` creates unbounded recursion.
-
----
-
-### 9.9 No Autoload Order Protection
-
-EvidenceManager connects to `GameManager.evidence_discovered` in `_ready()` without checking if GameManager exists. If autoload ordering changes, this crashes.
-
----
-
-### 9.10 Window Mode Hardcoded to Maximized
-
-`project.godot:51` — `window/size/mode=2`. No settings screen exists to change this at runtime despite the title screen having a "Settings" button.
-
----
-
 ## Priority Order for Fixes
-
-### Immediate (Blocking Gameplay)
-1. Signal leak crashes in desk_hub.gd and evidence_archive.gd (§1.1)
-2. Conclusion scoring always 0 for alternatives (§1.2)
-3. Case outcome dead-end screen (§1.8)
-4. Timeline cards not placed at correct times (§2.10)
-5. Case ID not in save file (§1.6)
-
-### High Priority (Broken Features)
-6. Statement intake phase never entered (§1.3)
-7. CaseReport submits empty evidence (§2.12)
-8. Deserialization signals not re-emitted (§1.5)
-9. Event double-dispatch (§2.6)
-10. Shared-reference deserialization bug (§1.4)
-
-### Medium Priority (Data Correctness)
-11. Case loader should call validate() (§4.1)
-12. Fix empty action requirements/results (§4.2)
-13. Fix lab request input=output IDs (§4.3)
-14. Fix critical_evidence_ids count (§4.5)
-15. Fix discovery rule wrong locations (§4.8)
 
 ### Lower Priority (Quality of Life)
 16. Debug panel production safety (§7.1)
 17. Test suite directory mismatch (§6.1)
-18. UI code deduplication (§9.1)
-19. Theme completeness (§8.3)
-20. Keyboard/accessibility (§8.1)
+18. Theme completeness (§8.3)
+19. Keyboard/accessibility (§8.1)

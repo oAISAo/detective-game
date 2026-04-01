@@ -2,7 +2,7 @@
 ## Manages the detective board data: nodes and connections.
 ## Handles node placement, connection drawing, notes, and persistence.
 ## Phase 8: Pure data layer — no UI dependency.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -46,7 +46,7 @@ var _next_connection_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[BoardManager] Initialized.")
+	super()
 
 
 # --- Node Management --- #

@@ -65,7 +65,7 @@ var case_loaded_flag: bool = false
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[CaseManager] Initialized.")
+	pass
 
 
 # --- Case Loading --- #
@@ -116,7 +116,6 @@ func load_case(case_filename: String) -> bool:
 	case_loaded_flag = true
 
 	case_loaded.emit(_case.id)
-	print("[CaseManager] Case loaded: %s" % _case.id)
 	return true
 
 
@@ -153,7 +152,6 @@ func load_case_folder(folder_name: String) -> bool:
 	case_loaded_flag = true
 
 	case_loaded.emit(_case.id)
-	print("[CaseManager] Case loaded from folder: %s" % _case.id)
 	return true
 
 
@@ -173,7 +171,6 @@ func unload_case() -> void:
 	_insights.clear()
 	_discovery_rules.clear()
 	case_loaded_flag = false
-	print("[CaseManager] Case unloaded.")
 
 
 ## Builds internal lookup dictionaries from the typed CaseData resource.

@@ -2,7 +2,7 @@
 ## Manages runtime investigation state at locations.
 ## Tracks per-object investigation states, handles evidence discovery from objects,
 ## manages location visit accounting (first visit vs return), and calculates completion.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -36,7 +36,7 @@ var current_location_id: String = ""
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[LocationInvestigationManager] Initialized.")
+	super()
 
 
 ## Resets all investigation state for a new game.

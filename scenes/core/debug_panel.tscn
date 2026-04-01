@@ -48,14 +48,12 @@ layout_mode = 2
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ContentLabel" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer"]
+[node name="ContentLabel" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
-size_flags_vertical = 3
 bbcode_enabled = true
 text = "[b]Debug panel ready.[/b]
 Press F1 to refresh."
 fit_content = true
-scroll_active = true
 
 [node name="HSeparator2" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2

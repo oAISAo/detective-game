@@ -13,9 +13,15 @@
 		"access": "Julia was Daniel's wife and had access to the apartment"
 	},
 	"critical_evidence_ids": [
+		"ev_knife",
 		"ev_julia_fingerprint_glass",
+		"ev_deleted_messages",
+		"ev_bank_transfer",
+		"ev_parking_camera",
 		"ev_elevator_logs",
 		"ev_shoe_print",
+		"ev_julia_shoes",
+		"ev_hidden_safe",
 		"ev_personal_journal"
 	]
 }

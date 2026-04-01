@@ -61,12 +61,83 @@ func _on_continue_pressed() -> void:
 
 func _on_settings_pressed() -> void:
 	_hide_save_slots()
-	# Settings not yet implemented — will be added in Phase 18.
-	print("[TitleScreen] Settings not yet implemented.")
+	_show_settings_dialog()
+
+
+## Shows a settings dialog with window mode options.
+func _show_settings_dialog() -> void:
+	var dialog: AcceptDialog = AcceptDialog.new()
+	dialog.title = "Settings"
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	dialog.add_child(vbox)
+
+	var header: Label = Label.new()
+	header.text = "Window Mode"
+	header.add_theme_font_size_override("font_size", 16)
+	vbox.add_child(header)
+
+	var current_mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()
+
+	var windowed_btn: Button = Button.new()
+	windowed_btn.text = "Windowed"
+	windowed_btn.disabled = current_mode == DisplayServer.WINDOW_MODE_WINDOWED
+	windowed_btn.pressed.connect(func() -> void:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		_update_settings_buttons(vbox)
+	)
+	vbox.add_child(windowed_btn)
+
+	var maximized_btn: Button = Button.new()
+	maximized_btn.text = "Maximized"
+	maximized_btn.disabled = current_mode == DisplayServer.WINDOW_MODE_MAXIMIZED
+	maximized_btn.pressed.connect(func() -> void:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+		_update_settings_buttons(vbox)
+	)
+	vbox.add_child(maximized_btn)
+
+	var fullscreen_btn: Button = Button.new()
+	fullscreen_btn.text = "Fullscreen"
+	fullscreen_btn.disabled = current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN
+	fullscreen_btn.pressed.connect(func() -> void:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		_update_settings_buttons(vbox)
+	)
+	vbox.add_child(fullscreen_btn)
+
+	dialog.confirmed.connect(func() -> void: dialog.queue_free())
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.close_requested.connect(func() -> void: dialog.queue_free())
+	add_child(dialog)
+	dialog.popup_centered(Vector2i(300, 200))
+
+
+## Updates settings button disabled states after a mode change.
+func _update_settings_buttons(vbox: VBoxContainer) -> void:
+	var current_mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()
+	for child: Node in vbox.get_children():
+		if child is Button:
+			match child.text:
+				"Windowed":
+					child.disabled = current_mode == DisplayServer.WINDOW_MODE_WINDOWED
+				"Maximized":
+					child.disabled = current_mode == DisplayServer.WINDOW_MODE_MAXIMIZED
+				"Fullscreen":
+					child.disabled = current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN
 
 
 func _on_quit_pressed() -> void:
-	get_tree().quit()
+	var dialog: ConfirmationDialog = ConfirmationDialog.new()
+	dialog.dialog_text = "Quit the game?"
+	dialog.confirmed.connect(func() -> void:
+		dialog.queue_free()
+		get_tree().quit()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.close_requested.connect(func() -> void: dialog.queue_free())
+	add_child(dialog)
+	dialog.popup_centered()
 
 
 ## Displays the save slot selection underneath Continue.
@@ -75,6 +146,7 @@ func _show_save_slots() -> void:
 
 	# Clear and rebuild slot buttons
 	for child: Node in save_slots_container.get_children():
+		save_slots_container.remove_child(child)
 		child.queue_free()
 
 	for slot: int in range(1, SaveManager.MAX_SAVE_SLOTS + 1):

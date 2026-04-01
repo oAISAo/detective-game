@@ -17,13 +17,14 @@ func _ready() -> void:
 ## Populates location list from CaseManager data.
 func _populate_locations() -> void:
 	for child: Node in location_list.get_children():
+		location_list.remove_child(child)
 		child.queue_free()
 
 	var locations: Array[LocationData] = CaseManager.get_all_locations()
 	if locations.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No locations available."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		location_list.add_child(empty_label)
 		return
 
@@ -36,11 +37,10 @@ func _populate_locations() -> void:
 	if unlocked.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No locations available yet."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		location_list.add_child(empty_label)
 		return
 
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
 
 	for loc: Resource in unlocked:
 		var hbox: HBoxContainer = HBoxContainer.new()
@@ -62,11 +62,11 @@ func _populate_locations() -> void:
 		hbox.add_child(btn)
 
 		# Completion indicator
-		if loc_inv_mgr and visited:
-			var completion: Dictionary = loc_inv_mgr.get_location_completion(loc.get("id"))
+		if visited:
+			var completion: Dictionary = LocationInvestigationManager.get_location_completion(loc.get("id"))
 			var comp_label: Label = Label.new()
 			comp_label.text = "(%d/%d clues)" % [completion["found"], completion["total"]]
-			comp_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.4))
+			comp_label.add_theme_color_override("font_color", UIColors.SECONDARY)
 			comp_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			hbox.add_child(comp_label)
 
@@ -75,35 +75,27 @@ func _populate_locations() -> void:
 
 ## Handles a location button press.
 func _on_location_pressed(location_id: String) -> void:
-	var is_first_visit: bool = not GameManager.has_visited_location(location_id)
+	if not GameManager.has_actions_remaining():
+		NotificationManager.notify(
+			"No Actions",
+			"You have no actions remaining today. Use 'End Day' to proceed."
+		)
+		return
 
+	var is_first_visit: bool = not GameManager.has_visited_location(location_id)
 	if is_first_visit:
-		# First visit — costs an action, go straight in
-		if not GameManager.has_actions_remaining():
-			NotificationManager.notify(
-				"No Actions",
-				"You have no actions remaining today. Use 'End Day' to proceed."
-			)
-			return
-		_navigate_to_location(location_id, true)
+		# First visit — introductory look, not a full investigation
+		_navigate_to_location(location_id, false)
 	else:
-		# Return visit (full investigation) — also costs an action
-		if not GameManager.has_actions_remaining():
-			NotificationManager.notify(
-				"No Actions",
-				"You have no actions remaining today. Use 'End Day' to proceed."
-			)
-			return
+		# Return visit — full investigation with all tools available
 		_navigate_to_location(location_id, true)
 
 
 ## Navigates to the location investigation screen.
 func _navigate_to_location(location_id: String, full_investigation: bool) -> void:
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr:
-		var success: bool = loc_inv_mgr.start_investigation(location_id, full_investigation)
-		if not success:
-			return
+	var success: bool = LocationInvestigationManager.start_investigation(location_id, full_investigation)
+	if not success:
+		return
 
 	ScreenManager.navigate_to("location_investigation", {
 		"location_id": location_id,

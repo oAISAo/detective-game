@@ -3,7 +3,7 @@
 ## Lab requests are evidence transformations: input evidence + analysis → output evidence.
 ## DaySystem handles completion processing during morning phase; this manager
 ## provides the submission API and request lifecycle tracking.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -39,10 +39,10 @@ var _next_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
+	super()
 	var day_sys: Node = get_node_or_null("/root/DaySystem")
 	if day_sys and day_sys.has_signal("lab_result_ready"):
 		day_sys.lab_result_ready.connect(_on_lab_result_ready)
-	print("[LabManager] Initialized.")
 
 
 # --- Submission --- #
@@ -95,7 +95,7 @@ func submit_request(
 	lab_submitted.emit(request_id, input_evidence_id)
 	var ev: EvidenceData = CaseManager.get_evidence(input_evidence_id)
 	var ev_name: String = ev.name if ev else input_evidence_id
-	GameManager._log_action("Lab request submitted: %s (%s)" % [analysis_type, ev_name])
+	GameManager.log_action("Lab request submitted: %s (%s)" % [analysis_type, ev_name])
 	return request.duplicate()
 
 

@@ -1,7 +1,7 @@
 ## NotificationManager.gd
 ## Manages a queue of in-game notifications displayed in the investigation
 ## desk UI. Notifications persist until explicitly dismissed.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -43,7 +43,7 @@ var _next_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[NotificationManager] Initialized.")
+	super()
 
 
 # --- Public API --- #
@@ -62,7 +62,6 @@ func notify(title: String, message: String, type: NotificationType = Notificatio
 	_next_id += 1
 	_notifications.append(notif)
 	notification_added.emit(notif)
-	print("[NotificationManager] New: %s — %s" % [title, message])
 	return notif.id
 
 
@@ -119,9 +118,9 @@ func clear_all() -> void:
 	notifications_cleared.emit()
 
 
-## Returns all active notifications.
+## Returns all active notifications (defensive copy).
 func get_all() -> Array[Dictionary]:
-	return _notifications
+	return _notifications.duplicate()
 
 
 ## Returns all unread notifications.
@@ -149,3 +148,26 @@ func get_by_type(type: NotificationType) -> Array[Dictionary]:
 		if notif.get("type", -1) == type:
 			filtered.append(notif)
 	return filtered
+
+
+# --- Subsystem Lifecycle --- #
+
+## Resets all notification state for a new game.
+func reset() -> void:
+	_notifications.clear()
+	_next_id = 1
+	notifications_cleared.emit()
+
+
+## Returns state for save/load.
+func serialize() -> Dictionary:
+	return {
+		"notifications": _notifications.duplicate(true),
+		"next_id": _next_id,
+	}
+
+
+## Restores state from saved data.
+func deserialize(data: Dictionary) -> void:
+	_notifications.assign(data.get("notifications", []))
+	_next_id = data.get("next_id", 1)

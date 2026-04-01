@@ -11,7 +11,7 @@
 				"p_victim"
 			],
 			"supporting_evidence": [
-				"ev_mark_fingerprint_desk"
+				"ev_desk_fingerprint_raw"
 			],
 			"certainty_level": "CONFIRMED"
 		},
@@ -118,6 +118,32 @@
 				"ev_sarah_second_testimony"
 			],
 			"certainty_level": "LIKELY"
+		},
+		{
+			"id": "evt_surv_julia_call",
+			"description": "Phone tap intercepts Julia calling an unknown number, nervously asking about 'getting rid of evidence'.",
+			"time": "14:30",
+			"day": 2,
+			"location": "",
+			"involved_persons": [
+				"p_julia"
+			],
+			"supporting_evidence": [],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_surv_mark_transfer",
+			"description": "Financial monitoring detects Mark attempting to move funds to an offshore account.",
+			"time": "11:15",
+			"day": 2,
+			"location": "",
+			"involved_persons": [
+				"p_mark"
+			],
+			"supporting_evidence": [
+				"ev_bank_transfer"
+			],
+			"certainty_level": "CONFIRMED"
 		}
 	],
 	"statements": [
@@ -254,6 +280,28 @@
 			]
 		},
 		{
+			"id": "stmt_sarah_saw_woman",
+			"person_id": "p_sarah",
+			"text": "I saw a woman leave his apartment that night. She was in a hurry and her hands... there was something on them.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_hallway_camera"
+			],
+			"related_event": "evt_julia_leaves",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_lucas_heard_argument",
+			"person_id": "p_lucas",
+			"text": "I came up to the third floor around 20:45 and heard a man and a woman arguing loudly in the apartment.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_lucas_work_log"
+			],
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": []
+		},
+		{
 			"id": "stmt_sarah_confronted",
 			"person_id": "p_sarah",
 			"text": "I may have heard a woman's voice...",
@@ -322,7 +370,13 @@
 			"time_cost": 1,
 			"target": "loc_victim_apartment",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_knife",
+				"evidence:ev_wine_glasses",
+				"evidence:ev_broken_picture_frame",
+				"evidence:ev_victim_phone",
+				"evidence:ev_knife_block"
+			]
 		},
 		{
 			"id": "act_visit_hallway",
@@ -331,7 +385,12 @@
 			"time_cost": 1,
 			"target": "loc_hallway",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_hallway_camera",
+				"evidence:ev_elevator_logs",
+				"evidence:ev_shoe_print_raw",
+				"evidence:ev_lucas_work_log"
+			]
 		},
 		{
 			"id": "act_visit_parking",
@@ -340,7 +399,9 @@
 			"time_cost": 1,
 			"target": "loc_parking_lot",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_parking_camera"
+			]
 		},
 		{
 			"id": "act_visit_neighbor",
@@ -349,7 +410,9 @@
 			"time_cost": 1,
 			"target": "loc_neighbor_apartment",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_sarah_testimony"
+			]
 		},
 		{
 			"id": "act_visit_office",
@@ -357,8 +420,16 @@
 			"type": "VISIT_LOCATION",
 			"time_cost": 1,
 			"target": "loc_victim_office",
-			"requirements": [],
-			"results": []
+			"requirements": [
+				"day:2"
+			],
+			"results": [
+				"evidence:ev_daniel_email",
+				"evidence:ev_bank_transfer",
+				"evidence:ev_accounting_files",
+				"evidence:ev_hidden_safe",
+				"evidence:ev_personal_journal"
+			]
 		},
 		{
 			"id": "act_interrogate_mark",
@@ -384,7 +455,9 @@
 			"type": "INTERROGATION",
 			"time_cost": 1,
 			"target": "p_julia",
-			"requirements": [],
+			"requirements": [
+				"day:2"
+			],
 			"results": []
 		},
 		{
@@ -393,7 +466,9 @@
 			"type": "INTERROGATION",
 			"time_cost": 1,
 			"target": "p_lucas",
-			"requirements": [],
+			"requirements": [
+				"day:2"
+			],
 			"results": []
 		}
 	],
@@ -444,7 +519,7 @@
 		},
 		{
 			"id": "lab_fingerprint_desk",
-			"input_evidence_id": "ev_mark_fingerprint_desk",
+			"input_evidence_id": "ev_desk_fingerprint_raw",
 			"analysis_type": "fingerprint_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
@@ -452,7 +527,7 @@
 		},
 		{
 			"id": "lab_shoe_print",
-			"input_evidence_id": "ev_shoe_print",
+			"input_evidence_id": "ev_shoe_print_raw",
 			"analysis_type": "footwear_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
@@ -466,7 +541,9 @@
 			"type": "PHONE_TAP",
 			"day_installed": 0,
 			"active_days": 2,
-			"result_events": []
+			"result_events": [
+				"evt_surv_julia_call"
+			]
 		},
 		{
 			"id": "surv_mark_financial",
@@ -474,7 +551,9 @@
 			"type": "FINANCIAL_MONITORING",
 			"day_installed": 0,
 			"active_days": 2,
-			"result_events": []
+			"result_events": [
+				"evt_surv_mark_transfer"
+			]
 		}
 	]
 }

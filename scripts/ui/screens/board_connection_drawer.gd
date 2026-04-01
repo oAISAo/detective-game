@@ -24,14 +24,26 @@ func _draw() -> void:
 	if node_layer == null:
 		return
 
+	# Build a lookup dictionary once per draw call instead of scanning per endpoint
+	var node_map: Dictionary = _build_node_map()
+
 	for conn: Dictionary in BoardManager.get_all_connections():
-		_draw_connection(conn)
+		_draw_connection(conn, node_map)
+
+
+## Builds a dictionary mapping board_node_id → Control for O(1) lookup.
+func _build_node_map() -> Dictionary:
+	var result: Dictionary = {}
+	for child: Node in node_layer.get_children():
+		if child is Control and child.has_meta("board_node_id"):
+			result[child.get_meta("board_node_id")] = child
+	return result
 
 
 ## Draws a single connection line with an optional note label.
-func _draw_connection(conn: Dictionary) -> void:
-	var from_ctrl: Control = _find_node_control(conn.get("from", ""))
-	var to_ctrl: Control = _find_node_control(conn.get("to", ""))
+func _draw_connection(conn: Dictionary, node_map: Dictionary) -> void:
+	var from_ctrl: Control = node_map.get(conn.get("from", ""))
+	var to_ctrl: Control = node_map.get(conn.get("to", ""))
 
 	if from_ctrl == null or to_ctrl == null:
 		return
@@ -46,15 +58,3 @@ func _draw_connection(conn: Dictionary) -> void:
 		var mid: Vector2 = (from_center + to_center) / 2.0
 		var font: Font = ThemeDB.fallback_font
 		draw_string(font, mid, note_text, HORIZONTAL_ALIGNMENT_CENTER, -1, NOTE_FONT_SIZE, NOTE_COLOR)
-
-
-## Finds a node control by its board_node_id metadata.
-func _find_node_control(node_id: String) -> Control:
-	if node_id.is_empty() or node_layer == null:
-		return null
-
-	for child: Node in node_layer.get_children():
-		if child is Control and child.has_meta("board_node_id"):
-			if child.get_meta("board_node_id") == node_id:
-				return child as Control
-	return null

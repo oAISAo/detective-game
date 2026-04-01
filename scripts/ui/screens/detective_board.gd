@@ -77,18 +77,12 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	_safe_disconnect(BoardManager.node_added, _on_node_added)
-	_safe_disconnect(BoardManager.node_removed, _on_node_removed)
-	_safe_disconnect(BoardManager.connection_added, _on_connection_added)
-	_safe_disconnect(BoardManager.connection_removed, _on_connection_removed)
-	_safe_disconnect(BoardManager.board_cleared, _on_board_cleared)
-	_safe_disconnect(BoardManager.state_loaded, _rebuild_board)
-
-
-## Safely disconnects a signal if connected.
-func _safe_disconnect(sig: Signal, callable: Callable) -> void:
-	if sig.is_connected(callable):
-		sig.disconnect(callable)
+	UIHelper.safe_disconnect(BoardManager.node_added, _on_node_added)
+	UIHelper.safe_disconnect(BoardManager.node_removed, _on_node_removed)
+	UIHelper.safe_disconnect(BoardManager.connection_added, _on_connection_added)
+	UIHelper.safe_disconnect(BoardManager.connection_removed, _on_connection_removed)
+	UIHelper.safe_disconnect(BoardManager.board_cleared, _on_board_cleared)
+	UIHelper.safe_disconnect(BoardManager.state_loaded, _rebuild_board)
 
 
 # --- Input Handling --- #
@@ -145,6 +139,7 @@ func _rebuild_board() -> void:
 ## Clears all UI elements from the board.
 func _clear_ui() -> void:
 	for child: Node in node_layer.get_children():
+		node_layer.remove_child(child)
 		child.queue_free()
 	_node_controls.clear()
 	connection_layer.queue_redraw()
@@ -175,7 +170,7 @@ func _create_node_control(node_data: Dictionary) -> void:
 	type_badge.text = "[%s]" % node_data["type"].to_upper()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_badge.add_theme_font_size_override("font_size", 12)
-	type_badge.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
+	type_badge.add_theme_color_override("font_color", UIColors.HEADER)
 	vbox.add_child(type_badge)
 
 	if not node_data.get("note", "").is_empty():
@@ -348,7 +343,16 @@ func _on_back_pressed() -> void:
 
 
 func _on_clear_pressed() -> void:
-	BoardManager.clear_board()
+	var dialog: ConfirmationDialog = ConfirmationDialog.new()
+	dialog.dialog_text = "Clear all nodes and connections from the board?"
+	dialog.confirmed.connect(func() -> void:
+		BoardManager.clear_board()
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.close_requested.connect(func() -> void: dialog.queue_free())
+	add_child(dialog)
+	dialog.popup_centered()
 
 
 func _update_count_label() -> void:

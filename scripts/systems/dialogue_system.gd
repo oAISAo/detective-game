@@ -3,7 +3,7 @@
 ## Handles character portrait + text + continue flow.
 ## Phase 3: Simple queue-based dialogue — NOT branching dialogue trees.
 ## Used for chief communications, technician updates, morning briefings.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -47,7 +47,7 @@ var _dialogue_history: Array[String] = []
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[DialogueSystem] Initialized.")
+	super()
 
 
 # --- Public API --- #
@@ -240,9 +240,10 @@ func _end_current_dialogue() -> void:
 	_current_line_index = -1
 	dialogue_ended.emit(did)
 
-	# Auto-start next dialogue if queue is not empty
+	# Defer the next dialogue start to break potential recursion from
+	# zero-line dialogues: _start_next_dialogue -> advance -> _end_current_dialogue
 	if not _dialogue_queue.is_empty():
-		_start_next_dialogue()
+		_start_next_dialogue.call_deferred()
 	else:
 		all_dialogues_completed.emit()
 

@@ -149,10 +149,10 @@ func test_interrogation_limit_resets_on_new_day() -> void:
 # =========================================================================
 
 func test_day_does_not_exceed_total() -> void:
-	GameManager.current_day = GameManager.TOTAL_DAYS
+	GameManager.current_day = GameManager.get_total_days()
 	DaySystem.process_morning()
 	DaySystem.try_end_day()
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Should not exceed TOTAL_DAYS")
+	assert_eq(GameManager.current_day, GameManager.get_total_days(), "Should not exceed TOTAL_DAYS")
 
 
 # =========================================================================

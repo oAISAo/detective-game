@@ -2,7 +2,7 @@
 ## Unified event trigger system for TIMED, CONDITIONAL, and DAY_START triggers.
 ## Phase 3: Centralized event evaluation, action dispatching, and notification integration.
 ## All events use EventTriggerData with a consistent structure.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -39,12 +39,20 @@ var _trigger_history: Array[Dictionary] = []
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	# Connect to GameManager signals for conditional trigger evaluation
-	GameManager.evidence_discovered.connect(_on_evidence_discovered)
-	GameManager.insight_discovered.connect(_on_insight_discovered)
-	GameManager.location_visited.connect(_on_location_visited)
-	GameManager.mandatory_action_completed.connect(_on_mandatory_action_completed)
-	print("[EventSystem] Initialized.")
+	super()
+	# Defer signal connections to ensure GameManager is initialized regardless of autoload order
+	_connect_game_manager_signals.call_deferred()
+
+
+func _connect_game_manager_signals() -> void:
+	if GameManager and GameManager.has_signal("evidence_discovered"):
+		GameManager.evidence_discovered.connect(_on_evidence_discovered)
+	if GameManager and GameManager.has_signal("insight_discovered"):
+		GameManager.insight_discovered.connect(_on_insight_discovered)
+	if GameManager and GameManager.has_signal("location_visited"):
+		GameManager.location_visited.connect(_on_location_visited)
+	if GameManager and GameManager.has_signal("mandatory_action_completed"):
+		GameManager.mandatory_action_completed.connect(_on_mandatory_action_completed)
 
 
 # --- Query Functions --- #
@@ -116,36 +124,36 @@ func evaluate_day_start_triggers() -> Array[String]:
 ## Converts a raw action string to human-readable briefing text.
 ## Returns empty string for actions that should not appear in the briefing.
 func _action_to_briefing_text(action_str: String) -> String:
-	var parts: PackedStringArray = action_str.split(":", true, 1)
-	if parts.size() < 2:
+	var parsed: PackedStringArray = ActionStringParser.parse(action_str)
+	var action_type: String = parsed[0]
+	var action_value: String = parsed[1]
+
+	if action_type.is_empty():
 		# Plain text — show as-is
 		return action_str
 
-	var action_type: String = parts[0].strip_edges()
-	var action_value: String = parts[1].strip_edges()
-
 	match action_type:
-		"unlock_location":
+		ActionStringParser.ACT_UNLOCK_LOCATION:
 			var loc: LocationData = CaseManager.get_location(action_value)
 			var loc_name: String = loc.name if loc else action_value
 			return "New location available: %s" % loc_name
-		"unlock_evidence":
+		ActionStringParser.ACT_UNLOCK_EVIDENCE:
 			var ev: EvidenceData = CaseManager.get_evidence(action_value)
 			var ev_name: String = ev.name if ev else action_value
 			return "New evidence: %s" % ev_name
-		"unlock_interrogation":
+		ActionStringParser.ACT_UNLOCK_INTERROGATION:
 			var person: PersonData = CaseManager.get_person(action_value)
 			var person_name: String = person.name if person else action_value
 			return "New suspect available for questioning: %s" % person_name
-		"deliver_lab_results":
+		ActionStringParser.ACT_DELIVER_LAB_RESULTS:
 			var ev: EvidenceData = CaseManager.get_evidence(action_value)
 			var ev_name: String = ev.name if ev else action_value
 			return "Lab results ready: %s" % ev_name
-		"unlock_warrant":
+		ActionStringParser.ACT_UNLOCK_WARRANT:
 			return "Warrant available: %s" % action_value
-		"notify":
+		ActionStringParser.ACT_NOTIFY:
 			return action_value
-		"add_mandatory", "show_dialogue":
+		ActionStringParser.ACT_ADD_MANDATORY, ActionStringParser.ACT_SHOW_DIALOGUE:
 			# Internal actions — don't show in briefing
 			return ""
 		_:
@@ -233,21 +241,22 @@ func reset_trigger(trigger_id: String) -> void:
 ##            interrogation_completed, trigger_fired
 func _check_conditions(conditions: Array[String]) -> bool:
 	for condition: String in conditions:
-		var parts: PackedStringArray = condition.split(":", true, 1)
-		if parts.size() < 2:
+		var parsed: PackedStringArray = ActionStringParser.parse(condition)
+		var cond_type: String = parsed[0]
+		var cond_value: String = parsed[1]
+
+		if cond_type.is_empty():
 			push_warning("[EventSystem] Malformed condition (no colon): '%s'" % condition)
 			return false
-		var cond_type: String = parts[0].strip_edges()
-		var cond_value: String = parts[1].strip_edges()
 
 		match cond_type:
-			"evidence_discovered":
+			ActionStringParser.COND_EVIDENCE_DISCOVERED:
 				if not GameManager.has_evidence(cond_value):
 					return false
-			"location_visited":
+			ActionStringParser.COND_LOCATION_VISITED:
 				if not GameManager.has_visited_location(cond_value):
 					return false
-			"action_completed":
+			ActionStringParser.COND_ACTION_COMPLETED:
 				var action_sys: Node = get_node_or_null("/root/ActionSystem")
 				if action_sys and cond_value in action_sys.executed_actions:
 					pass  # condition met
@@ -255,16 +264,16 @@ func _check_conditions(conditions: Array[String]) -> bool:
 					pass  # fallback for mandatory-only tracking
 				else:
 					return false
-			"warrant_obtained":
+			ActionStringParser.COND_WARRANT_OBTAINED:
 				if cond_value not in GameManager.warrants_obtained:
 					return false
-			"day":
+			ActionStringParser.COND_DAY:
 				if GameManager.current_day != int(cond_value):
 					return false
-			"day_gte":
+			ActionStringParser.COND_DAY_GTE:
 				if GameManager.current_day < int(cond_value):
 					return false
-			"lab_complete":
+			ActionStringParser.COND_LAB_COMPLETE:
 				var lab_mgr: Node = get_node_or_null("/root/LabManager")
 				if lab_mgr and lab_mgr.has_method("get_request"):
 					var req: Dictionary = lab_mgr.get_request(cond_value)
@@ -279,13 +288,13 @@ func _check_conditions(conditions: Array[String]) -> bool:
 							break
 					if was_active:
 						return false
-			"insight_discovered":
+			ActionStringParser.COND_INSIGHT_DISCOVERED:
 				if cond_value not in GameManager.discovered_insights:
 					return false
-			"interrogation_completed":
+			ActionStringParser.COND_INTERROGATION_COMPLETED:
 				if cond_value not in GameManager.completed_interrogations:
 					return false
-			"trigger_fired":
+			ActionStringParser.COND_TRIGGER_FIRED:
 				if cond_value not in _fired_triggers:
 					return false
 
@@ -304,49 +313,48 @@ func _dispatch_trigger_actions(trigger: EventTriggerData) -> void:
 ## Dispatches a single trigger action string.
 ## Actions are formatted as "action_type:value" or plain text (notification).
 func _dispatch_action(action_str: String, source_trigger_id: String) -> void:
-	var parts: PackedStringArray = action_str.split(":", true, 1)
+	var parsed: PackedStringArray = ActionStringParser.parse(action_str)
+	var action_type: String = parsed[0]
+	var action_value: String = parsed[1]
 
-	if parts.size() < 2:
+	if action_type.is_empty():
 		# Plain text action — treat as a story notification
 		NotificationManager.notify_story(action_str)
-		GameManager._log_action("Event: %s (from %s)" % [action_str, source_trigger_id])
+		GameManager.log_action("Event: %s (from %s)" % [action_str, source_trigger_id])
 		return
 
-	var action_type: String = parts[0].strip_edges()
-	var action_value: String = parts[1].strip_edges()
-
 	match action_type:
-		"unlock_evidence":
+		ActionStringParser.ACT_UNLOCK_EVIDENCE:
 			GameManager.discover_evidence(action_value)
 			var ev: EvidenceData = CaseManager.get_evidence(action_value)
 			var ev_name: String = ev.name if ev else action_value
 			NotificationManager.notify_evidence(ev_name)
-		"unlock_event":
+		ActionStringParser.ACT_UNLOCK_EVENT:
 			# Events are informational — log and notify
 			NotificationManager.notify_story("New event: %s" % action_value)
-		"unlock_location":
+		ActionStringParser.ACT_UNLOCK_LOCATION:
 			GameManager.unlock_location(action_value)
 			var loc: LocationData = CaseManager.get_location(action_value)
 			var loc_name: String = loc.name if loc else action_value
 			NotificationManager.notify_story("New location available: %s" % loc_name)
-		"unlock_interrogation":
+		ActionStringParser.ACT_UNLOCK_INTERROGATION:
 			GameManager.unlock_interrogation(action_value)
 			var person: PersonData = CaseManager.get_person(action_value)
 			var person_name: String = person.name if person else action_value
 			NotificationManager.notify_story("New suspect available for questioning: %s" % person_name)
-		"deliver_lab_results":
+		ActionStringParser.ACT_DELIVER_LAB_RESULTS:
 			var ev: EvidenceData = CaseManager.get_evidence(action_value)
 			var ev_name: String = ev.name if ev else action_value
 			NotificationManager.notify_lab_result(ev_name)
-		"unlock_warrant":
+		ActionStringParser.ACT_UNLOCK_WARRANT:
 			NotificationManager.notify_warrant("Warrant available: %s" % action_value)
-		"add_mandatory":
+		ActionStringParser.ACT_ADD_MANDATORY:
 			if action_value not in GameManager.mandatory_actions_required:
 				GameManager.mandatory_actions_required.append(action_value)
-		"show_dialogue":
+		ActionStringParser.ACT_SHOW_DIALOGUE:
 			# Queue dialogue for the dialogue system
 			_queue_dialogue(action_value, source_trigger_id)
-		"notify":
+		ActionStringParser.ACT_NOTIFY:
 			NotificationManager.notify_story(action_value)
 		_:
 			# Unknown action — just notify

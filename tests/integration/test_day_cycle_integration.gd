@@ -305,11 +305,11 @@ func test_mandatory_allows_after_completion() -> void:
 func test_full_investigation_four_days() -> void:
 	watch_signals(DaySystem)
 	# Advance through all 4 days
-	for i: int in range(GameManager.TOTAL_DAYS - 1):
+	for i: int in range(GameManager.get_total_days() - 1):
 		DaySystem.process_morning()
 		DaySystem.try_end_day()
 	# Now on Day 4
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS)
+	assert_eq(GameManager.current_day, GameManager.get_total_days())
 
 	# Morning briefing on Day 4 should warn
 	DaySystem.process_morning()
@@ -319,7 +319,7 @@ func test_full_investigation_four_days() -> void:
 	DaySystem.try_end_day()
 	assert_signal_emitted(DaySystem, "investigation_time_expired")
 	# Day should NOT advance past TOTAL_DAYS
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS)
+	assert_eq(GameManager.current_day, GameManager.get_total_days())
 
 
 # --- Passive Actions Don't Consume Slots --- #

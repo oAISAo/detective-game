@@ -3,7 +3,7 @@
 ## Surveillance produces observation events that feed into the timeline.
 ## DaySystem handles result delivery during morning phase; this manager
 ## provides the installation API and operation lifecycle tracking.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -45,10 +45,10 @@ var _next_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
+	super()
 	var day_sys: Node = get_node_or_null("/root/DaySystem")
 	if day_sys and day_sys.has_signal("surveillance_result"):
 		day_sys.surveillance_result.connect(_on_surveillance_result)
-	print("[SurveillanceManager] Initialized.")
 
 
 # --- Installation --- #
@@ -99,7 +99,7 @@ func install_surveillance(
 	GameManager.active_surveillance.append(operation.duplicate())
 
 	surveillance_installed.emit(surv_id, target_person)
-	GameManager._log_action("Surveillance installed: %s on %s" % [
+	GameManager.log_action("Surveillance installed: %s on %s" % [
 		_surveillance_type_name(surveillance_type), target_person
 	])
 	return operation.duplicate()

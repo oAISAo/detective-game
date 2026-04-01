@@ -3,7 +3,7 @@
 ## 1. Statement Intake — suspect tells their story, individual claims logged
 ## 2. Interrogation — player selects a focus (statement/topic) and presents evidence
 ## 3. Pressure — earned through contradictions, unlocks escalation
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -40,7 +40,7 @@ var _break_moments: Dictionary = {}  # { person_id: bool }
 
 
 func _ready() -> void:
-	print("[InterrogationManager] Initialized.")
+	super()
 
 
 func reset() -> void:
@@ -82,8 +82,6 @@ func start_interrogation(person_id: String) -> bool:
 	_unlocked_topic_ids.clear()
 	_current_pressure = _accumulated_pressure.get(person_id, 0)
 
-	GameManager.record_interrogation(person_id)
-
 	# Start in statement intake phase — suspect tells their story first
 	var session: InterrogationSessionData = CaseManager.get_interrogation_session(person_id)
 	if session and not session.initial_statement_ids.is_empty():
@@ -94,12 +92,12 @@ func start_interrogation(person_id: String) -> bool:
 		# No initial statements defined — skip straight to interrogation
 		_current_phase = Enums.InterrogationPhase.INTERROGATION
 
+	# Record the interrogation AFTER the session is successfully established,
+	# so the daily counter is not consumed if setup fails.
+	GameManager.record_interrogation(person_id)
+
 	interrogation_started.emit(person_id)
 	phase_changed.emit(_current_phase)
-	print("[InterrogationManager] Interrogation started with %s (phase: %s)" % [
-		person_id,
-		"STATEMENT_INTAKE" if _current_phase == Enums.InterrogationPhase.STATEMENT_INTAKE else "INTERROGATION",
-	])
 	return true
 
 
@@ -114,7 +112,6 @@ func end_interrogation() -> void:
 	_current_phase = Enums.InterrogationPhase.ENDED
 	phase_changed.emit(_current_phase)
 	interrogation_ended.emit(person_id)
-	print("[InterrogationManager] Interrogation ended with %s" % person_id)
 
 	# Clear session state after signal handlers have read it
 	_clear_session_state.call_deferred()
@@ -544,7 +541,6 @@ func _check_break_moment() -> bool:
 		_current_phase = Enums.InterrogationPhase.BREAK_MOMENT
 		phase_changed.emit(_current_phase)
 		break_moment_reached.emit(_current_person_id)
-		print("[InterrogationManager] Break moment reached for %s" % _current_person_id)
 		return true
 
 	return false
@@ -609,20 +605,20 @@ func _is_topic_available(topic: InterrogationTopicData) -> bool:
 
 
 func _evaluate_topic_condition(condition: String) -> bool:
-	var parts: PackedStringArray = condition.split(":", true, 1)
-	if parts.size() < 2:
+	var parsed: PackedStringArray = ActionStringParser.parse(condition)
+	var condition_type: String = parsed[0]
+	var condition_value: String = parsed[1]
+
+	if condition_type.is_empty():
 		push_warning("[InterrogationManager] Invalid condition format: %s" % condition)
 		return false
 
-	var condition_type: String = parts[0]
-	var condition_value: String = parts[1]
-
 	match condition_type:
-		"evidence":
+		ActionStringParser.TOPIC_EVIDENCE:
 			return GameManager.has_evidence(condition_value)
-		"statement":
+		ActionStringParser.TOPIC_STATEMENT:
 			return condition_value in _heard_statements
-		"location":
+		ActionStringParser.TOPIC_LOCATION:
 			return GameManager.has_visited_location(condition_value)
 		_:
 			push_warning("[InterrogationManager] Unknown condition type: %s" % condition_type)
@@ -634,12 +630,26 @@ func _evaluate_topic_condition(condition: String) -> bool:
 # =========================================================================
 
 func serialize() -> Dictionary:
-	return {
+	var data: Dictionary = {
 		"fired_triggers": _fired_triggers.duplicate(true),
 		"heard_statements": _heard_statements.duplicate(),
 		"accumulated_pressure": _accumulated_pressure.duplicate(),
 		"break_moments": _break_moments.duplicate(),
 	}
+
+	# Save in-progress session state so mid-interrogation saves are supported
+	if is_active():
+		data["session"] = {
+			"person_id": _current_person_id,
+			"phase": _current_phase,
+			"pressure": _current_pressure,
+			"focus": _current_focus.duplicate(),
+			"contradictions": _session_contradictions.duplicate(true),
+			"statements": _session_statements.duplicate(),
+			"unlocked_topics": _unlocked_topic_ids.duplicate(),
+		}
+
+	return data
 
 
 func deserialize(data: Dictionary) -> void:
@@ -647,4 +657,18 @@ func deserialize(data: Dictionary) -> void:
 	_heard_statements.assign(data.get("heard_statements", []))
 	_accumulated_pressure = data.get("accumulated_pressure", {})
 	_break_moments = data.get("break_moments", {})
+
+	# Restore in-progress session if one was saved
+	var session: Dictionary = data.get("session", {})
+	if not session.is_empty():
+		_current_person_id = session.get("person_id", "")
+		_current_phase = session.get("phase", Enums.InterrogationPhase.INACTIVE) as Enums.InterrogationPhase
+		_current_pressure = session.get("pressure", 0)
+		_current_focus = session.get("focus", {})
+		_session_contradictions.assign(session.get("contradictions", []))
+		_session_statements.assign(session.get("statements", []))
+		_unlocked_topic_ids.assign(session.get("unlocked_topics", []))
+	else:
+		_clear_session_state()
+
 	state_loaded.emit()

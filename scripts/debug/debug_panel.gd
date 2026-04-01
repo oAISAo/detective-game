@@ -7,7 +7,7 @@ extends CanvasLayer
 
 ## Reference to the panel container.
 @onready var panel: PanelContainer = $Panel
-@onready var content_label: RichTextLabel = $Panel/MarginContainer/VBoxContainer/ContentLabel
+@onready var content_label: RichTextLabel = $Panel/MarginContainer/VBoxContainer/ScrollContainer/ContentLabel
 @onready var close_button: Button = $Panel/MarginContainer/VBoxContainer/HeaderBar/CloseButton
 @onready var evidence_id_input: LineEdit = $Panel/MarginContainer/VBoxContainer/ActionsContainer/EvidenceIdInput
 @onready var unlock_evidence_button: Button = $Panel/MarginContainer/VBoxContainer/ActionsContainer/UnlockEvidenceButton
@@ -50,7 +50,7 @@ func _ready() -> void:
 	process_night_button.pressed.connect(_on_process_night_pressed)
 	complete_mandatory_button.pressed.connect(_on_complete_mandatory_pressed)
 	day_spin_box.min_value = 1
-	day_spin_box.max_value = GameManager.TOTAL_DAYS
+	day_spin_box.max_value = GameManager.get_total_days()
 	day_spin_box.value = 1
 	goto_day_button.pressed.connect(_on_goto_day_pressed)
 
@@ -83,7 +83,7 @@ func _refresh() -> void:
 
 	# Game State
 	text += "[b]Game State[/b]\n"
-	text += "  Day: %d / %d\n" % [GameManager.current_day, GameManager.TOTAL_DAYS]
+	text += "  Day: %d / %d\n" % [GameManager.current_day, GameManager.get_total_days()]
 	text += "  Phase: %s\n" % GameManager.get_phase_display()
 	text += "  Actions Remaining: %d / %d\n" % [GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY]
 	text += "  Game Active: %s\n\n" % str(GameManager.game_active)
@@ -382,7 +382,7 @@ func _on_goto_day_pressed() -> void:
 
 ## Advances to the specified day.
 func debug_set_day(day: int) -> void:
-	GameManager.current_day = clampi(day, 1, GameManager.TOTAL_DAYS)
+	GameManager.current_day = clampi(day, 1, GameManager.get_total_days())
 	GameManager.current_phase = Enums.DayPhase.MORNING
 	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
 	GameManager.day_changed.emit(GameManager.current_day)
