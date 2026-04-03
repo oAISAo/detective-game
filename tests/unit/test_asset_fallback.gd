@@ -14,7 +14,8 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	_fallback.queue_free()
+	remove_child(_fallback)
+	_fallback.free()
 
 
 # --- Missing Texture Fallback ---

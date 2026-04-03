@@ -20,7 +20,8 @@ func test_case_manager_accessible() -> void:
 
 func test_save_manager_accessible() -> void:
 	assert_not_null(SaveManager, "SaveManager should be accessible")
-	# Verify it responds to a method call
+	# Clean up any leftover save from other tests before checking
+	SaveManager.delete_save(1)
 	assert_false(SaveManager.has_save(1))
 
 

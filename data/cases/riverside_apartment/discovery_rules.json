@@ -88,7 +88,7 @@
 		{
 			"id": "dr_deleted_messages",
 			"evidence_id": "ev_deleted_messages",
-			"location_id": "",
+			"location_id": "loc_victim_apartment",
 			"conditions": [
 				"warrant_obtained:warrant_julia_phone",
 				"day_gte:3"
@@ -98,7 +98,7 @@
 		{
 			"id": "dr_julia_shoes",
 			"evidence_id": "ev_julia_shoes",
-			"location_id": "",
+			"location_id": "loc_victim_apartment",
 			"conditions": [
 				"warrant_obtained:warrant_julia_search"
 			],

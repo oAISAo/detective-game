@@ -195,6 +195,7 @@ func test_submit_rejects_already_submitted() -> void:
 	LabManager.submit_request("ev_knife", "dna", "ev_knife_result")
 	var dup: Dictionary = LabManager.submit_request("ev_knife", "other", "ev_knife_result")
 	assert_true(dup.is_empty(), "Should reject duplicate submission")
+	assert_push_warning("[LabManager] Evidence already submitted for analysis: ev_knife")
 	assert_eq(LabManager.get_pending_count(), 1)
 
 
@@ -208,6 +209,7 @@ func test_submit_respects_concurrent_limit() -> void:
 	LabManager.submit_request("ev_blood", "dna", "ev_blood_result")
 	var fourth: Dictionary = LabManager.submit_request("ev_fiber", "fiber", "ev_fiber_result")
 	assert_true(fourth.is_empty(), "Should reject when at max concurrent (%d)" % LabManager.MAX_CONCURRENT_REQUESTS)
+	assert_push_warning("[LabManager] Maximum concurrent requests reached")
 	assert_eq(LabManager.get_pending_count(), 3)
 
 
@@ -261,6 +263,7 @@ func test_cancel_removes_from_game_manager() -> void:
 
 func test_cancel_nonexistent_returns_false() -> void:
 	assert_false(LabManager.cancel_request("nonexistent"))
+	assert_push_warning("[LabManager] Request not found: nonexistent")
 
 
 func test_cancel_already_cancelled_returns_false() -> void:
@@ -268,6 +271,7 @@ func test_cancel_already_cancelled_returns_false() -> void:
 	var req: Dictionary = LabManager.submit_request("ev_knife", "dna", "ev_knife_result")
 	LabManager.cancel_request(req["id"])
 	assert_false(LabManager.cancel_request(req["id"]))
+	assert_push_warning("[LabManager] Cannot cancel non-pending request")
 
 
 func test_cancelled_evidence_can_be_resubmitted() -> void:

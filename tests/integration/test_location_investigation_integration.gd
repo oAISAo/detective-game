@@ -49,6 +49,7 @@ var _test_case_data: Dictionary = {
 			"name": "Fingerprints on Wine Glass",
 			"description": "Julia's prints on the wine glass.",
 			"type": "FORENSIC",
+			"discovery_method": "TOOL",
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"tags": ["fingerprint"],
@@ -61,6 +62,7 @@ var _test_case_data: Dictionary = {
 			"name": "Bloodstain on Kitchen Counter",
 			"description": "Small drops of blood on the counter.",
 			"type": "FORENSIC",
+			"discovery_method": "TOOL",
 			"location_found": "loc_apartment",
 			"related_persons": [],
 			"tags": ["blood"],
@@ -134,6 +136,7 @@ var _test_case_data: Dictionary = {
 			"name": "Muddy Footprints",
 			"description": "Boot prints in the hallway.",
 			"type": "FORENSIC",
+			"discovery_method": "TOOL",
 			"location_found": "loc_hallway",
 			"related_persons": [],
 			"tags": ["footprint"],
@@ -233,6 +236,7 @@ var _test_case_data: Dictionary = {
 			"name": "UV-Revealed Note",
 			"description": "Hidden message revealed under UV light.",
 			"type": "DOCUMENT",
+			"discovery_method": "TOOL",
 			"location_found": "loc_office",
 			"related_persons": ["p_victim"],
 			"tags": ["hidden", "uv"],
@@ -497,16 +501,16 @@ func test_visit_examine_discover_flow() -> void:
 func test_tool_reveals_hidden_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apartment")
 
-	# Visual inspection of wine glass — evidence discovered even with tool requirements
+	# Visual inspection of wine glass — TOOL-method evidence is NOT discovered visually
 	var visual: Array[String] = _loc_inv_mgr.inspect_object("loc_apartment", "obj_wine_glass")
-	assert_eq(visual.size(), 1, "Visual inspection should discover evidence")
-	assert_true(GameManager.has_evidence("E1"))
+	assert_eq(visual.size(), 0, "Visual inspection should not discover TOOL-method evidence")
+	assert_false(GameManager.has_evidence("E1"))
 
-	# Using tool afterwards discovers nothing new (already found)
+	# Using tool discovers the TOOL-method evidence
 	var tool_result: Array[String] = _loc_inv_mgr.use_tool_on_object(
 		"loc_apartment", "obj_wine_glass", "fingerprint_powder"
 	)
-	assert_eq(tool_result.size(), 0, "Tool should not re-discover already found evidence")
+	assert_eq(tool_result.size(), 1, "Tool should discover evidence")
 	assert_true(GameManager.has_evidence("E1"))
 
 

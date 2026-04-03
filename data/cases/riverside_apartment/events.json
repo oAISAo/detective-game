@@ -11,7 +11,8 @@
 				"unlock_location:loc_hallway",
 				"unlock_location:loc_parking_lot",
 				"unlock_location:loc_neighbor_apartment",
-				"unlock_interrogation:p_sarah"
+				"unlock_interrogation:p_sarah",
+			"unlock_interrogation:p_mark"
 			],
 			"result_events": []
 		},
@@ -166,7 +167,9 @@
 			"topic_name": "Why did you lie about the time?",
 			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [],
+			"statements": [
+				"stmt_mark_lied_to_hide_argument"
+			],
 			"required_evidence": [],
 			"requires_statement_id": "stmt_mark_corrected_departure",
 			"impact_level": "MAJOR",
@@ -178,7 +181,9 @@
 			"topic_name": "What happened to the missing money?",
 			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [],
+			"statements": [
+				"stmt_mark_money_admission"
+			],
 			"required_evidence": [],
 			"requires_statement_id": "stmt_mark_denies_financial",
 			"impact_level": "MAJOR",
@@ -190,7 +195,9 @@
 			"topic_name": "Who else knew?",
 			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [],
+			"statements": [
+				"stmt_mark_julia_knew"
+			],
 			"required_evidence": [],
 			"requires_statement_id": "stmt_mark_deeper_admission",
 			"impact_level": "MINOR",
@@ -466,7 +473,7 @@
 			"initial_dialogue": "I already told the police what happened.\nI stopped by to talk to Daniel, we argued a little, and then I left.\nThat's it.",
 			"initial_statement_ids": ["stmt_mark_visit", "stmt_mark_argument", "stmt_mark_departure_time"],
 			"base_topic_ids": ["topic_reason_for_visit", "topic_departure_time", "topic_relationship"],
-			"pressure_gate": 1,
+			"pressure_gate": 2,
 			"rejection_texts": [
 				"He barely reacts to that.",
 				"That doesn't seem to shake his story.",

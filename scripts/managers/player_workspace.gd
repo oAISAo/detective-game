@@ -27,6 +27,11 @@ func _ready() -> void:
 	timeline = _create_child("res://scripts/managers/timeline_manager.gd", "TimelineManager")
 	theory = _create_child("res://scripts/managers/theory_manager.gd", "TheoryManager")
 	board = _create_child("res://scripts/managers/board_manager.gd", "BoardManager")
+	# These children duplicate the existing autoloads during migration.
+	# Unregister them so the autoloads remain the authoritative subsystems.
+	GameManager.unregister_subsystem(timeline)
+	GameManager.unregister_subsystem(theory)
+	GameManager.unregister_subsystem(board)
 
 
 func _create_child(script_path: String, node_name: String) -> Node:

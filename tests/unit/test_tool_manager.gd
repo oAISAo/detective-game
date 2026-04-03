@@ -188,6 +188,7 @@ func test_use_invalid_tool_returns_empty() -> void:
 	obj.evidence_results = ["ev_test"]
 	var results: Array[String] = _tool_mgr.use_tool("fingerprint_powder", obj)
 	assert_eq(results.size(), 0, "Incompatible tool should return empty")
+	assert_push_warning("[ToolManager] Tool 'Fingerprint Powder' is not compatible with 'Test'")
 
 
 func test_has_used_tool_tracking() -> void:

@@ -240,8 +240,24 @@ func _on_title_continue(slot: int) -> void:
 
 	command_bar.visible = true
 	ScreenManager.reset()
-	_update_command_bar()
-	ScreenManager.navigate_to("desk_hub")
+
+	# If the save was in MORNING phase, process morning to transition to DAYTIME
+	if GameManager.current_phase == Enums.DayPhase.MORNING:
+		if DaySystem.has_method("process_morning"):
+			var briefing_items: Array[String] = []
+			briefing_items.assign(DaySystem.call("process_morning"))
+			_update_command_bar()
+			ScreenManager.navigate_to("desk_hub")
+			if not briefing_items.is_empty():
+				DialogueSystem.queue_briefing(briefing_items, GameManager.current_day)
+				ScreenManager.open_modal("morning_briefing")
+		else:
+			_update_command_bar()
+			ScreenManager.navigate_to("desk_hub")
+	else:
+		_update_command_bar()
+		ScreenManager.navigate_to("desk_hub")
+
 	print("[GameRoot] Continued from save slot %d." % slot)
 
 

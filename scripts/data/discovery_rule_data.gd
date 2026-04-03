@@ -42,8 +42,7 @@ func validate() -> Array[String]:
 		errors.append("DiscoveryRuleData: id is required")
 	if evidence_id.is_empty():
 		errors.append("DiscoveryRuleData: evidence_id is required")
-	if location_id.is_empty():
-		errors.append("DiscoveryRuleData: location_id is required")
+	# location_id is optional — warrant-obtained evidence has no physical location
 	return errors
 
 

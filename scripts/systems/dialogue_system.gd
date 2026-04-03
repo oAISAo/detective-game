@@ -227,6 +227,12 @@ func _start_next_dialogue() -> void:
 	var did: String = _current_dialogue.get("id", "")
 	dialogue_started.emit(did)
 
+	# Skip zero-line dialogues to prevent recursion
+	var lines: Array = _current_dialogue.get("lines", [])
+	if lines.is_empty():
+		_end_current_dialogue()
+		return
+
 	# Auto-advance to first line
 	advance()
 
@@ -240,10 +246,8 @@ func _end_current_dialogue() -> void:
 	_current_line_index = -1
 	dialogue_ended.emit(did)
 
-	# Defer the next dialogue start to break potential recursion from
-	# zero-line dialogues: _start_next_dialogue -> advance -> _end_current_dialogue
 	if not _dialogue_queue.is_empty():
-		_start_next_dialogue.call_deferred()
+		_start_next_dialogue()
 	else:
 		all_dialogues_completed.emit()
 

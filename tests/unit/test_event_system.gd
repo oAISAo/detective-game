@@ -109,12 +109,22 @@ func test_check_conditions_trigger_fired() -> void:
 
 func test_check_conditions_lab_complete() -> void:
 	var conditions: Array[String] = ["lab_complete:lab_01"]
-	# Lab still active — condition should fail
-	GameManager.active_lab_requests.append({"id": "lab_01"})
-	assert_false(EventSystem._check_conditions(conditions), "Should fail when lab is still active")
-	# Lab completed (removed from active)
-	GameManager.active_lab_requests.clear()
-	assert_true(EventSystem._check_conditions(conditions), "Should pass when lab is no longer active")
+	# Submit a lab request through LabManager so it tracks it properly
+	GameManager.discover_evidence("ev_test_input")
+	var lab_mgr: Node = get_node_or_null("/root/LabManager")
+	if lab_mgr:
+		lab_mgr.reset()
+		# We need to inject a request with id "lab_01" — use internal state
+		lab_mgr._requests["lab_01"] = {
+			"id": "lab_01",
+			"input_evidence_id": "ev_test_input",
+			"status": "pending",
+		}
+	assert_false(EventSystem._check_conditions(conditions), "Should fail when lab is still pending")
+	# Complete the lab request
+	if lab_mgr:
+		lab_mgr._requests["lab_01"]["status"] = "completed"
+	assert_true(EventSystem._check_conditions(conditions), "Should pass when lab is completed")
 
 
 func test_check_conditions_multiple() -> void:

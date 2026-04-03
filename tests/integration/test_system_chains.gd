@@ -34,8 +34,8 @@ var _test_case_data: Dictionary = {
 		{"id": "evt_argument", "name": "Argument Heard", "description": "Witnesses hear argument.", "time": "21:30", "day": 1, "location": "loc_scene", "involved_persons": ["p_mark", "p_victim"]},
 	],
 	"interrogation_triggers": [
-		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "dialogue": "I never touched that knife.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
-		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_knife_dna", "dialogue": "That's impossible!", "impact_level": "MAJOR", "reaction_type": "PANIC", "pressure_points": 2},
+		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "target_topic_id": "general", "dialogue": "I never touched that knife.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
+		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_knife_dna", "target_topic_id": "general", "dialogue": "That's impossible!", "impact_level": "MAJOR", "reaction_type": "PANIC", "pressure_points": 2},
 	],
 	"solution": {
 		"suspect": "p_mark",
@@ -292,7 +292,8 @@ func test_all_systems_serialize_roundtrip() -> void:
 	TimelineManager.place_event("evt_arrival", 1260, 1)
 	var theory: Dictionary = TheoryManager.create_theory("Test")
 	TheoryManager.set_suspect(theory["id"], "p_mark")
-	LabManager.submit_request("ev_knife", "DNA", "ev_knife_dna", 1)
+	var lab_req: Dictionary = LabManager.submit_request("ev_knife", "DNA", "ev_knife_dna", 1)
+	assert_false(lab_req.is_empty(), "LabManager.submit_request should succeed")
 	SurveillanceManager.install_surveillance("p_mark", Enums.SurveillanceType.PHYSICAL)
 
 	# Serialize

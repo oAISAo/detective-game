@@ -27,6 +27,11 @@ func _ready() -> void:
 	lab = _create_child("res://scripts/managers/lab_manager.gd", "LabManager")
 	surveillance = _create_child("res://scripts/managers/surveillance_manager.gd", "SurveillanceManager")
 	warrant = _create_child("res://scripts/managers/warrant_manager.gd", "WarrantManager")
+	# These children duplicate the existing autoloads during migration.
+	# Unregister them so the autoloads remain the authoritative subsystems.
+	GameManager.unregister_subsystem(lab)
+	GameManager.unregister_subsystem(surveillance)
+	GameManager.unregister_subsystem(warrant)
 
 
 func _create_child(script_path: String, node_name: String) -> Node:

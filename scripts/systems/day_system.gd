@@ -166,6 +166,10 @@ func _process_night() -> void:
 	GameManager.reset_actions()
 	_morning_briefing_shown = false
 
+	# End any active interrogation session left over from the previous day
+	if InterrogationManager.is_active():
+		InterrogationManager.end_interrogation()
+
 	GameManager.log_action("Day %d begins." % GameManager.current_day)
 
 	# Reset ActionSystem daily tracking

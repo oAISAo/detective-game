@@ -151,7 +151,7 @@ var _test_case_data: Dictionary = {
 		{
 			"id": "insight_confession",
 			"description": "Suspect confessed",
-			"source_evidence": [],
+			"source_evidence": ["ev_weapon"],
 			"unlocks_topic": "",
 		},
 	],

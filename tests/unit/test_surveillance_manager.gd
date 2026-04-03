@@ -134,6 +134,7 @@ func test_install_rejects_duplicate_person() -> void:
 		"p_mark", Enums.SurveillanceType.HOME_SURVEILLANCE
 	)
 	assert_true(dup.is_empty(), "Should reject duplicate person surveillance")
+	assert_push_warning("[SurveillanceManager] Person already under surveillance: p_mark")
 
 
 func test_install_respects_concurrent_limit() -> void:
@@ -143,6 +144,7 @@ func test_install_respects_concurrent_limit() -> void:
 		"p_sam", Enums.SurveillanceType.FINANCIAL_MONITORING
 	)
 	assert_true(third.is_empty(), "Should reject when at max concurrent (%d)" % SurveillanceManager.MAX_CONCURRENT)
+	assert_push_warning("[SurveillanceManager] Maximum concurrent surveillance reached")
 	assert_eq(SurveillanceManager.get_active_count(), 2)
 
 
@@ -210,6 +212,7 @@ func test_cancel_removes_from_game_manager() -> void:
 
 func test_cancel_nonexistent_returns_false() -> void:
 	assert_false(SurveillanceManager.cancel_surveillance("nonexistent"))
+	assert_push_warning("[SurveillanceManager] Operation not found: nonexistent")
 
 
 func test_cancel_already_cancelled_returns_false() -> void:
@@ -218,6 +221,7 @@ func test_cancel_already_cancelled_returns_false() -> void:
 	)
 	SurveillanceManager.cancel_surveillance(op["id"])
 	assert_false(SurveillanceManager.cancel_surveillance(op["id"]))
+	assert_push_warning("[SurveillanceManager] Cannot cancel non-active operation")
 
 
 func test_cancelled_person_can_be_re_surveilled() -> void:

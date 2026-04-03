@@ -170,6 +170,7 @@ func test_submit_report_missing_section() -> void:
 	}
 	var result: bool = ConclusionManager.submit_report(report)
 	assert_false(result, "Incomplete report should be rejected")
+	assert_push_warning("[ConclusionManager] Missing report section: weapon")
 	assert_false(ConclusionManager.has_report(), "No report after rejection")
 
 
@@ -183,6 +184,15 @@ func test_submit_report_invalid_section_format() -> void:
 	}
 	var result: bool = ConclusionManager.submit_report(report)
 	assert_false(result, "Report with invalid section format should be rejected")
+	assert_push_warning("[ConclusionManager] Invalid section format: suspect")
+
+
+func test_submit_report_already_submitted() -> void:
+	var report: Dictionary = _make_report("p_mark", "Insurance", "Knife", "1260 1", "Key")
+	ConclusionManager.submit_report(report)
+	var result: bool = ConclusionManager.submit_report(report)
+	assert_false(result, "Second submission should be rejected")
+	assert_push_warning("[ConclusionManager] Report already submitted.")
 
 
 func test_get_report_returns_copy() -> void:
@@ -545,6 +555,7 @@ func test_make_invalid_choice() -> void:
 	ConclusionManager.submit_report(report)
 	var result: bool = ConclusionManager.make_choice("invalid")
 	assert_false(result, "Invalid choice should fail")
+	assert_push_warning("[ConclusionManager] Invalid choice: invalid")
 	assert_eq(ConclusionManager.get_player_choice(), "")
 
 

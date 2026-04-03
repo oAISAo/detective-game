@@ -13,6 +13,8 @@ enum EvidenceType {
 	FINANCIAL,
 	DIGITAL,
 	OBJECT,
+	PHYSICAL,
+	TESTIMONIAL,
 }
 
 ## The role a person plays in the case.
@@ -54,6 +56,7 @@ enum ImportanceLevel {
 	CRITICAL,
 	SUPPORTING,
 	OPTIONAL,
+	KEY,
 }
 
 ## How the evidence was discovered.

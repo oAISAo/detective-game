@@ -110,6 +110,9 @@ var hints_used: int = 0
 ## Whether the game is currently running.
 var game_active: bool = false
 
+## Whether debug mode is active (shows extra status text in UI).
+var debug_mode: bool = false
+
 ## Registry of subsystems that auto-register for reset/serialize/deserialize.
 var _subsystems: Array[Node] = []
 
@@ -153,6 +156,7 @@ func new_game() -> void:
 	investigation_log.clear()
 	hints_used = 0
 	game_active = true
+	debug_mode = false
 
 	# Reset all registered subsystems
 	for subsystem in _subsystems:

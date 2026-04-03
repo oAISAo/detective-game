@@ -208,9 +208,6 @@ func check_contradictions() -> Array[Dictionary]:
 	var new_list: Array[Dictionary] = []
 	var all_stmts: Array[StatementData] = CaseManager.get_all_statements()
 	for stmt: StatementData in all_stmts:
-		# Only check statements the player has already encountered
-		if stmt.day_given <= 0 or stmt.day_given > GameManager.current_day:
-			continue
 		for ev_id: String in stmt.contradicting_evidence:
 			if GameManager.has_evidence(ev_id):
 				new_list.append({

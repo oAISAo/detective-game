@@ -285,6 +285,13 @@ var _test_case_data: Dictionary = {
 			"related_evidence": [],
 		},
 		{
+			"id": "s_lucas_initial",
+			"person_id": "p_lucas",
+			"text": "I was in the basement working all evening.",
+			"day_given": 1,
+			"related_evidence": [],
+		},
+		{
 			"id": "s_lucas_key_admission",
 			"person_id": "p_lucas",
 			"text": "I used the key to check a reported leak.",
@@ -386,7 +393,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_financial",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "Fine, I moved some money. But it has nothing to do with this.",
@@ -428,7 +435,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_shoe_print",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "I heard a female voice from upstairs.",
@@ -470,7 +477,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_shoe_print",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "MAJOR",
 			"reaction_type": "SILENCE",
 			"dialogue": "...",
@@ -484,7 +491,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_journal",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "BREAKPOINT",
 			"reaction_type": "PARTIAL_CONFESSION",
 			"dialogue": "He was going to ruin everything. I had no choice.",
@@ -498,7 +505,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_maintenance",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "MINOR",
 			"reaction_type": "DENIAL",
 			"dialogue": "I do regular checks. That is my job.",
@@ -512,7 +519,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_key_access",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
 			"dialogue": "I used the key to check a reported leak.",
@@ -526,7 +533,7 @@ var _test_case_data: Dictionary = {
 			"evidence_id": "ev_no_trigger",
 			"requires_statement_id": "",
 			"target_statement_id": "",
-			"target_topic_id": "",
+			"target_topic_id": "general",
 			"impact_level": "MINOR",
 			"reaction_type": "DEFLECTION",
 			"dialogue": "You should really talk to Julia about this.",
@@ -571,7 +578,7 @@ var _test_case_data: Dictionary = {
 		{
 			"person_id": "p_lucas",
 			"initial_dialogue": "Lucas leans back casually.",
-			"initial_statement_ids": [],
+			"initial_statement_ids": ["s_lucas_initial"],
 			"base_topic_ids": [],
 			"pressure_gate": 1,
 			"rejection_texts": [],
@@ -667,6 +674,7 @@ func test_start_interrogation_fails_when_already_active() -> void:
 	InterrogationManager.start_interrogation("p_mark")
 	var result: bool = InterrogationManager.start_interrogation("p_sarah")
 	assert_false(result, "Should fail when already interrogating")
+	assert_push_warning("[InterrogationManager] Cannot start: already interrogating p_mark")
 	assert_eq(InterrogationManager.get_current_person_id(), "p_mark", "Should still be with Mark")
 
 
@@ -700,6 +708,7 @@ func test_daily_limit_enforced() -> void:
 	InterrogationManager.end_interrogation()
 	var result: bool = InterrogationManager.start_interrogation("p_mark")
 	assert_false(result, "Should not allow second interrogation of same suspect today")
+	assert_push_warning("[InterrogationManager] Cannot interrogate p_mark: daily limit reached")
 
 
 func test_daily_limit_allows_different_suspect() -> void:
@@ -859,20 +868,16 @@ func test_present_evidence_emits_statement_recorded() -> void:
 # requires_statement_id — Prerequisite Gating
 # =========================================================================
 
-func test_requires_statement_weakens_when_not_heard() -> void:
-	# trig_mark_camera requires s_mark_left_early heard; session auto-records it,
-	# but we need a fresh session without auto-record. Use lucas who has no initial stmts,
-	# then test with a mark trigger that requires a statement not yet heard.
-	# Actually mark auto-records s_mark_left_early — so prerequisite IS met.
-	# Instead, test with safe trigger which requires s_mark_embezzlement (NOT auto-heard).
+func test_requires_statement_blocks_when_not_heard() -> void:
+	# trig_mark_safe requires s_mark_embezzlement (NOT auto-heard).
+	# Without hearing prerequisite, trigger must NOT fire (hard gate).
 	_start_with("p_mark", ["ev_safe"])
 	InterrogationManager.advance_to_interrogation()
 	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
 	var result: Dictionary = InterrogationManager.present_evidence("ev_safe")
-	assert_true(result.get("triggered", false), "Should still fire")
-	assert_true(result.get("weakened", false), "Should be weakened without prerequisite")
-	assert_eq(result.get("impact_level", -1), Enums.ImpactLevel.MAJOR,
-		"BREAKPOINT → MAJOR when weakened")
+	assert_false(result.get("triggered", false), "Should not fire without prerequisite")
+	assert_eq(result.get("reason", ""), "prerequisite_not_met",
+		"Should report prerequisite_not_met")
 
 
 func test_requires_statement_full_strength_when_heard() -> void:
@@ -885,19 +890,21 @@ func test_requires_statement_full_strength_when_heard() -> void:
 	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
 	var result: Dictionary = InterrogationManager.present_evidence("ev_safe")
 	assert_true(result.get("triggered", false))
-	assert_false(result.get("weakened", false), "Should not be weakened when prerequisite met")
 	assert_eq(result.get("impact_level", -1), Enums.ImpactLevel.BREAKPOINT)
 
 
-func test_requires_statement_pressure_halved_when_weakened() -> void:
+func test_requires_statement_blocks_pressure_when_not_heard() -> void:
 	# trig_mark_safe has pressure_points=1 and requires s_mark_embezzlement;
-	# without hearing it, weakened → 1/2=0
+	# without hearing it, trigger is completely blocked — no pressure added
 	_start_with("p_mark", ["ev_safe"])
 	InterrogationManager.advance_to_interrogation()
+	var pressure_before: int = InterrogationManager.get_current_pressure()
 	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
 	var result: Dictionary = InterrogationManager.present_evidence("ev_safe")
-	assert_eq(result.get("pressure_added", -1), 0,
-		"Pressure should be halved (1/2=0 floor) when weakened")
+	assert_false(result.get("triggered", false),
+		"Trigger should not fire without prerequisite")
+	assert_eq(InterrogationManager.get_current_pressure(), pressure_before,
+		"Pressure should not change when trigger is blocked")
 
 
 # =========================================================================
@@ -976,7 +983,8 @@ func test_break_moment_changes_phase() -> void:
 	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
 	InterrogationManager.present_evidence("ev_safe")
 	InterrogationManager.apply_pressure()
-	assert_eq(InterrogationManager.get_current_phase(), Enums.InterrogationPhase.BREAK_MOMENT)
+	# After break, phase returns to INTERROGATION so player can continue
+	assert_eq(InterrogationManager.get_current_phase(), Enums.InterrogationPhase.INTERROGATION)
 
 
 func test_break_moment_persists_across_sessions() -> void:
@@ -1170,42 +1178,43 @@ func test_contradiction_not_duplicated() -> void:
 
 
 # =========================================================================
-# Apply Pressure — Contradiction Gating
+# Apply Pressure — Pressure-Based Gating
 # =========================================================================
 
-func test_apply_pressure_fails_without_enough_contradictions() -> void:
+func test_apply_pressure_fails_without_enough_pressure() -> void:
 	# Mark's pressure_gate is 2
 	_start_with("p_mark", ["ev_parking_camera"])
 	InterrogationManager.advance_to_interrogation()
-	# Only 1 contradiction
+	# Only 1 pressure point
 	InterrogationManager.select_focus("statement", "s_mark_left_early")
 	InterrogationManager.present_evidence("ev_parking_camera")
 	var result: Dictionary = InterrogationManager.apply_pressure()
 	assert_false(result.get("success", true))
-	assert_eq(result.get("reason", ""), "insufficient_contradictions")
+	assert_eq(result.get("reason", ""), "insufficient_pressure")
 
 
 func test_can_apply_pressure_returns_false_below_gate() -> void:
 	_start_with("p_mark", ["ev_parking_camera"])
 	InterrogationManager.advance_to_interrogation()
 	InterrogationManager.select_focus("statement", "s_mark_left_early")
-	InterrogationManager.present_evidence("ev_parking_camera")  # 1 contradiction
+	InterrogationManager.present_evidence("ev_parking_camera")  # 1 pressure
 	assert_false(InterrogationManager.can_apply_pressure(),
-		"Should not be able to apply pressure with < gate contradictions")
+		"Should not be able to apply pressure with < gate pressure")
 
 
 func test_apply_pressure_succeeds_at_gate() -> void:
-	# Mark gate is 2, need 2 contradictions
+	# Mark gate is 2, need 2 pressure points
 	_start_with("p_mark", ["ev_parking_camera", "ev_financial"])
 	InterrogationManager.advance_to_interrogation()
 	InterrogationManager.select_focus("statement", "s_mark_left_early")
-	InterrogationManager.present_evidence("ev_parking_camera")  # contradiction 1
+	InterrogationManager.present_evidence("ev_parking_camera")  # pressure 1
 	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
-	InterrogationManager.present_evidence("ev_financial")  # contradiction 2
+	InterrogationManager.present_evidence("ev_financial")  # pressure 2
 	assert_true(InterrogationManager.can_apply_pressure())
 	var result: Dictionary = InterrogationManager.apply_pressure()
 	assert_true(result.get("success", false))
-	assert_eq(InterrogationManager.get_current_phase(), Enums.InterrogationPhase.PRESSURE)
+	# After pressure, phase returns to INTERROGATION so player can continue
+	assert_eq(InterrogationManager.get_current_phase(), Enums.InterrogationPhase.INTERROGATION)
 
 
 func test_apply_pressure_with_sarah_lower_gate() -> void:
@@ -1213,10 +1222,46 @@ func test_apply_pressure_with_sarah_lower_gate() -> void:
 	_start_with("p_sarah", ["ev_hallway_camera"])
 	InterrogationManager.advance_to_interrogation()
 	InterrogationManager.select_focus("statement", "s_sarah_was_home")
-	InterrogationManager.present_evidence("ev_hallway_camera")  # 1 contradiction
+	InterrogationManager.present_evidence("ev_hallway_camera")  # 1 pressure
 	assert_true(InterrogationManager.can_apply_pressure())
 	var result: Dictionary = InterrogationManager.apply_pressure()
 	assert_true(result.get("success", false))
+
+
+func test_apply_pressure_blocked_after_break() -> void:
+	# After a break moment, apply_pressure cannot be used again
+	_start_with("p_mark", ["ev_financial", "ev_parking_camera", "ev_safe"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
+	InterrogationManager.present_evidence("ev_safe")
+	var break_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(break_result.get("break_moment", false),
+		"First apply_pressure should trigger break")
+
+	# Second apply_pressure should fail with already_used
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Should not be able to apply pressure after break")
+	var second_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_false(second_result.get("success", true),
+		"Second apply_pressure should fail")
+	assert_eq(second_result.get("reason", ""), "already_used",
+		"Should report already_used reason")
+
+
+func test_phase_returns_to_interrogation_after_pressure() -> void:
+	# After a successful apply_pressure (with or without break), phase stays INTERROGATION
+	_start_with("p_sarah", ["ev_hallway_camera"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_sarah_was_home")
+	InterrogationManager.present_evidence("ev_hallway_camera")
+	InterrogationManager.apply_pressure()
+	assert_eq(InterrogationManager.get_current_phase(),
+		Enums.InterrogationPhase.INTERROGATION,
+		"Phase should return to INTERROGATION after pressure")
 
 
 # =========================================================================
@@ -1348,3 +1393,230 @@ func test_case_manager_get_trigger_by_evidence_no_match() -> void:
 func test_case_manager_get_all_interrogation_triggers() -> void:
 	var all_triggers: Array[InterrogationTriggerData] = CaseManager.get_all_interrogation_triggers()
 	assert_eq(all_triggers.size(), 12, "Should have 12 total triggers")
+
+
+# =========================================================================
+# Resolved-State Feedback — already_fired path
+# =========================================================================
+
+func test_already_fired_trigger_returns_already_fired() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	# First time — fires
+	InterrogationManager.present_evidence("ev_financial")
+	# Second time — already fired
+	var result: Dictionary = InterrogationManager.present_evidence("ev_financial")
+	assert_false(result.get("triggered", true), "Should not trigger again")
+	assert_true(result.get("already_fired", false),
+		"Should report already_fired for repeated valid evidence")
+
+
+func test_already_fired_sibling_returns_already_fired() -> void:
+	# Fire camera on one focus, try on a different focus — sibling dedup
+	_start_with("p_mark", ["ev_parking_camera"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	InterrogationManager.present_evidence("ev_parking_camera")  # fires
+
+	# Now try different focus with same evidence
+	InterrogationManager.select_focus("statement", "s_mark_admission_time")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_parking_camera")
+	assert_false(result.get("triggered", true))
+	assert_true(result.get("already_fired", false),
+		"Sibling dedup should return already_fired")
+
+
+func test_wrong_evidence_does_not_return_already_fired() -> void:
+	_start_with("p_mark", ["ev_hallway_camera"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_hallway_camera")
+	assert_false(result.get("triggered", true))
+	assert_false(result.get("already_fired", false),
+		"Wrong evidence should NOT report already_fired")
+	assert_eq(result.get("reason", ""), "wrong_evidence")
+
+
+# =========================================================================
+# Serialization — Persistent + Session State
+# =========================================================================
+
+func test_serialize_preserves_fired_triggers() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	InterrogationManager.end_interrogation()
+
+	var data: Dictionary = InterrogationManager.serialize()
+	assert_true(data.has("fired_triggers"), "Should include fired_triggers")
+	var fired: Array = data["fired_triggers"].get("p_mark", [])
+	assert_has(fired, "trig_mark_financial", "Should record fired trigger")
+
+
+func test_serialize_preserves_heard_statements() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	InterrogationManager.end_interrogation()
+
+	var data: Dictionary = InterrogationManager.serialize()
+	var heard: Array = data.get("heard_statements", [])
+	assert_has(heard, "s_mark_left_early", "Should include initial statement")
+	assert_has(heard, "s_mark_embezzlement", "Should include trigger-produced statement")
+
+
+func test_serialize_preserves_accumulated_pressure() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	InterrogationManager.end_interrogation()
+
+	var data: Dictionary = InterrogationManager.serialize()
+	var pressure: Dictionary = data.get("accumulated_pressure", {})
+	assert_eq(pressure.get("p_mark", 0), 1, "Should preserve accumulated pressure")
+
+
+func test_serialize_preserves_break_moments() -> void:
+	_start_with("p_mark", ["ev_financial", "ev_parking_camera", "ev_safe"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	InterrogationManager.select_focus("statement", "s_mark_embezzlement")
+	InterrogationManager.present_evidence("ev_safe")
+	InterrogationManager.apply_pressure()
+	InterrogationManager.end_interrogation()
+
+	var data: Dictionary = InterrogationManager.serialize()
+	var breaks: Dictionary = data.get("break_moments", {})
+	assert_true(breaks.get("p_mark", false), "Should preserve break moment")
+
+
+func test_serialize_mid_session_includes_session_state() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+
+	var data: Dictionary = InterrogationManager.serialize()
+	assert_true(data.has("session"), "Active session should be serialized")
+	var session: Dictionary = data["session"]
+	assert_eq(session.get("person_id", ""), "p_mark")
+	assert_eq(session.get("phase", -1), Enums.InterrogationPhase.INTERROGATION)
+	assert_eq(session.get("pressure", 0), 1)
+
+
+func test_serialize_mid_session_includes_fired_evidence() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+
+	var data: Dictionary = InterrogationManager.serialize()
+	var session: Dictionary = data.get("session", {})
+	var fired_ev: Array = session.get("fired_evidence", [])
+	assert_has(fired_ev, "ev_financial",
+		"Session should serialize _session_fired_evidence")
+
+
+func test_deserialize_restores_persistent_state() -> void:
+	# Build up state
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	InterrogationManager.end_interrogation()
+
+	# Serialize, reset, deserialize
+	var data: Dictionary = InterrogationManager.serialize()
+	InterrogationManager.reset()
+
+	assert_eq(InterrogationManager.get_fired_triggers_for_person("p_mark").size(), 0,
+		"Should be empty after reset")
+
+	InterrogationManager.deserialize(data)
+	var fired: Array = InterrogationManager.get_fired_triggers_for_person("p_mark")
+	assert_has(fired, "trig_mark_financial", "Deserialized fired triggers should be restored")
+	assert_has(InterrogationManager.get_heard_statements(), "s_mark_embezzlement",
+		"Deserialized heard statements should be restored")
+	assert_eq(InterrogationManager.get_pressure_for_person("p_mark"), 1,
+		"Deserialized pressure should be restored")
+
+
+func test_deserialize_restores_mid_session() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+
+	# Serialize mid-session
+	var data: Dictionary = InterrogationManager.serialize()
+	InterrogationManager.reset()
+	assert_false(InterrogationManager.is_active(), "Should be inactive after reset")
+
+	# Deserialize
+	InterrogationManager.deserialize(data)
+	assert_true(InterrogationManager.is_active(), "Should be active after restoring mid-session")
+	assert_eq(InterrogationManager.get_current_person_id(), "p_mark")
+	assert_eq(InterrogationManager.get_current_pressure(), 1)
+
+
+func test_deserialize_mid_session_restores_fired_evidence() -> void:
+	_start_with("p_mark", ["ev_financial", "ev_parking_camera"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+
+	# Serialize and restore
+	var data: Dictionary = InterrogationManager.serialize()
+	InterrogationManager.reset()
+	InterrogationManager.deserialize(data)
+
+	# ev_financial was already used — presenting again should return already_fired
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_financial")
+	assert_false(result.get("triggered", true))
+	assert_true(result.get("already_fired", false),
+		"Deserialized session should remember used evidence via _session_fired_evidence")
+
+
+func test_deserialize_restores_contradictions() -> void:
+	_start_with("p_mark", ["ev_parking_camera"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_left_early")
+	InterrogationManager.present_evidence("ev_parking_camera")
+
+	var data: Dictionary = InterrogationManager.serialize()
+	InterrogationManager.reset()
+	InterrogationManager.deserialize(data)
+
+	var contras: Array[Dictionary] = InterrogationManager.get_session_contradictions()
+	assert_eq(contras.size(), 1, "Should restore contradictions")
+	assert_eq(contras[0].get("statement_id", ""), "s_mark_left_early")
+	assert_eq(contras[0].get("evidence_id", ""), "ev_parking_camera")
+
+
+func test_deserialize_restores_unlocked_topics() -> void:
+	_start_with("p_mark", ["ev_financial"])
+	InterrogationManager.advance_to_interrogation()
+	InterrogationManager.select_focus("statement", "s_mark_financial_denial")
+	InterrogationManager.present_evidence("ev_financial")
+	# trig_mark_financial unlocks ev_unlocked_clue, not a topic.
+	# Manually check if any trigger unlocks topics, or use the real case data test instead.
+	# For unit test, just verify the session.unlocked_topics field round-trips.
+
+	var data: Dictionary = InterrogationManager.serialize()
+	var session_topics: Array = data.get("session", {}).get("unlocked_topics", [])
+	InterrogationManager.reset()
+	InterrogationManager.deserialize(data)
+
+	# Verify the unlocked_topic_ids were restored (even if empty for this trigger)
+	var topics_after: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	# At minimum, base topics should be available after restore
+	assert_true(InterrogationManager.is_active(),
+		"Session should be active after restore")

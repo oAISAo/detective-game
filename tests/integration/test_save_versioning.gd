@@ -49,7 +49,7 @@ func test_save_file_contains_version() -> void:
 	# Read the save file and verify version
 	var info: Dictionary = SaveManager.get_save_info(1)
 	assert_true(info.get("exists", false))
-	assert_eq(info.get("save_version", 0), SaveManager.SAVE_VERSION)
+	assert_eq(int(info.get("save_version", 0)), SaveManager.SAVE_VERSION)
 
 
 # =========================================================================
@@ -82,6 +82,7 @@ func test_version_mismatch_signal_emitted() -> void:
 	var loaded: bool = SaveManager.load_game(1)
 	assert_true(loaded)
 	assert_signal_emitted(SaveManager, "version_mismatch")
+	assert_push_warning("[SaveManager] Save version mismatch: file=999, current=1")
 
 
 # =========================================================================
@@ -139,7 +140,7 @@ func test_three_save_slots_independent() -> void:
 	for slot: int in [1, 2, 3]:
 		assert_true(SaveManager.has_save(slot))
 		var info: Dictionary = SaveManager.get_save_info(slot)
-		assert_eq(info.get("current_day", 0), slot)
+		assert_eq(int(info.get("current_day", 0)), slot)
 
 
 # =========================================================================
@@ -202,9 +203,9 @@ func test_save_info_metadata() -> void:
 
 	var info: Dictionary = SaveManager.get_save_info(1)
 	assert_true(info.get("exists", false))
-	assert_eq(info.get("save_version", 0), SaveManager.SAVE_VERSION)
-	assert_eq(info.get("current_day", 0), 2)
-	assert_eq(info.get("evidence_count", 0), 2)
+	assert_eq(int(info.get("save_version", 0)), SaveManager.SAVE_VERSION)
+	assert_eq(int(info.get("current_day", 0)), 2)
+	assert_eq(int(info.get("evidence_count", 0)), 2)
 	assert_false(info.get("save_timestamp", "").is_empty())
 
 
@@ -223,8 +224,8 @@ func test_corrupted_save_missing_fields() -> void:
 
 	var info: Dictionary = SaveManager.get_save_info(1)
 	assert_true(info.get("exists", false))
-	assert_eq(info.get("save_version", -1), 0, "Should read version 0")
-	assert_eq(info.get("current_day", -1), 1, "Missing field defaults to 1")
+	assert_eq(int(info.get("save_version", -1)), 0, "Should read version 0")
+	assert_eq(int(info.get("current_day", -1)), 1, "Missing field defaults to 1")
 
 
 # =========================================================================

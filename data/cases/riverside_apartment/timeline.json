@@ -243,6 +243,37 @@
 			"contradicting_evidence": []
 		},
 		{
+			"id": "stmt_mark_lied_to_hide_argument",
+			"person_id": "p_mark",
+			"text": "I lied because we argued and I didn't want it to look worse.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_parking_camera"
+			],
+			"related_event": "evt_argument_money",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_money_admission",
+			"person_id": "p_mark",
+			"text": "I moved money from the company and Daniel found out.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_bank_transfer"
+			],
+			"related_event": "evt_argument_money",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_julia_knew",
+			"person_id": "p_mark",
+			"text": "Julia may have known Daniel discovered the missing money.",
+			"day_given": 2,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
 			"id": "stmt_julia_initial",
 			"person_id": "p_julia",
 			"text": "I wasn't at the apartment that night.",

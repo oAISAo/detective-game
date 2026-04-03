@@ -288,38 +288,37 @@ func test_bank_transfer_increases_pressure_and_unlocks_missing_money() -> void:
 # Test 9: Apply Pressure is blocked below threshold
 # =========================================================================
 
-func test_apply_pressure_blocked_with_no_contradictions() -> void:
+func test_apply_pressure_blocked_with_no_pressure() -> void:
 	_start_and_advance()
 
 	assert_false(InterrogationManager.can_apply_pressure(),
-		"Should not be able to apply pressure with 0 contradictions")
+		"Should not be able to apply pressure with 0 pressure")
 
 	var result: Dictionary = InterrogationManager.apply_pressure()
 	assert_false(result.get("success", true), "Apply pressure should fail")
-	assert_eq(result.get("reason", ""), "insufficient_contradictions")
+	assert_eq(result.get("reason", ""), "insufficient_pressure")
 
 
 # =========================================================================
-# Test 10: Apply Pressure works at threshold 1
+# Test 10: Apply Pressure fails with only 1 pressure (gate is 2)
 # =========================================================================
 
-func test_apply_pressure_works_at_one_contradiction() -> void:
+func test_apply_pressure_fails_at_one_pressure() -> void:
 	_start_and_advance()
 	GameManager.discover_evidence("ev_parking_camera")
 
-	# Fire first trigger to get 1 contradiction + 1 pressure
+	# Fire first trigger to get 1 pressure
 	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
 	InterrogationManager.present_evidence("ev_parking_camera")
+	assert_eq(InterrogationManager.get_current_pressure(), 1)
 
-	assert_true(InterrogationManager.can_apply_pressure(),
-		"Should be able to apply pressure after 1 contradiction")
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Should NOT be able to apply pressure with 1/2 pressure")
 
 	var result: Dictionary = InterrogationManager.apply_pressure()
-	assert_true(result.get("success", false), "Apply pressure should succeed")
-	assert_false(result.get("break_moment", true),
-		"Should NOT trigger break at 1 pressure")
-	assert_true(result.get("dialogue", "").length() > 0,
-		"Should return pressure dialogue")
+	assert_false(result.get("success", true),
+		"Apply pressure should fail below gate")
+	assert_eq(result.get("reason", ""), "insufficient_pressure")
 
 
 # =========================================================================
@@ -634,10 +633,13 @@ func test_present_evidence_requires_focus_and_evidence() -> void:
 func test_apply_pressure_works_regardless_of_phase() -> void:
 	_start_and_advance()
 	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
 
-	# Get 1 contradiction to meet threshold
+	# Get 2 pressure points to meet Mark's gate of 2
 	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
 	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
 
 	# Still in INTERROGATION phase, apply pressure should work
 	assert_eq(InterrogationManager.get_current_phase(),
@@ -648,3 +650,585 @@ func test_apply_pressure_works_regardless_of_phase() -> void:
 	var result: Dictionary = InterrogationManager.apply_pressure()
 	assert_true(result.get("success", false),
 		"Apply pressure should succeed from INTERROGATION phase")
+
+
+# =========================================================================
+# Test: Follow-up topic "Why did you lie?" produces a logged statement
+# =========================================================================
+
+func test_why_lie_topic_produces_statement() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+
+	# Fire parking camera to unlock why-lie topic and produce prerequisite statement
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+
+	# Discuss the why-lie topic
+	var result: Dictionary = InterrogationManager.discuss_topic("topic_why_lie_about_time")
+	assert_true(result.get("dialogue", "").find("looks bad") >= 0,
+		"Should contain why-lie dialogue")
+	assert_has(result.get("statements", []), "stmt_mark_lied_to_hide_argument",
+		"Why-lie topic should produce lied-to-hide-argument statement")
+
+	# Verify statement is in session
+	var stmts: Array[String] = InterrogationManager.get_session_statements()
+	assert_has(stmts, "stmt_mark_lied_to_hide_argument",
+		"Statement should be recorded in session")
+
+
+# =========================================================================
+# Test: Follow-up topic "Missing money" produces a logged statement
+# =========================================================================
+
+func test_missing_money_topic_produces_statement() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Fire bank transfer to unlock missing money topic
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+
+	# Discuss the missing money topic
+	var result: Dictionary = InterrogationManager.discuss_topic("topic_missing_money")
+	assert_true(result.get("dialogue", "").find("transfers") >= 0,
+		"Should contain missing money dialogue")
+	assert_has(result.get("statements", []), "stmt_mark_money_admission",
+		"Missing money topic should produce money admission statement")
+
+	var stmts: Array[String] = InterrogationManager.get_session_statements()
+	assert_has(stmts, "stmt_mark_money_admission",
+		"Money admission statement should be recorded in session")
+
+
+# =========================================================================
+# Test: Follow-up topic "Who else knew?" produces a logged statement
+# =========================================================================
+
+func test_who_else_knew_topic_produces_statement() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Build up to break to unlock who-else-knew topic
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	InterrogationManager.apply_pressure()
+
+	# Discuss who-else-knew topic
+	var result: Dictionary = InterrogationManager.discuss_topic("topic_who_else_knew")
+	assert_true(result.get("dialogue", "").find("Julia") >= 0,
+		"Should mention Julia in dialogue")
+	assert_has(result.get("statements", []), "stmt_mark_julia_knew",
+		"Who-else-knew topic should produce julia-knew statement")
+
+	var stmts: Array[String] = InterrogationManager.get_session_statements()
+	assert_has(stmts, "stmt_mark_julia_knew",
+		"Julia-knew statement should be recorded in session")
+
+
+# =========================================================================
+# Test: Dialogue-only topic still shows dialogue when clicked
+# =========================================================================
+
+func test_dialogue_only_topic_shows_dialogue() -> void:
+	_start_and_advance()
+
+	# topic_relationship has no statements, only dialogue
+	var result: Dictionary = InterrogationManager.discuss_topic("topic_relationship")
+	assert_true(result.get("dialogue", "").find("worked together") >= 0,
+		"Dialogue-only topic should return its dialogue text")
+	assert_eq(result.get("statements", []).size(), 0,
+		"Dialogue-only topic should produce no statements")
+
+
+# =========================================================================
+# Test: Topic discussion emits topic_discussed signal
+# =========================================================================
+
+func test_topic_discussed_signal_emitted() -> void:
+	_start_and_advance()
+
+	# Use watch_signals for reliable signal detection in GUT
+	watch_signals(InterrogationManager)
+	InterrogationManager.discuss_topic("topic_reason_for_visit")
+	assert_signal_emitted(InterrogationManager, "topic_discussed",
+		"topic_discussed signal should be emitted")
+	var params: Array = get_signal_parameters(InterrogationManager, "topic_discussed")
+	assert_eq(params[0], "topic_reason_for_visit",
+		"Signal should carry the discussed topic ID")
+
+
+# =========================================================================
+# Test: Unlocked topics appear immediately in available topics
+# =========================================================================
+
+func test_unlocked_topics_appear_immediately() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+
+	# Before trigger
+	var topics_before: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var ids_before: Array[String] = []
+	for t: InterrogationTopicData in topics_before:
+		ids_before.append(t.id)
+	assert_does_not_have(ids_before, "topic_why_lie_about_time")
+
+	# Fire trigger that unlocks topic
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+
+	# Immediately after trigger — no phase reset or reopen needed
+	var topics_after: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var ids_after: Array[String] = []
+	for t: InterrogationTopicData in topics_after:
+		ids_after.append(t.id)
+	assert_has(ids_after, "topic_why_lie_about_time",
+		"Unlocked topic should appear immediately without any extra steps")
+
+
+# =========================================================================
+# Test: Full Mark Bennett flow with new statement logging
+# =========================================================================
+
+func test_full_mark_flow_with_statement_logging() -> void:
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+	GameManager.discover_evidence("ev_hidden_safe")
+
+	# Start
+	InterrogationManager.start_interrogation("p_mark")
+	assert_eq(InterrogationManager.get_current_phase(),
+		Enums.InterrogationPhase.INTERROGATION)
+
+	# Present parking camera
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	var r1: Dictionary = InterrogationManager.present_evidence("ev_parking_camera")
+	assert_true(r1.get("triggered", false))
+
+	# Ask why lie — should produce statement
+	var lie_result: Dictionary = InterrogationManager.discuss_topic("topic_why_lie_about_time")
+	assert_has(lie_result.get("statements", []), "stmt_mark_lied_to_hide_argument")
+
+	# Present bank transfer
+	InterrogationManager.select_focus("topic", "topic_relationship")
+	var r2: Dictionary = InterrogationManager.present_evidence("ev_bank_transfer")
+	assert_true(r2.get("triggered", false))
+
+	# Ask missing money — should produce statement
+	var money_result: Dictionary = InterrogationManager.discuss_topic("topic_missing_money")
+	assert_has(money_result.get("statements", []), "stmt_mark_money_admission")
+
+	# Apply pressure → break
+	var pressure_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(pressure_result.get("break_moment", false))
+
+	# Ask who else knew — should produce statement
+	var julia_result: Dictionary = InterrogationManager.discuss_topic("topic_who_else_knew")
+	assert_has(julia_result.get("statements", []), "stmt_mark_julia_knew")
+
+	# Present hidden safe for final lock
+	InterrogationManager.select_focus("topic", "topic_missing_money")
+	var r3: Dictionary = InterrogationManager.present_evidence("ev_hidden_safe")
+	assert_true(r3.get("triggered", false))
+	assert_has(InterrogationManager.get_session_statements(), "stmt_mark_final_lock")
+
+	# Verify all progression statements are in session
+	var all_stmts: Array[String] = InterrogationManager.get_session_statements()
+	assert_has(all_stmts, "stmt_mark_lied_to_hide_argument")
+	assert_has(all_stmts, "stmt_mark_money_admission")
+	assert_has(all_stmts, "stmt_mark_julia_knew")
+	assert_has(all_stmts, "stmt_mark_deeper_admission")
+	assert_has(all_stmts, "stmt_mark_final_lock")
+
+	InterrogationManager.end_interrogation()
+
+
+# =========================================================================
+# Regression: E24 Hidden Safe is blocked before stmt_mark_deeper_admission
+# =========================================================================
+
+func test_e24_hidden_safe_blocked_before_break() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+	GameManager.discover_evidence("ev_hidden_safe")
+
+	# Build up pressure but do NOT apply it yet
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	assert_eq(InterrogationManager.get_current_pressure(), 2)
+
+	# Try to present hidden safe before break — should be blocked
+	InterrogationManager.select_focus("topic", "topic_missing_money")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_hidden_safe")
+	assert_false(result.get("triggered", false),
+		"E24 should NOT fire before stmt_mark_deeper_admission is heard")
+	assert_eq(result.get("reason", ""), "prerequisite_not_met",
+		"Should report prerequisite_not_met")
+
+
+# =========================================================================
+# Regression: E24 works correctly after pressure break
+# =========================================================================
+
+func test_e24_hidden_safe_works_after_break() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+	GameManager.discover_evidence("ev_hidden_safe")
+
+	# Build pressure and break
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	var break_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(break_result.get("break_moment", false), "Break should occur")
+	assert_has(InterrogationManager.get_session_statements(),
+		"stmt_mark_deeper_admission", "Break should produce deeper admission")
+
+	# Now E24 should work (prerequisite met)
+	InterrogationManager.select_focus("topic", "topic_missing_money")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_hidden_safe")
+	assert_true(result.get("triggered", false),
+		"E24 should fire after break (stmt_mark_deeper_admission heard)")
+	assert_has(InterrogationManager.get_session_statements(),
+		"stmt_mark_final_lock", "Should produce final lock statement")
+
+
+# =========================================================================
+# Regression: Apply Pressure enables at exactly pressure_gate
+# =========================================================================
+
+func test_apply_pressure_enables_at_exact_gate() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# 0 pressure — should be disabled
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Should not be enabled at 0 pressure")
+
+	# 1 pressure — still below gate of 2
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	assert_eq(InterrogationManager.get_current_pressure(), 1)
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Should not be enabled at 1/2 pressure")
+
+	# 2 pressure — exactly at gate
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	assert_eq(InterrogationManager.get_current_pressure(), 2)
+	assert_true(InterrogationManager.can_apply_pressure(),
+		"Should be enabled at exactly 2/2 pressure (gate reached)")
+
+
+# =========================================================================
+# Regression: Pressure break unlocks topic_who_else_knew
+# =========================================================================
+
+func test_pressure_break_unlocks_who_else_knew() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Verify topic_who_else_knew is NOT available before break
+	var topics_before: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var ids_before: Array[String] = []
+	for t: InterrogationTopicData in topics_before:
+		ids_before.append(t.id)
+	assert_does_not_have(ids_before, "topic_who_else_knew",
+		"Who-else-knew should NOT be available before break")
+
+	# Build pressure and break
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	var break_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(break_result.get("break_moment", false), "Break should occur")
+
+	# Verify topic_who_else_knew is now available immediately
+	var topics_after: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var ids_after: Array[String] = []
+	for t: InterrogationTopicData in topics_after:
+		ids_after.append(t.id)
+	assert_has(ids_after, "topic_who_else_knew",
+		"Who-else-knew should be unlocked by pressure break")
+
+
+# =========================================================================
+# Test: Apply Pressure blocked after break with real case data
+# =========================================================================
+
+func test_apply_pressure_blocked_after_break() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Build pressure and break
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	var break_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_true(break_result.get("break_moment", false), "Break should occur")
+
+	# Second apply should fail
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Should NOT be able to apply pressure after break")
+	var second_result: Dictionary = InterrogationManager.apply_pressure()
+	assert_false(second_result.get("success", true),
+		"Second apply pressure should fail")
+	assert_eq(second_result.get("reason", ""), "already_used",
+		"Should report already_used")
+
+
+# =========================================================================
+# Test: Phase returns to INTERROGATION after break
+# =========================================================================
+
+func test_phase_returns_to_interrogation_after_break() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	InterrogationManager.apply_pressure()
+
+	assert_eq(InterrogationManager.get_current_phase(),
+		Enums.InterrogationPhase.INTERROGATION,
+		"Phase should return to INTERROGATION after break so player can continue")
+
+
+# =========================================================================
+# Test: Who Else Knew topic is discussable and produces dialogue
+# =========================================================================
+
+func test_who_else_knew_topic_is_discussable_after_break() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Build up to break
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	InterrogationManager.apply_pressure()
+
+	# Check topic appears
+	var topics: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var topic_ids: Array[String] = []
+	for t: InterrogationTopicData in topics:
+		topic_ids.append(t.id)
+	assert_has(topic_ids, "topic_who_else_knew",
+		"Who-else-knew topic must appear after break")
+
+	# Discuss it — should produce dialogue and statement
+	var result: Dictionary = InterrogationManager.discuss_topic("topic_who_else_knew")
+	assert_false(result.is_empty(), "Discussion result must not be empty")
+	assert_true(result.get("dialogue", "").find("Julia") >= 0,
+		"Dialogue should mention Julia")
+	assert_has(result.get("statements", []), "stmt_mark_julia_knew",
+		"Should produce julia-knew statement")
+
+	# Can still set focus and present evidence after break
+	InterrogationManager.select_focus("topic", "topic_who_else_knew")
+	var focus: Dictionary = InterrogationManager.get_current_focus()
+	assert_eq(focus.get("type", ""), "topic",
+		"Should be able to set focus after break")
+
+
+# =========================================================================
+# UI State: Present Evidence button logic
+# =========================================================================
+
+func test_present_evidence_disabled_without_focus() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+
+	# Without focus — evidence alone is not enough
+	var result: Dictionary = InterrogationManager.present_evidence("ev_parking_camera")
+	assert_false(result.get("triggered", false),
+		"Cannot present without focus")
+	assert_eq(result.get("reason", ""), "no_focus")
+
+
+func test_present_evidence_enabled_with_focus_and_evidence() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_parking_camera")
+	assert_true(result.get("triggered", false),
+		"Should trigger with valid focus + evidence")
+
+
+# =========================================================================
+# UI State: Apply Pressure disabled before, enabled after threshold
+# =========================================================================
+
+func test_apply_pressure_disabled_then_enabled() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# 0 pressure
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Disabled at 0 pressure")
+
+	# 1 pressure (below gate of 2)
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Disabled at 1/2 pressure")
+
+	# 2 pressure (at gate)
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	assert_true(InterrogationManager.can_apply_pressure(),
+		"Enabled at 2/2 pressure")
+
+	# After using it
+	InterrogationManager.apply_pressure()
+	assert_false(InterrogationManager.can_apply_pressure(),
+		"Disabled after use")
+
+
+# =========================================================================
+# Persistence: Save/load round-trip preserves Mark interrogation progress
+# =========================================================================
+
+func test_save_load_preserves_mark_progress() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Build up some progress
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+	InterrogationManager.select_focus("statement", "stmt_mark_argument")
+	InterrogationManager.present_evidence("ev_bank_transfer")
+	InterrogationManager.apply_pressure()
+
+	# End interrogation to save persistent state
+	InterrogationManager.end_interrogation()
+
+	# Serialize full game state
+	var game_data: Dictionary = GameManager.serialize()
+
+	# Reset everything
+	GameManager.new_game()
+	CaseManager.unload_case()
+	CaseManager.load_case_folder("riverside_apartment")
+	InterrogationManager.reset()
+
+	# Deserialize
+	GameManager.deserialize(game_data)
+
+	# Verify persistent interrogation state survived
+	assert_true(InterrogationManager.has_break_moment("p_mark"),
+		"Break moment should survive save/load")
+	assert_eq(InterrogationManager.get_pressure_for_person("p_mark"), 2,
+		"Accumulated pressure should survive save/load")
+
+	var fired: Array = InterrogationManager.get_fired_triggers_for_person("p_mark")
+	assert_true(fired.size() >= 2,
+		"Fired triggers should survive save/load")
+
+	var heard: Array[String] = InterrogationManager.get_heard_statements()
+	assert_has(heard, "stmt_mark_corrected_departure",
+		"Heard statements should survive save/load")
+	assert_has(heard, "stmt_mark_denies_financial",
+		"Heard statements should survive save/load")
+	assert_has(heard, "stmt_mark_deeper_admission",
+		"Break-produced statement should survive save/load")
+
+
+func test_save_load_preserves_mid_session_fired_evidence() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+	GameManager.discover_evidence("ev_bank_transfer")
+
+	# Present evidence — builds session state
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+
+	# Serialize mid-session
+	var game_data: Dictionary = GameManager.serialize()
+
+	# Reset + restore
+	InterrogationManager.reset()
+	GameManager.deserialize(game_data)
+
+	# Verify the session was restored and evidence is marked as used
+	assert_true(InterrogationManager.is_active(),
+		"Mid-session interrogation should be restored")
+	assert_eq(InterrogationManager.get_current_person_id(), "p_mark")
+
+	# Presenting the same evidence again should return already_fired
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_reinforced")
+	var result: Dictionary = InterrogationManager.present_evidence("ev_parking_camera")
+	assert_false(result.get("triggered", true),
+		"Evidence should be spent after save/load")
+	assert_true(result.get("already_fired", false),
+		"Should report already_fired for evidence used before save")
+
+
+func test_save_load_preserves_contradiction_markers() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+
+	# Serialize mid-session
+	var game_data: Dictionary = GameManager.serialize()
+	InterrogationManager.reset()
+	GameManager.deserialize(game_data)
+
+	# Check contradictions survived
+	var contras: Array[Dictionary] = InterrogationManager.get_session_contradictions()
+	assert_eq(contras.size(), 1,
+		"Contradiction markers should survive save/load")
+	assert_eq(contras[0].get("statement_id", ""), "stmt_mark_departure_time")
+	assert_eq(contras[0].get("evidence_id", ""), "ev_parking_camera")
+
+
+func test_save_load_preserves_unlocked_topics() -> void:
+	_start_and_advance()
+	GameManager.discover_evidence("ev_parking_camera")
+
+	# Fire trigger that unlocks topic_why_lie_about_time
+	InterrogationManager.select_focus("statement", "stmt_mark_departure_time")
+	InterrogationManager.present_evidence("ev_parking_camera")
+
+	# Verify topic is unlocked pre-save
+	var topics: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var ids: Array[String] = []
+	for t: InterrogationTopicData in topics:
+		ids.append(t.id)
+	assert_has(ids, "topic_why_lie_about_time", "Should be unlocked before save")
+
+	# Serialize mid-session, reset, restore
+	var game_data: Dictionary = GameManager.serialize()
+	InterrogationManager.reset()
+	GameManager.deserialize(game_data)
+
+	# Verify topic is still unlocked after load
+	var topics_after: Array[InterrogationTopicData] = InterrogationManager.get_available_topics()
+	var ids_after: Array[String] = []
+	for t: InterrogationTopicData in topics_after:
+		ids_after.append(t.id)
+	assert_has(ids_after, "topic_why_lie_about_time",
+		"Unlocked topics should survive save/load")
