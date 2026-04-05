@@ -192,10 +192,18 @@ func _process_lab_completions() -> Array[Dictionary]:
 		var req: Dictionary = request as Dictionary
 		if req.get("completion_day", 0) <= GameManager.current_day:
 			completed.append(req)
-			# Auto-discover the output evidence
+			# Auto-discover the output evidence, upgrading the raw version in place
 			var output_id: String = req.get("output_evidence_id", "")
+			var input_id: String = req.get("input_evidence_id", "")
 			if not output_id.is_empty():
-				GameManager.discover_evidence(output_id)
+				if not input_id.is_empty():
+					GameManager.upgrade_evidence(input_id, output_id)
+				else:
+					GameManager.discover_evidence(output_id)
+				# Notify the player about the lab result
+				var output_ev: EvidenceData = CaseManager.get_evidence(output_id)
+				var ev_name: String = output_ev.name if output_ev else output_id
+				NotificationManager.notify_lab_result("Lab result: %s" % ev_name)
 			# Sync authoritative state in LabManager
 			var lab_mgr: Node = get_node_or_null("/root/LabManager")
 			if lab_mgr and lab_mgr.has_method("_on_lab_result_ready"):

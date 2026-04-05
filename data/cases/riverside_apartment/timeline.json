@@ -289,7 +289,7 @@
 		{
 			"id": "stmt_sarah_initial",
 			"person_id": "p_sarah",
-			"text": "I heard some arguing but didn't see anything.",
+			"text": "I heard some arguing, but I didn't see anything.",
 			"day_given": 1,
 			"related_evidence": [
 				"ev_sarah_testimony"
@@ -298,6 +298,35 @@
 			"contradicting_evidence": [
 				"ev_hallway_camera"
 			]
+		},
+		{
+			"id": "stmt_sarah_heard_argument",
+			"person_id": "p_sarah",
+			"text": "There was definitely shouting next door.",
+			"day_given": 1,
+			"related_evidence": [
+				"ev_sarah_testimony"
+			],
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_sarah_didnt_look",
+			"person_id": "p_sarah",
+			"text": "I didn't want to get involved.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_sarah_not_unusual",
+			"person_id": "p_sarah",
+			"text": "I'd heard raised voices before, but never like that.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": []
 		},
 		{
 			"id": "stmt_lucas_initial",
@@ -313,7 +342,7 @@
 		{
 			"id": "stmt_sarah_saw_woman",
 			"person_id": "p_sarah",
-			"text": "I saw a woman leave his apartment that night. She was in a hurry and her hands... there was something on them.",
+			"text": "I saw a woman leave Daniel's apartment that night.",
 			"day_given": 2,
 			"related_evidence": [
 				"ev_hallway_camera"
@@ -340,13 +369,15 @@
 			"related_evidence": [
 				"ev_hallway_camera"
 			],
-			"related_event": "",
-			"contradicting_evidence": []
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": [
+				"ev_shoe_print"
+			]
 		},
 		{
 			"id": "stmt_sarah_footsteps",
 			"person_id": "p_sarah",
-			"text": "Someone walked past my door quickly.",
+			"text": "I heard someone walk past my door quickly.",
 			"day_given": 2,
 			"related_evidence": [
 				"ev_shoe_print"

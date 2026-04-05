@@ -39,6 +39,9 @@ var _notifications: Array[Dictionary] = []
 ## Counter for generating unique notification IDs.
 var _next_id: int = 1
 
+## When true, notifications are silently suppressed (e.g. during interrogation).
+var suppressed: bool = false
+
 
 # --- Lifecycle --- #
 
@@ -51,6 +54,8 @@ func _ready() -> void:
 ## Adds a new notification to the queue.
 ## Returns the notification ID.
 func notify(title: String, message: String, type: NotificationType = NotificationType.SYSTEM) -> String:
+	if suppressed:
+		return ""
 	var notif: Dictionary = {
 		"id": "notif_%d" % _next_id,
 		"title": title,

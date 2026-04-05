@@ -106,10 +106,13 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 	if "visual_inspection" in _performed_actions.get(action_key, []):
 		return []
 
-	# Record the action
+	# Record the action — also record any examine_device action so the state
+	# machine counts it as completed.
 	if action_key not in _performed_actions:
 		_performed_actions[action_key] = []
 	_performed_actions[action_key].append("visual_inspection")
+	if "examine_device" in object_data.available_actions:
+		_performed_actions[action_key].append("examine_device")
 
 	# Discover evidence via inspection (visual_inspection or examine_device)
 	var discovered: Array[String] = []
@@ -210,6 +213,11 @@ func get_location_completion(location_id: String) -> Dictionary:
 		for ev_id: String in obj.evidence_results:
 			if GameManager.has_evidence(ev_id):
 				found += 1
+			else:
+				# Check if this raw evidence was upgraded to an analyzed version
+				var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+				if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
+					found += 1
 
 	return {"found": found, "total": total}
 
@@ -290,14 +298,21 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 	var action_key: String = "%s:%s" % [location_id, object_id]
 	var actions_done: Array = _performed_actions.get(action_key, [])
 
-	# Calculate what actions are possible
+	# Calculate what actions are possible.
+	# We count two categories: inspection (visual_inspection / examine_device)
+	# and tool-based actions (one per tool requirement).
 	var total_actions: int = 0
 	var completed_actions: int = 0
 
-	# Count visual inspection
-	if "visual_inspection" in object_data.available_actions:
+	# Count inspection action (visual_inspection or examine_device count as one)
+	var has_inspectable: bool = false
+	for action: String in object_data.available_actions:
+		if action == "visual_inspection" or action == "examine_device":
+			has_inspectable = true
+			break
+	if has_inspectable:
 		total_actions += 1
-		if "visual_inspection" in actions_done:
+		if "visual_inspection" in actions_done or "examine_device" in actions_done:
 			completed_actions += 1
 
 	# Count tool-based actions
@@ -305,13 +320,6 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 		total_actions += 1
 		if "tool:%s" % tool_req in actions_done:
 			completed_actions += 1
-
-	# Count non-visual non-tool actions
-	for action: String in object_data.available_actions:
-		if action != "visual_inspection" and not action.begins_with("tool:"):
-			total_actions += 1
-			if action in actions_done:
-				completed_actions += 1
 
 	var old_state: Enums.InvestigationState = _object_states[location_id].get(
 		object_id, Enums.InvestigationState.NOT_INSPECTED

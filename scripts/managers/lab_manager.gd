@@ -93,7 +93,10 @@ func submit_request(
 	GameManager.active_lab_requests.append(request.duplicate())
 
 	lab_submitted.emit(request_id, input_evidence_id)
+	# Update the input evidence's lab_status to PROCESSING
 	var ev: EvidenceData = CaseManager.get_evidence(input_evidence_id)
+	if ev:
+		ev.lab_status = Enums.LabStatus.PROCESSING
 	var ev_name: String = ev.name if ev else input_evidence_id
 	GameManager.log_action("Lab request submitted: %s (%s)" % [analysis_type, ev_name])
 	return request.duplicate()
@@ -193,8 +196,12 @@ func complete_all_instantly() -> Array[Dictionary]:
 		req["status"] = "completed"
 		_requests[request_id] = req
 		var output_id: String = req.get("output_evidence_id", "")
+		var input_id: String = req.get("input_evidence_id", "")
 		if not output_id.is_empty():
-			GameManager.discover_evidence(output_id)
+			if not input_id.is_empty():
+				GameManager.upgrade_evidence(input_id, output_id)
+			else:
+				GameManager.discover_evidence(output_id)
 		completed.append(req.duplicate())
 		lab_completed.emit(request_id, output_id)
 
@@ -209,6 +216,12 @@ func complete_all_instantly() -> Array[Dictionary]:
 func _on_lab_result_ready(lab_request_id: String, output_evidence_id: String) -> void:
 	if lab_request_id in _requests:
 		_requests[lab_request_id]["status"] = "completed"
+		# Update the input evidence's lab_status to COMPLETED
+		var input_id: String = _requests[lab_request_id].get("input_evidence_id", "")
+		if not input_id.is_empty():
+			var ev: EvidenceData = CaseManager.get_evidence(input_id)
+			if ev:
+				ev.lab_status = Enums.LabStatus.COMPLETED
 		lab_completed.emit(lab_request_id, output_evidence_id)
 
 

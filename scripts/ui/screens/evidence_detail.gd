@@ -22,6 +22,7 @@ extends Control
 
 var _evidence_id: String = ""
 var _comparing: bool = false
+var _lab_section: VBoxContainer = null
 
 
 func _ready() -> void:
@@ -67,6 +68,9 @@ func _populate_detail() -> void:
 	# Info grid (key-value pairs)
 	_populate_info_grid(ev)
 
+	# Lab submission section
+	_populate_lab_section(ev)
+
 	# Tags
 	_populate_tags(ev)
 
@@ -99,19 +103,27 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Weight", "%.0f%%" % (ev.weight * 100.0))
 
 	if ev.requires_lab_analysis:
-		_add_info_row("Lab Status", _get_lab_status_label(ev.lab_status))
 		if not ev.lab_result_text.is_empty():
 			_add_info_row("Lab Result", ev.lab_result_text)
+		else:
+			_add_info_row("Lab Status", _get_lab_status_label(ev.lab_status))
+
+	# Also show lab status for raw evidence that can be submitted
+	if not ev.requires_lab_analysis and CaseManager.get_lab_request_for_evidence(ev.id) != null:
+		_add_info_row("Lab Status", _get_lab_status_label(ev.lab_status))
 
 
 func _add_info_row(key: String, value: String) -> void:
 	var key_label: Label = Label.new()
 	key_label.text = key + ":"
 	key_label.add_theme_color_override("font_color", Color(0.6, 0.58, 0.55))
+	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info_grid.add_child(key_label)
 
 	var value_label: Label = Label.new()
 	value_label.text = value
+	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info_grid.add_child(value_label)
 
 
@@ -216,6 +228,92 @@ func _on_compare_pressed() -> void:
 	comparison_panel.visible = _comparing
 	if _comparing:
 		_populate_comparison_targets()
+
+
+## Populates the lab submission section for raw evidence that can be analyzed.
+func _populate_lab_section(ev: EvidenceData) -> void:
+	# Remove previous lab section if it exists
+	if _lab_section != null:
+		_lab_section.queue_free()
+		_lab_section = null
+
+	# Check if this evidence has a lab request template
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(_evidence_id)
+	if lab_req == null:
+		return
+
+	_lab_section = VBoxContainer.new()
+	_lab_section.add_theme_constant_override("separation", 8)
+
+	var header: Label = Label.new()
+	header.text = "Forensic Analysis"
+	header.add_theme_font_size_override("font_size", 20)
+	header.add_theme_color_override("font_color", UIColors.HEADER)
+	_lab_section.add_child(header)
+
+	var output_ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
+	var output_discovered: bool = GameManager.has_evidence(lab_req.output_evidence_id)
+	var already_submitted: bool = LabManager.is_evidence_submitted(_evidence_id)
+
+	if output_discovered:
+		# Lab analysis complete — show result
+		var status_label: Label = Label.new()
+		status_label.text = "Lab analysis complete."
+		status_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
+		_lab_section.add_child(status_label)
+		if output_ev:
+			var result_label: Label = Label.new()
+			result_label.text = "Result: %s" % output_ev.name
+			result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_lab_section.add_child(result_label)
+	elif already_submitted:
+		# Pending lab analysis
+		var status_label: Label = Label.new()
+		status_label.text = "Submitted to Lab — Results pending."
+		status_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+		_lab_section.add_child(status_label)
+	else:
+		# Can be submitted
+		var desc_label: Label = Label.new()
+		desc_label.text = "This evidence can be submitted for forensic analysis."
+		desc_label.add_theme_color_override("font_color", UIColors.SECONDARY)
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_lab_section.add_child(desc_label)
+		var submit_btn: Button = Button.new()
+		submit_btn.text = "Submit to Lab"
+		submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		submit_btn.pressed.connect(_on_submit_to_lab)
+		_lab_section.add_child(submit_btn)
+
+	# Insert lab section after the info grid (before tags)
+	var info_section: Node = info_grid.get_parent()
+	var main_content: Node = info_section.get_parent()
+	var idx: int = info_section.get_index() + 1
+	main_content.add_child(_lab_section)
+	main_content.move_child(_lab_section, idx)
+
+
+## Handles lab submission from the evidence detail screen.
+func _on_submit_to_lab() -> void:
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(_evidence_id)
+	if lab_req == null:
+		return
+
+	var result: Dictionary = LabManager.submit_request(
+		_evidence_id,
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	if result.is_empty():
+		NotificationManager.notify("Submission Failed", "Could not submit lab request.")
+		return
+
+	var ev: EvidenceData = CaseManager.get_evidence(_evidence_id)
+	var ev_name: String = ev.name if ev else _evidence_id
+	NotificationManager.notify_lab_result("%s submitted for %s." % [ev_name, lab_req.analysis_type])
+	_populate_detail()
 
 
 func _populate_comparison_targets() -> void:

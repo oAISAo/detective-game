@@ -19,6 +19,9 @@ signal actions_remaining_changed(remaining: int)
 ## Emitted when new evidence is discovered.
 signal evidence_discovered(evidence_id: String)
 
+## Emitted when raw evidence is upgraded to its analyzed version via lab results.
+signal evidence_upgraded(old_evidence_id: String, new_evidence_id: String)
+
 ## Emitted when a new insight is created.
 signal insight_discovered(insight_id: String)
 
@@ -182,6 +185,24 @@ func discover_evidence(evidence_id: String) -> bool:
 ## Returns true if the given evidence has been discovered.
 func has_evidence(evidence_id: String) -> bool:
 	return evidence_id in discovered_evidence
+
+
+## Upgrades raw evidence to its analyzed version (replaces in place).
+## Returns true if the upgrade was performed.
+func upgrade_evidence(raw_evidence_id: String, analyzed_evidence_id: String) -> bool:
+	var idx: int = discovered_evidence.find(raw_evidence_id)
+	if idx == -1:
+		# Raw evidence not in inventory — just discover the analyzed version
+		return discover_evidence(analyzed_evidence_id)
+	if analyzed_evidence_id in discovered_evidence:
+		return false
+	discovered_evidence[idx] = analyzed_evidence_id
+	evidence_upgraded.emit(raw_evidence_id, analyzed_evidence_id)
+	evidence_discovered.emit(analyzed_evidence_id)
+	var ev: EvidenceData = CaseManager.get_evidence(analyzed_evidence_id)
+	var ev_name: String = ev.name if ev else analyzed_evidence_id
+	log_action("Evidence upgraded: %s" % ev_name)
+	return true
 
 
 # --- Insights --- #

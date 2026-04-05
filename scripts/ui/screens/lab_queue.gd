@@ -169,7 +169,13 @@ func _on_submit_to_lab() -> void:
 	var evidence_id: String = evidence_dropdown.get_item_metadata(evidence_dropdown.selected)
 	var analysis_type: String = type_dropdown.get_item_text(type_dropdown.selected)
 
-	var result: Dictionary = LabManager.submit_request(evidence_id, analysis_type, "", 1)
+	# Look up the case-defined lab request template for proper output mapping
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(evidence_id)
+	var output_evidence_id: String = lab_req.output_evidence_id if lab_req else ""
+	if lab_req:
+		analysis_type = lab_req.analysis_type
+
+	var result: Dictionary = LabManager.submit_request(evidence_id, analysis_type, output_evidence_id, 1)
 	if result.is_empty():
 		NotificationManager.notify("Submission Failed", "Could not submit lab request. Check if the max concurrent limit is reached.")
 		return

@@ -77,10 +77,12 @@ func _ready() -> void:
 		_show_error_state("Could not start interrogation.")
 		return
 
+	NotificationManager.suppressed = true
 	_setup_ui()
 
 
 func _exit_tree() -> void:
+	NotificationManager.suppressed = false
 	var signals: Array[Signal] = [
 		InterrogationManager.phase_changed,
 		InterrogationManager.trigger_fired,
@@ -544,10 +546,21 @@ func _on_present_pressed() -> void:
 	if result.get("triggered", false):
 		pass  # trigger_fired signal handles dialogue and inline feedback
 	elif result.get("already_fired", false):
-		_show_dialogue("He already addressed that.")
+		var already_texts: Array[String] = [
+			"They already addressed that.",
+			"You've already challenged that point.",
+			"That contradiction has already been resolved.",
+		]
+		_show_dialogue(already_texts[randi() % already_texts.size()])
 	else:
-		var rejection: String = InterrogationManager.get_rejection_text()
-		_show_dialogue(rejection)
+		var reason: String = result.get("reason", "")
+		if reason == "wrong_focus":
+			_show_dialogue("That evidence might be relevant, but not to this particular point. Try a different approach.")
+		elif reason == "prerequisite_not_met":
+			_show_dialogue("You sense this could be useful, but you need to build up to it first.")
+		else:
+			var rejection: String = InterrogationManager.get_rejection_text()
+			_show_dialogue(rejection)
 
 	_selected_evidence_id = ""
 	_populate_evidence()
@@ -559,6 +572,14 @@ func _on_apply_pressure_pressed() -> void:
 	if result.get("success", false):
 		var dialogue: String = result.get("dialogue", "")
 		if result.get("break_moment", false):
+			# Mark break-unlocked topics as new for green highlighting
+			var session: InterrogationSessionData = CaseManager.get_interrogation_session(
+				InterrogationManager.get_current_person_id()
+			)
+			if session:
+				for unlock_id: String in session.break_unlocks:
+					if unlock_id.begins_with("topic_") and unlock_id not in _newly_unlocked_topic_ids:
+						_newly_unlocked_topic_ids.append(unlock_id)
 			if dialogue.is_empty():
 				dialogue = "The suspect breaks down under pressure."
 			_show_dialogue("[BREAK] %s" % dialogue)

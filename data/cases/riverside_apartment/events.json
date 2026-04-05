@@ -204,21 +204,82 @@
 			"dialogue": "I don't know for sure... but Julia had been asking Daniel strange questions lately."
 		},
 		{
-			"id": "topic_sarah_hallway",
+			"id": "topic_sarah_what_heard",
 			"person_id": "p_sarah",
-			"topic_name": "What Sarah Saw",
-			"trigger_conditions": [
-				"evidence:ev_hallway_camera"
-			],
+			"topic_name": "What did you hear?",
+			"trigger_conditions": [],
 			"unlock_evidence": [],
 			"statements": [
-				"stmt_sarah_confronted"
+				"stmt_sarah_heard_argument"
 			],
-			"required_evidence": [
-				"ev_hallway_camera"
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "There was shouting. A man and... I don't know, maybe another voice. I couldn't make out every word."
+		},
+		{
+			"id": "topic_sarah_why_not_look",
+			"person_id": "p_sarah",
+			"topic_name": "Why didn't you look?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_sarah_didnt_look"
 			],
-			"requires_statement_id": "stmt_sarah_initial",
-			"impact_level": "MAJOR"
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "I don't like getting involved in other people's problems. And it sounded serious. I just... stayed away."
+		},
+		{
+			"id": "topic_sarah_argue_often",
+			"person_id": "p_sarah",
+			"topic_name": "Did Daniel argue like this often?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_sarah_not_unusual"
+			],
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "I heard raised voices before, sometimes. But not like that. That night felt different."
+		},
+		{
+			"id": "topic_sarah_why_hide",
+			"person_id": "p_sarah",
+			"topic_name": "Why didn't you say that earlier?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_sarah_confronted",
+			"impact_level": "MINOR",
+			"dialogue": "I wasn't sure what I heard. And I didn't want to get in trouble for saying the wrong thing."
+		},
+		{
+			"id": "topic_sarah_footsteps",
+			"person_id": "p_sarah",
+			"topic_name": "What did it sound like?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_sarah_footsteps",
+			"impact_level": "MINOR",
+			"dialogue": "Quick steps. Like heels on the floor. Whoever it was didn't stop. They were gone in seconds."
+		},
+		{
+			"id": "topic_sarah_after_break",
+			"person_id": "p_sarah",
+			"topic_name": "Can you describe her?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_sarah_saw_woman",
+			"impact_level": "MINOR",
+			"dialogue": "It was dark. I only saw her for a second. She was... average height, maybe? Dark hair. I couldn't tell much more. I'm sorry."
 		},
 		{
 			"id": "topic_julia_presence",
@@ -355,10 +416,10 @@
 			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
-			"dialogue": "I may have heard a woman's voice...",
+			"dialogue": "I... maybe I heard a woman's voice too. I wasn't sure. I didn't want to say something if I wasn't certain.",
 			"new_statement_id": "stmt_sarah_confronted",
-			"unlocks": [],
-			"pressure_points": 2,
+			"unlocks": ["topic_sarah_why_hide"],
+			"pressure_points": 1,
 			"deflection_target_id": ""
 		},
 		{
@@ -367,12 +428,12 @@
 			"evidence_id": "ev_shoe_print",
 			"requires_statement_id": "stmt_sarah_confronted",
 			"target_statement_id": "stmt_sarah_confronted",
-			"target_topic_id": "",
-			"impact_level": "MINOR",
+			"target_topic_id": "topic_sarah_why_hide",
+			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
-			"dialogue": "Someone walked past my door quickly.",
+			"dialogue": "I heard footsteps outside my door. Fast ones. Like someone was trying not to stay there long.",
 			"new_statement_id": "stmt_sarah_footsteps",
-			"unlocks": [],
+			"unlocks": ["topic_sarah_footsteps"],
 			"pressure_points": 1,
 			"deflection_target_id": ""
 		},
@@ -487,18 +548,20 @@
 		},
 		{
 			"person_id": "p_sarah",
-			"initial_dialogue": "Sarah clutches her hands nervously. 'I live next door. I heard shouting that night, but I was too scared to look.'",
+			"initial_dialogue": "I already told them what I know... I was in my apartment all evening.\nI heard some arguing next door, but I didn't see anything.",
 			"initial_statement_ids": ["stmt_sarah_initial"],
-			"base_topic_ids": ["topic_sarah_hallway"],
-			"pressure_gate": 1,
+			"base_topic_ids": ["topic_sarah_what_heard", "topic_sarah_why_not_look", "topic_sarah_argue_often"],
+			"pressure_gate": 2,
 			"rejection_texts": [
 				"Sarah shakes her head. 'I don't know anything about that.'",
-				"She looks confused. 'I... I don't understand what you're showing me.'"
+				"She looks confused. 'I... I don't understand what you're showing me.'",
+				"She wrings her hands. 'That doesn't mean anything to me.'",
+				"She avoids your eyes. 'I really can't help you with that.'"
 			],
 			"pressure_dialogue": "Sarah fidgets. 'Please... I just want to stay out of this. I'm scared enough already.'",
-			"break_dialogue": "Sarah breaks down crying.\n'I saw her. I saw a woman leave his apartment that night.\nShe was in a hurry and her hands... I think there was something on them.\nI was too afraid to say anything. I thought she might come for me next.'",
+			"break_dialogue": "I was scared, alright?\nI did look. Just for a second.\nI saw a woman leaving Daniel's apartment.\nShe was moving fast, like she didn't want anyone to see her.\nI didn't say anything because I didn't want to be dragged into this.",
 			"break_statement_ids": ["stmt_sarah_saw_woman"],
-			"break_unlocks": []
+			"break_unlocks": ["topic_sarah_after_break"]
 		},
 		{
 			"person_id": "p_julia",

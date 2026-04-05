@@ -156,6 +156,7 @@ func _show_object_detail(object_id: String) -> void:
 			detail_state.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 	_populate_action_buttons(obj)
+	_populate_discovered_clues(obj)
 
 
 ## Populates action buttons for the selected object.
@@ -188,12 +189,6 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 		inspect_btn.pressed.connect(_on_inspect_pressed.bind(obj.id))
 		detail_actions.add_child(inspect_btn)
 
-	# Tool requirement hints
-	if not obj.tool_requirements.is_empty():
-		var hint_label: Label = Label.new()
-		hint_label.text = "Tools may reveal more evidence."
-		hint_label.add_theme_color_override("font_color", UIColors.SECONDARY)
-		detail_actions.add_child(hint_label)
 
 
 ## Handles visual inspection action.
@@ -267,6 +262,77 @@ func _find_object(object_id: String) -> InvestigableObjectData:
 		if obj.id == object_id:
 			return obj
 	return null
+
+
+## Populates the "Clues found in this area" section for the selected object.
+func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
+	# Remove previous clues section if any
+	var existing: Node = detail_panel.get_node_or_null("CluesSection")
+	if existing:
+		existing.queue_free()
+
+	# Check which evidence from this object has been discovered (or upgraded)
+	var found_clues: Array[Dictionary] = []
+	for ev_id: String in obj.evidence_results:
+		if GameManager.has_evidence(ev_id):
+			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+			found_clues.append({"id": ev_id, "name": ev.name if ev else ev_id})
+		else:
+			# Check if this raw evidence was upgraded to analyzed
+			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+			if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
+				var ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
+				found_clues.append({"id": lab_req.output_evidence_id, "name": ev.name if ev else lab_req.output_evidence_id})
+
+	# Compute forensic hint
+	var hint_text: String = ""
+	var hint_color: Color = Color.WHITE
+	if not obj.tool_requirements.is_empty():
+		var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
+			_location.id, obj.id
+		)
+		var has_unfulfilled_tools: bool = false
+		for tool_req: String in obj.tool_requirements:
+			if not ToolManager.is_valid_tool(tool_req):
+				has_unfulfilled_tools = true
+				break
+		if has_unfulfilled_tools and state == Enums.InvestigationState.PARTIALLY_EXAMINED:
+			hint_text = "Further forensic analysis required — submit discovered evidence to the lab."
+			hint_color = Color(0.9, 0.7, 0.2)
+		elif not has_unfulfilled_tools:
+			hint_text = "Tools may reveal more evidence."
+			hint_color = UIColors.SECONDARY
+
+	if found_clues.is_empty() and hint_text.is_empty():
+		return
+
+	var section: VBoxContainer = VBoxContainer.new()
+	section.name = "CluesSection"
+	section.add_theme_constant_override("separation", 4)
+
+	if not found_clues.is_empty():
+		var header: Label = Label.new()
+		header.text = "Clues found in this area:"
+		header.add_theme_color_override("font_color", UIColors.HEADER)
+		header.add_theme_font_size_override("font_size", 16)
+		section.add_child(header)
+
+		for clue: Dictionary in found_clues:
+			var clue_label: Label = Label.new()
+			clue_label.text = "  - %s" % clue["name"]
+			clue_label.add_theme_color_override("font_color", UIColors.SECONDARY)
+			clue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			section.add_child(clue_label)
+
+	if not hint_text.is_empty():
+		var hint_label: Label = Label.new()
+		hint_label.text = hint_text
+		hint_label.add_theme_color_override("font_color", hint_color)
+		hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		section.add_child(hint_label)
+
+	detail_panel.add_child(section)
+	detail_panel.move_child(section, detail_description.get_index() + 1)
 
 
 ## Navigates back to location map.

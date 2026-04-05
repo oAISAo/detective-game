@@ -200,6 +200,21 @@ func present_evidence(evidence_id: String) -> Dictionary:
 		# Sibling dedup: evidence already used against a different focus this session
 		if evidence_id in _session_fired_evidence:
 			return {"triggered": false, "already_fired": true}
+
+		# Check if a trigger exists for this person+evidence but cannot fire right now.
+		# This distinguishes between truly wrong evidence and correct evidence with
+		# unmet prerequisites or wrong focus.
+		var any_trigger: InterrogationTriggerData = CaseManager.get_trigger_by_evidence(
+			_current_person_id, evidence_id
+		)
+		if any_trigger != null:
+			# Prerequisite not met: correct evidence but requires an earlier statement
+			if not any_trigger.requires_statement_id.is_empty() and \
+				any_trigger.requires_statement_id not in _heard_statements:
+				return {"triggered": false, "reason": "prerequisite_not_met"}
+			# Wrong focus: a trigger exists but the player has the wrong focus selected
+			return {"triggered": false, "reason": "wrong_focus"}
+
 		return {"triggered": false, "reason": "wrong_evidence"}
 
 	var person_fired: Array = _fired_triggers.get(_current_person_id, [])
@@ -265,11 +280,11 @@ func get_rejection_text() -> String:
 
 func _get_default_rejection_text() -> String:
 	var defaults: Array[String] = [
-		"He barely reacts to that.",
-		"That doesn't seem to shake his story.",
-		"He dismisses it immediately.",
-		"She looks at you blankly.",
+		"That doesn't seem relevant.",
 		"That doesn't get a reaction.",
+		"They dismiss it immediately.",
+		"They barely react to that.",
+		"That doesn't seem to shake their story.",
 	]
 	return defaults[randi() % defaults.size()]
 

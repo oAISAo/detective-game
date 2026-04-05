@@ -494,7 +494,7 @@
 			],
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
-			"discovery_method": "TOOL",
+			"discovery_method": "VISUAL",
 			"legal_categories": []
 		},
 		{

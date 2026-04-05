@@ -82,13 +82,8 @@ func _on_location_pressed(location_id: String) -> void:
 		)
 		return
 
-	var is_first_visit: bool = not GameManager.has_visited_location(location_id)
-	if is_first_visit:
-		# First visit — introductory look, not a full investigation
-		_navigate_to_location(location_id, false)
-	else:
-		# Return visit — full investigation with all tools available
-		_navigate_to_location(location_id, true)
+	# All visits are full investigations — player should always have actions available
+	_navigate_to_location(location_id, true)
 
 
 ## Navigates to the location investigation screen.

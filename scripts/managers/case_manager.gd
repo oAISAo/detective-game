@@ -58,6 +58,9 @@ var _insights: Dictionary = {}
 ## Discovery rule lookup: { rule_id: DiscoveryRuleData }
 var _discovery_rules: Dictionary = {}
 
+## Lab request lookup: { request_id: LabRequestData }
+var _lab_requests: Dictionary = {}
+
 ## Whether a case is currently loaded.
 var case_loaded_flag: bool = false
 
@@ -170,6 +173,7 @@ func unload_case() -> void:
 	_actions.clear()
 	_insights.clear()
 	_discovery_rules.clear()
+	_lab_requests.clear()
 	case_loaded_flag = false
 
 
@@ -187,6 +191,7 @@ func _build_lookups() -> void:
 	_actions.clear()
 	_insights.clear()
 	_discovery_rules.clear()
+	_lab_requests.clear()
 
 	if _case == null:
 		return
@@ -226,6 +231,9 @@ func _build_lookups() -> void:
 
 	for item: DiscoveryRuleData in _case.discovery_rules:
 		_discovery_rules[item.id] = item
+
+	for item: LabRequestData in _case.lab_requests:
+		_lab_requests[item.id] = item
 
 
 # --- Query Functions: Single Item --- #
@@ -277,6 +285,24 @@ func get_insight(insight_id: String) -> InsightData:
 ## Returns discovery rule data by ID, or null if not found.
 func get_discovery_rule(rule_id: String) -> DiscoveryRuleData:
 	return _discovery_rules.get(rule_id, null)
+
+## Returns lab request data by ID, or null if not found.
+func get_lab_request(request_id: String) -> LabRequestData:
+	return _lab_requests.get(request_id, null)
+
+## Returns the lab request template for a given input evidence ID, or null.
+func get_lab_request_for_evidence(input_evidence_id: String) -> LabRequestData:
+	for req: LabRequestData in _lab_requests.values():
+		if req.input_evidence_id == input_evidence_id:
+			return req
+	return null
+
+## Returns all lab request definitions as an array.
+func get_all_lab_requests() -> Array[LabRequestData]:
+	var result: Array[LabRequestData] = []
+	for r in _lab_requests.values():
+		result.append(r)
+	return result
 
 
 # --- Query Functions: Filtered Lists --- #
