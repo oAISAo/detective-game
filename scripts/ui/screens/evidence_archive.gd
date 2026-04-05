@@ -89,6 +89,7 @@ func _show_tab(tab: String) -> void:
 ## Populates the evidence list with filtered/searched items.
 func _populate_evidence_list() -> void:
 	for child: Node in evidence_list.get_children():
+		evidence_list.remove_child(child)
 		child.queue_free()
 
 	var items: Array[EvidenceData] = _get_filtered_evidence()
@@ -96,7 +97,7 @@ func _populate_evidence_list() -> void:
 	if items.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No evidence found."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		evidence_list.add_child(empty_label)
 		return
 
@@ -165,33 +166,12 @@ func _on_evidence_selected(evidence_id: String) -> void:
 			Enums.LabStatus.COMPLETED:
 				lab_text = "\n[color=#33cc33]Lab: Complete[/color]"
 
-	var type_label: String = _get_type_label(ev.type)
-	var location_text: String = _get_location_name(ev.location_found)
+	var type_label: String = UIHelper.get_evidence_type_label(ev.type)
+	var location_text: String = UIHelper.get_location_name(ev.location_found)
 
 	preview_label.text = "[b]%s%s[/b]\n%s\n\n[i]Type: %s[/i]\n[i]Location: %s[/i]%s" % [
 		ev.name, pin_status, ev.description, type_label, location_text, lab_text,
 	]
-
-
-## Returns a readable label for an evidence type.
-func _get_type_label(type: Enums.EvidenceType) -> String:
-	match type:
-		Enums.EvidenceType.FORENSIC: return "Forensic"
-		Enums.EvidenceType.DOCUMENT: return "Document"
-		Enums.EvidenceType.PHOTO: return "Photo"
-		Enums.EvidenceType.RECORDING: return "Recording"
-		Enums.EvidenceType.FINANCIAL: return "Financial"
-		Enums.EvidenceType.DIGITAL: return "Digital"
-		Enums.EvidenceType.OBJECT: return "Object"
-	return "Unknown"
-
-
-## Resolves a location ID to its display name.
-func _get_location_name(location_id: String) -> String:
-	if location_id.is_empty():
-		return "Unknown"
-	var loc: LocationData = CaseManager.get_location(location_id)
-	return loc.name if loc else location_id
 
 
 ## Populates the pinned evidence bar.
@@ -220,6 +200,7 @@ func _populate_pinned_bar() -> void:
 ## Populates the testimony list with contradiction markers.
 func _populate_testimony_list() -> void:
 	for child: Node in testimony_list.get_children():
+		testimony_list.remove_child(child)
 		child.queue_free()
 
 	# Check contradictions first
@@ -229,7 +210,7 @@ func _populate_testimony_list() -> void:
 	if testimony.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No testimony recorded yet."
-		empty_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
 		testimony_list.add_child(empty_label)
 		return
 

@@ -3,7 +3,7 @@
 ## and arrest mechanics. Warrants are processed same-day (not delayed).
 ## Each warrant type requires a minimum number of unique legal categories
 ## from the supporting evidence.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -60,7 +60,7 @@ var _next_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[WarrantManager] Initialized.")
+	super()
 
 
 # --- Warrant Requests --- #
@@ -104,7 +104,7 @@ func request_warrant(
 		_warrants[warrant_id] = warrant
 		GameManager.warrants_obtained.append(warrant_id)
 		warrant_approved.emit(warrant_id, warrant_type, target)
-		GameManager._log_action("Warrant approved: %s for %s" % [
+		GameManager.log_action("Warrant approved: %s for %s" % [
 			WARRANT_TYPE_NAMES.get(warrant_type, "Unknown"), target
 		])
 	else:
@@ -112,7 +112,7 @@ func request_warrant(
 		warrant["feedback"] = feedback
 		_warrants[warrant_id] = warrant
 		warrant_denied.emit(warrant_id, warrant_type, feedback)
-		GameManager._log_action("Warrant denied: %s for %s — %s" % [
+		GameManager.log_action("Warrant denied: %s for %s — %s" % [
 			WARRANT_TYPE_NAMES.get(warrant_type, "Unknown"), target, feedback
 		])
 
@@ -230,7 +230,7 @@ func arrest_suspect(
 
 	_arrested_suspects.append(person_id)
 	suspect_arrested.emit(person_id)
-	GameManager._log_action("Suspect arrested: %s" % person.name)
+	GameManager.log_action("Suspect arrested: %s" % person.name)
 	return {"success": true, "feedback": "Arrest warrant approved. Suspect taken into custody."}
 
 

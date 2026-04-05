@@ -274,6 +274,7 @@ func test_remove_entry_emits_signal() -> void:
 func test_remove_entry_nonexistent_returns_false() -> void:
 	var removed: bool = TimelineManager.remove_entry("nonexistent")
 	assert_false(removed)
+	assert_push_warning("[TimelineManager]")
 
 
 func test_remove_entry_clears_attached_evidence() -> void:
@@ -313,6 +314,7 @@ func test_move_entry_emits_signal() -> void:
 func test_move_entry_nonexistent_returns_false() -> void:
 	var moved: bool = TimelineManager.move_entry("nonexistent", 1230)
 	assert_false(moved)
+	assert_push_warning("[TimelineManager]")
 
 
 # =========================================================================
@@ -388,6 +390,7 @@ func test_update_hypothesis_emits_signal() -> void:
 func test_update_hypothesis_nonexistent_returns_false() -> void:
 	var result: bool = TimelineManager.update_hypothesis("nonexistent", "X", 1200, 1)
 	assert_false(result)
+	assert_push_warning("[TimelineManager]")
 
 
 func test_remove_hypothesis() -> void:
@@ -407,6 +410,7 @@ func test_remove_hypothesis_emits_signal() -> void:
 func test_remove_hypothesis_nonexistent_returns_false() -> void:
 	var removed: bool = TimelineManager.remove_hypothesis("nonexistent")
 	assert_false(removed)
+	assert_push_warning("[TimelineManager]")
 
 
 # =========================================================================
@@ -432,6 +436,7 @@ func test_attach_evidence_duplicate_returns_false() -> void:
 func test_attach_evidence_nonexistent_entry_returns_false() -> void:
 	var attached: bool = TimelineManager.attach_evidence("nonexistent", "ev_elevator")
 	assert_false(attached)
+	assert_push_warning("[TimelineManager]")
 
 
 func test_detach_evidence() -> void:

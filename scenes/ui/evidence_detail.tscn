@@ -56,10 +56,11 @@ text = "📋 Send to Board"
 [node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-split_offset = 600
+split_offset = 500
 
 [node name="MainScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="MainContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll"]
 layout_mode = 2
@@ -70,8 +71,9 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-custom_minimum_size = Vector2(0, 300)
-expand_mode = 1
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 250)
+expand_mode = 3
 stretch_mode = 5
 
 [node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent"]
@@ -115,6 +117,7 @@ theme_override_constants/separation = 8
 [node name="CompareButton" type="Button" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 0
 text = "🔍 Compare Evidence"
 
 [node name="ComparisonPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection"]

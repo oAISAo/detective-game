@@ -37,9 +37,9 @@ var _test_case_data: Dictionary = {
 		{"id": "evt_argument", "name": "Argument", "description": "Loud argument.", "time": "21:30", "day": 1, "location": "loc_scene", "involved_persons": ["p_mark", "p_victim"]},
 	],
 	"interrogation_triggers": [
-		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "dialogue": "I never saw it.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
-		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_dna", "dialogue": "Impossible!", "impact_level": "MAJOR", "reaction_type": "PANIC", "pressure_points": 2},
-		{"id": "trig_glass", "person_id": "p_julia", "evidence_id": "ev_glass", "dialogue": "I was there earlier.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
+		{"id": "trig_knife", "person_id": "p_mark", "evidence_id": "ev_knife", "target_topic_id": "general", "dialogue": "I never saw it.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
+		{"id": "trig_dna", "person_id": "p_mark", "evidence_id": "ev_dna", "target_topic_id": "general", "dialogue": "Impossible!", "impact_level": "MAJOR", "reaction_type": "PANIC", "pressure_points": 2},
+		{"id": "trig_glass", "person_id": "p_julia", "evidence_id": "ev_glass", "target_topic_id": "general", "dialogue": "I was there earlier.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
 	],
 	"solution": {
 		"suspect": "p_mark",

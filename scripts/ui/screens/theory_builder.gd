@@ -37,7 +37,7 @@ const STRENGTH_LABELS: Dictionary = {
 
 ## Strength colors.
 const STRENGTH_COLORS: Dictionary = {
-	Enums.TheoryStrength.NONE: Color(0.5, 0.48, 0.45),
+	Enums.TheoryStrength.NONE: UIColors.MUTED,
 	Enums.TheoryStrength.WEAK: Color(0.7, 0.5, 0.3),
 	Enums.TheoryStrength.MODERATE: Color(0.6, 0.65, 0.35),
 	Enums.TheoryStrength.STRONG: Color(0.35, 0.7, 0.4),
@@ -67,22 +67,18 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	_safe_disconnect(TheoryManager.theory_created, _on_theory_changed)
-	_safe_disconnect(TheoryManager.theory_updated, _on_theory_changed)
-	_safe_disconnect(TheoryManager.theory_removed, _on_theory_removed)
-	_safe_disconnect(TheoryManager.theories_cleared, _on_theories_cleared)
-	_safe_disconnect(TheoryManager.state_loaded, _on_theories_loaded)
-
-
-func _safe_disconnect(sig: Signal, callable: Callable) -> void:
-	if sig.is_connected(callable):
-		sig.disconnect(callable)
+	UIHelper.safe_disconnect(TheoryManager.theory_created, _on_theory_changed)
+	UIHelper.safe_disconnect(TheoryManager.theory_updated, _on_theory_changed)
+	UIHelper.safe_disconnect(TheoryManager.theory_removed, _on_theory_removed)
+	UIHelper.safe_disconnect(TheoryManager.theories_cleared, _on_theories_cleared)
+	UIHelper.safe_disconnect(TheoryManager.state_loaded, _on_theories_loaded)
 
 
 # --- Theory List --- #
 
 func _rebuild_theory_list() -> void:
 	for child: Node in theory_list_container.get_children():
+		theory_list_container.remove_child(child)
 		child.queue_free()
 
 	var theories: Array[Dictionary] = TheoryManager.get_all_theories()
@@ -112,6 +108,7 @@ func _show_detail() -> void:
 
 func _rebuild_detail() -> void:
 	for child: Node in detail_panel.get_children():
+		detail_panel.remove_child(child)
 		child.queue_free()
 
 	var theory: Dictionary = TheoryManager.get_theory(_selected_theory_id)
@@ -581,7 +578,16 @@ func _on_theory_selected(theory_id: String) -> void:
 
 
 func _on_delete_theory(theory_id: String) -> void:
-	TheoryManager.remove_theory(theory_id)
+	var dialog: ConfirmationDialog = ConfirmationDialog.new()
+	dialog.dialog_text = "Delete this theory? This cannot be undone."
+	dialog.confirmed.connect(func() -> void:
+		TheoryManager.remove_theory(theory_id)
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.close_requested.connect(func() -> void: dialog.queue_free())
+	add_child(dialog)
+	dialog.popup_centered()
 
 
 func _on_back_pressed() -> void:

@@ -1,7 +1,7 @@
 ## ToolManager.gd
 ## Manages investigation tools available to the detective.
 ## Tools are used at locations to reveal hidden evidence on investigable objects.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -44,14 +44,13 @@ var _tool_usage_log: Dictionary = {}
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	# All three tools available from the start.
-	available_tools = ["fingerprint_powder", "uv_light", "chemical_test"]
-	print("[ToolManager] Initialized with %d tools." % available_tools.size())
+	super()
+	available_tools.assign(TOOL_REGISTRY.keys())
 
 
 ## Resets tool state for a new game.
 func reset() -> void:
-	available_tools = ["fingerprint_powder", "uv_light", "chemical_test"]
+	available_tools.assign(TOOL_REGISTRY.keys())
 	_tool_usage_log.clear()
 
 
@@ -148,5 +147,5 @@ func serialize() -> Dictionary:
 
 ## Restores tool manager state from saved data.
 func deserialize(data: Dictionary) -> void:
-	available_tools.assign(data.get("available_tools", ["fingerprint_powder", "uv_light", "chemical_test"]))
+	available_tools.assign(data.get("available_tools", TOOL_REGISTRY.keys()))
 	_tool_usage_log = data.get("tool_usage_log", {})

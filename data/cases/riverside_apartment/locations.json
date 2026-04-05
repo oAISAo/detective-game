@@ -85,7 +85,7 @@
 						"forensic_kit"
 					],
 					"evidence_results": [
-						"ev_shoe_print"
+						"ev_shoe_print_raw"
 					],
 					"investigation_state": "NOT_INSPECTED"
 				},
@@ -120,7 +120,7 @@
 			"evidence_pool": [
 				"ev_hallway_camera",
 				"ev_elevator_logs",
-				"ev_shoe_print",
+				"ev_shoe_print_raw",
 				"ev_lucas_work_log"
 			]
 		},

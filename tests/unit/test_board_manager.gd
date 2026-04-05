@@ -131,6 +131,7 @@ func test_move_node_emits_signal() -> void:
 func test_move_node_nonexistent_returns_false() -> void:
 	var moved: bool = BoardManager.move_node("nonexistent", 0.0, 0.0)
 	assert_false(moved)
+	assert_push_warning("[BoardManager]")
 
 
 func test_move_node_clamps_position() -> void:
@@ -158,6 +159,7 @@ func test_set_node_note_emits_signal() -> void:
 func test_set_node_note_nonexistent_returns_false() -> void:
 	var result: bool = BoardManager.set_node_note("nonexistent", "Note")
 	assert_false(result)
+	assert_push_warning("[BoardManager]")
 
 
 # =========================================================================
@@ -181,6 +183,7 @@ func test_remove_node_emits_signal() -> void:
 func test_remove_node_nonexistent_returns_false() -> void:
 	var removed: bool = BoardManager.remove_node("nonexistent")
 	assert_false(removed)
+	assert_push_warning("[BoardManager]")
 
 
 func test_remove_node_removes_associated_connections() -> void:
@@ -245,6 +248,7 @@ func test_add_connection_self_loop_returns_empty() -> void:
 	var n1: Dictionary = BoardManager.add_node("evidence", "ev_1", 0.0, 0.0)
 	var conn: Dictionary = BoardManager.add_connection(n1["id"], n1["id"])
 	assert_true(conn.is_empty())
+	assert_push_warning("[BoardManager]")
 
 
 # =========================================================================
@@ -310,6 +314,7 @@ func test_set_connection_note_emits_signal() -> void:
 func test_set_connection_note_nonexistent_returns_false() -> void:
 	var result: bool = BoardManager.set_connection_note("nonexistent", "note")
 	assert_false(result)
+	assert_push_warning("[BoardManager]")
 
 
 # =========================================================================
@@ -337,6 +342,7 @@ func test_remove_connection_emits_signal() -> void:
 func test_remove_connection_nonexistent_returns_false() -> void:
 	var removed: bool = BoardManager.remove_connection("nonexistent")
 	assert_false(removed)
+	assert_push_warning("[BoardManager]")
 
 
 # =========================================================================

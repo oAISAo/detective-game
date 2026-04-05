@@ -68,9 +68,9 @@ func test_load_debug_state_sets_evidence() -> void:
 
 func test_load_debug_state_sets_locations() -> void:
 	DebugStateLoader.load_debug_state("debug_mark_interrogation.json")
-	assert_true(GameManager.is_location_unlocked("victim_apartment"),
+	assert_true(GameManager.is_location_unlocked("loc_victim_apartment"),
 		"Victim apartment should be unlocked")
-	assert_true(GameManager.is_location_unlocked("parking_lot"),
+	assert_true(GameManager.is_location_unlocked("loc_parking_lot"),
 		"Parking lot should be unlocked")
 
 

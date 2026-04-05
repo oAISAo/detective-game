@@ -93,7 +93,7 @@
 				"warrant_obtained:warrant_julia_phone",
 				"day_gte:3"
 			],
-			"description": "Deleted messages are recovered after obtaining a warrant to search Julia's phone."
+			"description": "Deleted messages are recovered from Julia's phone after obtaining a warrant."
 		},
 		{
 			"id": "dr_julia_shoes",
@@ -102,7 +102,7 @@
 			"conditions": [
 				"warrant_obtained:warrant_julia_search"
 			],
-			"description": "Julia's shoes are seized under a search warrant for comparison with the hallway shoe print."
+			"description": "Julia's shoes are seized from her residence under a search warrant for comparison with the hallway shoe print."
 		},
 		{
 			"id": "dr_julia_financial_records",

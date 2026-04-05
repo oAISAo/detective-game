@@ -6,13 +6,13 @@
 			"trigger_day": 1,
 			"conditions": [],
 			"actions": [
-				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Mark Bennett and Sarah Klein are available for questioning.",
+				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Sarah Klein is available for questioning.",
 				"unlock_location:loc_victim_apartment",
 				"unlock_location:loc_hallway",
 				"unlock_location:loc_parking_lot",
 				"unlock_location:loc_neighbor_apartment",
-				"unlock_interrogation:p_mark",
-				"unlock_interrogation:p_sarah"
+				"unlock_interrogation:p_sarah",
+			"unlock_interrogation:p_mark"
 			],
 			"result_events": []
 		},
@@ -23,9 +23,10 @@
 			"conditions": [],
 			"actions": [
 				"unlock_location:loc_victim_office",
+				"unlock_interrogation:p_mark",
 				"unlock_interrogation:p_julia",
 				"unlock_interrogation:p_lucas",
-				"notify:Day 2 Briefing - Lab results are arriving. Julia Ross and Lucas Weber have been identified as additional persons of interest. Daniel's office is now accessible for investigation."
+				"notify:Day 2 Briefing - Lab results are arriving. Mark Bennett, Julia Ross, and Lucas Weber have been identified as additional persons of interest. Daniel's office is now accessible for investigation."
 			],
 			"result_events": []
 		},
@@ -38,8 +39,20 @@
 			],
 			"actions": [
 				"deliver_lab_results:ev_julia_fingerprint_glass",
-				"deliver_lab_results:ev_mark_fingerprint_desk",
 				"notify:Lab results are in - fingerprints from the crime scene have been identified."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_lab_desk_fingerprint",
+			"trigger_type": "TIMED",
+			"trigger_day": 2,
+			"conditions": [
+				"evidence_discovered:ev_desk_fingerprint_raw"
+			],
+			"actions": [
+				"deliver_lab_results:ev_mark_fingerprint_desk",
+				"notify:Lab results are in - the desk fingerprint has been identified as Mark Bennett's."
 			],
 			"result_events": []
 		},
@@ -48,11 +61,11 @@
 			"trigger_type": "TIMED",
 			"trigger_day": 2,
 			"conditions": [
-				"evidence_discovered:ev_shoe_print"
+				"evidence_discovered:ev_shoe_print_raw"
 			],
 			"actions": [
 				"deliver_lab_results:ev_shoe_print",
-				"notify:Lab results are in - the hallway shoe print has been analyzed."
+				"notify:Lab results are in - the hallway shoe print has been analyzed and matches women's size 38."
 			],
 			"result_events": []
 		},
@@ -154,7 +167,9 @@
 			"topic_name": "Why did you lie about the time?",
 			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [],
+			"statements": [
+				"stmt_mark_lied_to_hide_argument"
+			],
 			"required_evidence": [],
 			"requires_statement_id": "stmt_mark_corrected_departure",
 			"impact_level": "MAJOR",
@@ -166,7 +181,9 @@
 			"topic_name": "What happened to the missing money?",
 			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [],
+			"statements": [
+				"stmt_mark_money_admission"
+			],
 			"required_evidence": [],
 			"requires_statement_id": "stmt_mark_denies_financial",
 			"impact_level": "MAJOR",
@@ -178,28 +195,91 @@
 			"topic_name": "Who else knew?",
 			"trigger_conditions": [],
 			"unlock_evidence": [],
-			"statements": [],
+			"statements": [
+				"stmt_mark_julia_knew"
+			],
 			"required_evidence": [],
 			"requires_statement_id": "stmt_mark_deeper_admission",
 			"impact_level": "MINOR",
 			"dialogue": "I don't know for sure... but Julia had been asking Daniel strange questions lately."
 		},
 		{
-			"id": "topic_sarah_hallway",
+			"id": "topic_sarah_what_heard",
 			"person_id": "p_sarah",
-			"topic_name": "What Sarah Saw",
-			"trigger_conditions": [
-				"evidence:ev_hallway_camera"
-			],
+			"topic_name": "What did you hear?",
+			"trigger_conditions": [],
 			"unlock_evidence": [],
 			"statements": [
-				"stmt_sarah_confronted"
+				"stmt_sarah_heard_argument"
 			],
-			"required_evidence": [
-				"ev_hallway_camera"
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "There was shouting. A man and... I don't know, maybe another voice. I couldn't make out every word."
+		},
+		{
+			"id": "topic_sarah_why_not_look",
+			"person_id": "p_sarah",
+			"topic_name": "Why didn't you look?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_sarah_didnt_look"
 			],
-			"requires_statement_id": "stmt_sarah_initial",
-			"impact_level": "MAJOR"
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "I don't like getting involved in other people's problems. And it sounded serious. I just... stayed away."
+		},
+		{
+			"id": "topic_sarah_argue_often",
+			"person_id": "p_sarah",
+			"topic_name": "Did Daniel argue like this often?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [
+				"stmt_sarah_not_unusual"
+			],
+			"required_evidence": [],
+			"requires_statement_id": "",
+			"impact_level": "MINOR",
+			"dialogue": "I heard raised voices before, sometimes. But not like that. That night felt different."
+		},
+		{
+			"id": "topic_sarah_why_hide",
+			"person_id": "p_sarah",
+			"topic_name": "Why didn't you say that earlier?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_sarah_confronted",
+			"impact_level": "MINOR",
+			"dialogue": "I wasn't sure what I heard. And I didn't want to get in trouble for saying the wrong thing."
+		},
+		{
+			"id": "topic_sarah_footsteps",
+			"person_id": "p_sarah",
+			"topic_name": "What did it sound like?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_sarah_footsteps",
+			"impact_level": "MINOR",
+			"dialogue": "Quick steps. Like heels on the floor. Whoever it was didn't stop. They were gone in seconds."
+		},
+		{
+			"id": "topic_sarah_after_break",
+			"person_id": "p_sarah",
+			"topic_name": "Can you describe her?",
+			"trigger_conditions": [],
+			"unlock_evidence": [],
+			"statements": [],
+			"required_evidence": [],
+			"requires_statement_id": "stmt_sarah_saw_woman",
+			"impact_level": "MINOR",
+			"dialogue": "It was dark. I only saw her for a second. She was... average height, maybe? Dark hair. I couldn't tell much more. I'm sorry."
 		},
 		{
 			"id": "topic_julia_presence",
@@ -336,10 +416,10 @@
 			"target_topic_id": "",
 			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
-			"dialogue": "I may have heard a woman's voice...",
+			"dialogue": "I... maybe I heard a woman's voice too. I wasn't sure. I didn't want to say something if I wasn't certain.",
 			"new_statement_id": "stmt_sarah_confronted",
-			"unlocks": [],
-			"pressure_points": 2,
+			"unlocks": ["topic_sarah_why_hide"],
+			"pressure_points": 1,
 			"deflection_target_id": ""
 		},
 		{
@@ -348,12 +428,12 @@
 			"evidence_id": "ev_shoe_print",
 			"requires_statement_id": "stmt_sarah_confronted",
 			"target_statement_id": "stmt_sarah_confronted",
-			"target_topic_id": "",
-			"impact_level": "MINOR",
+			"target_topic_id": "topic_sarah_why_hide",
+			"impact_level": "MAJOR",
 			"reaction_type": "ADMISSION",
-			"dialogue": "Someone walked past my door quickly.",
+			"dialogue": "I heard footsteps outside my door. Fast ones. Like someone was trying not to stay there long.",
 			"new_statement_id": "stmt_sarah_footsteps",
-			"unlocks": [],
+			"unlocks": ["topic_sarah_footsteps"],
 			"pressure_points": 1,
 			"deflection_target_id": ""
 		},
@@ -454,7 +534,7 @@
 			"initial_dialogue": "I already told the police what happened.\nI stopped by to talk to Daniel, we argued a little, and then I left.\nThat's it.",
 			"initial_statement_ids": ["stmt_mark_visit", "stmt_mark_argument", "stmt_mark_departure_time"],
 			"base_topic_ids": ["topic_reason_for_visit", "topic_departure_time", "topic_relationship"],
-			"pressure_gate": 1,
+			"pressure_gate": 2,
 			"rejection_texts": [
 				"He barely reacts to that.",
 				"That doesn't seem to shake his story.",
@@ -468,14 +548,20 @@
 		},
 		{
 			"person_id": "p_sarah",
-			"initial_dialogue": "Sarah clutches her hands nervously. 'I live next door. I heard shouting that night, but I was too scared to look.'",
+			"initial_dialogue": "I already told them what I know... I was in my apartment all evening.\nI heard some arguing next door, but I didn't see anything.",
 			"initial_statement_ids": ["stmt_sarah_initial"],
-			"base_topic_ids": ["topic_sarah_hallway"],
-			"pressure_gate": 1,
+			"base_topic_ids": ["topic_sarah_what_heard", "topic_sarah_why_not_look", "topic_sarah_argue_often"],
+			"pressure_gate": 2,
 			"rejection_texts": [
 				"Sarah shakes her head. 'I don't know anything about that.'",
-				"She looks confused. 'I... I don't understand what you're showing me.'"
-			]
+				"She looks confused. 'I... I don't understand what you're showing me.'",
+				"She wrings her hands. 'That doesn't mean anything to me.'",
+				"She avoids your eyes. 'I really can't help you with that.'"
+			],
+			"pressure_dialogue": "Sarah fidgets. 'Please... I just want to stay out of this. I'm scared enough already.'",
+			"break_dialogue": "I was scared, alright?\nI did look. Just for a second.\nI saw a woman leaving Daniel's apartment.\nShe was moving fast, like she didn't want anyone to see her.\nI didn't say anything because I didn't want to be dragged into this.",
+			"break_statement_ids": ["stmt_sarah_saw_woman"],
+			"break_unlocks": ["topic_sarah_after_break"]
 		},
 		{
 			"person_id": "p_julia",
@@ -498,7 +584,11 @@
 			"rejection_texts": [
 				"Lucas shrugs. 'Don't know what that has to do with me.'",
 				"He looks bored. 'I was in the basement. That's my story.'"
-			]
+			],
+			"pressure_dialogue": "Lucas shifts uncomfortably. 'Look, I just fix pipes. I don't get involved in tenants' business.'",
+			"break_dialogue": "Lucas sighs heavily.\n'Alright, fine. I wasn't in the basement the whole time.\nI came up to grab a tool from the supply closet on the third floor around 20:45.\nI heard yelling from the apartment — a man and a woman going at it.\nI didn't see anything, but the voice... it wasn't the neighbor lady.'",
+			"break_statement_ids": ["stmt_lucas_heard_argument"],
+			"break_unlocks": []
 		}
 	]
 }

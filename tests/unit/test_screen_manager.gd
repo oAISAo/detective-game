@@ -138,6 +138,15 @@ func test_open_modal_without_game_root_returns_null() -> void:
 	assert_null(result, "Opening modal without GameRoot should return null")
 
 
+func test_open_modal_already_open_returns_existing() -> void:
+	var fake_node: Node = Node.new()
+	add_child_autofree(fake_node)
+	ScreenManager._active_modals["morning_briefing"] = fake_node
+	var result: Node = ScreenManager.open_modal("morning_briefing")
+	assert_eq(result, fake_node, "Should return existing modal node")
+	assert_push_warning("[ScreenManager] Modal already open: morning_briefing")
+
+
 func test_is_modal_open_returns_false_initially() -> void:
 	assert_false(ScreenManager.is_modal_open("morning_briefing"))
 	assert_false(ScreenManager.is_modal_open("notification_panel"))

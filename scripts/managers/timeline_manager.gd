@@ -2,7 +2,7 @@
 ## Manages the timeline reconstruction: placed events, hypotheses,
 ## overlap detection, and evidence attachment.
 ## Phase 9: Pure data layer — no UI dependency.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -51,7 +51,7 @@ var _next_hypothesis_id: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[TimelineManager] Initialized.")
+	super()
 
 
 # --- Time Utilities --- #

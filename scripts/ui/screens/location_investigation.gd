@@ -36,14 +36,25 @@ func _ready() -> void:
 
 	if location_id.is_empty():
 		push_error("[LocationInvestigation] No location_id in navigation data.")
+		_show_error_state("No location selected.")
 		return
 
 	_location = CaseManager.get_location(location_id)
 	if _location == null:
 		push_error("[LocationInvestigation] Location not found: %s" % location_id)
+		_show_error_state("Location '%s' could not be found." % location_id)
 		return
 
 	_setup_ui()
+
+
+func _show_error_state(message: String) -> void:
+	title_label.text = "Location Not Found"
+	description_label.text = message
+	completion_label.text = ""
+	object_list.visible = false
+	tool_panel.visible = false
+	detail_panel.visible = false
 
 
 ## Builds the initial UI layout.
@@ -59,31 +70,26 @@ func _setup_ui() -> void:
 
 ## Updates the completion indicator.
 func _update_completion() -> void:
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr == null:
-		completion_label.text = ""
-		return
-	var completion: Dictionary = loc_inv_mgr.get_location_completion(_location.id)
+	var completion: Dictionary = LocationInvestigationManager.get_location_completion(_location.id)
 	completion_label.text = "%d/%d clues found" % [completion["found"], completion["total"]]
 
 
 ## Populates the object list for this location.
 func _populate_objects() -> void:
 	for child: Node in object_list.get_children():
+		object_list.remove_child(child)
 		child.queue_free()
 
 	if _location.investigable_objects.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "Nothing to investigate here."
-		empty.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		empty.add_theme_color_override("font_color", UIColors.MUTED)
 		object_list.add_child(empty)
 		return
 
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-
 	for obj: InvestigableObjectData in _location.investigable_objects:
 		var btn: Button = Button.new()
-		var state_marker: String = _get_state_marker(obj.id, loc_inv_mgr)
+		var state_marker: String = _get_state_marker(obj.id)
 		btn.text = "%s %s" % [state_marker, obj.name]
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.pressed.connect(_on_object_selected.bind(obj.id))
@@ -94,26 +100,21 @@ func _populate_objects() -> void:
 func _populate_tools() -> void:
 	for child: Node in tool_panel.get_children():
 		if child is Button:
+			tool_panel.remove_child(child)
 			child.queue_free()
 
-	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
-	if tool_mgr == null:
-		return
-
-	var tools: Array[String] = tool_mgr.get_available_tools()
+	var tools: Array[String] = ToolManager.get_available_tools()
 	for tool_id: String in tools:
 		var btn: Button = Button.new()
-		btn.text = "🔧 %s" % tool_mgr.get_tool_name(tool_id)
+		btn.text = "🔧 %s" % ToolManager.get_tool_name(tool_id)
 		btn.pressed.connect(_on_tool_selected.bind(tool_id))
 		btn.disabled = _selected_object_id.is_empty() or not _full_investigation
 		tool_panel.add_child(btn)
 
 
 ## Gets the state marker symbol for an object.
-func _get_state_marker(object_id: String, loc_inv_mgr: Node) -> String:
-	if loc_inv_mgr == null:
-		return "🟡"
-	var state: Enums.InvestigationState = loc_inv_mgr.get_object_state(_location.id, object_id)
+func _get_state_marker(object_id: String) -> String:
+	var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(_location.id, object_id)
 	match state:
 		Enums.InvestigationState.NOT_INSPECTED:
 			return "🟡"
@@ -141,10 +142,7 @@ func _show_object_detail(object_id: String) -> void:
 	detail_title.text = obj.name
 	detail_description.text = obj.description if not obj.description.is_empty() else "No details available."
 
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	var state: Enums.InvestigationState = Enums.InvestigationState.NOT_INSPECTED
-	if loc_inv_mgr:
-		state = loc_inv_mgr.get_object_state(_location.id, object_id)
+	var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(_location.id, object_id)
 
 	match state:
 		Enums.InvestigationState.NOT_INSPECTED:
@@ -157,18 +155,20 @@ func _show_object_detail(object_id: String) -> void:
 			detail_state.text = "Status: Fully examined"
 			detail_state.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
-	_populate_action_buttons(obj, loc_inv_mgr)
+	_populate_action_buttons(obj)
+	_populate_discovered_clues(obj)
 
 
 ## Populates action buttons for the selected object.
-func _populate_action_buttons(obj: InvestigableObjectData, loc_inv_mgr: Node) -> void:
+func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 	for child: Node in detail_actions.get_children():
+		detail_actions.remove_child(child)
 		child.queue_free()
 
 	if not _full_investigation:
 		var label: Label = Label.new()
 		label.text = "Quick visit — view only."
-		label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		label.add_theme_color_override("font_color", UIColors.MUTED)
 		detail_actions.add_child(label)
 		return
 
@@ -180,9 +180,8 @@ func _populate_action_buttons(obj: InvestigableObjectData, loc_inv_mgr: Node) ->
 		inspect_btn.text = "🔍 Examine" if has_examine else "👁 Visual Inspection"
 
 		var already_done: bool = false
-		if loc_inv_mgr:
-			var actions: Array = loc_inv_mgr.get_performed_actions(_location.id, obj.id)
-			already_done = "visual_inspection" in actions
+		var actions: Array = LocationInvestigationManager.get_performed_actions(_location.id, obj.id)
+		already_done = "visual_inspection" in actions
 
 		if already_done:
 			inspect_btn.text += " (done)"
@@ -190,21 +189,11 @@ func _populate_action_buttons(obj: InvestigableObjectData, loc_inv_mgr: Node) ->
 		inspect_btn.pressed.connect(_on_inspect_pressed.bind(obj.id))
 		detail_actions.add_child(inspect_btn)
 
-	# Tool requirement hints
-	if not obj.tool_requirements.is_empty():
-		var hint_label: Label = Label.new()
-		hint_label.text = "Tools may reveal more evidence."
-		hint_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.4))
-		detail_actions.add_child(hint_label)
 
 
 ## Handles visual inspection action.
 func _on_inspect_pressed(object_id: String) -> void:
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr == null:
-		return
-
-	var discovered: Array[String] = loc_inv_mgr.inspect_object(_location.id, object_id)
+	var discovered: Array[String] = LocationInvestigationManager.inspect_object(_location.id, object_id)
 	_show_discovery_feedback(discovered)
 	_refresh_ui()
 
@@ -214,11 +203,7 @@ func _on_tool_selected(tool_id: String) -> void:
 	if _selected_object_id.is_empty():
 		return
 
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr == null:
-		return
-
-	var discovered: Array[String] = loc_inv_mgr.use_tool_on_object(
+	var discovered: Array[String] = LocationInvestigationManager.use_tool_on_object(
 		_location.id, _selected_object_id, tool_id
 	)
 	_show_discovery_feedback(discovered)
@@ -230,14 +215,10 @@ func _show_discovery_feedback(evidence_ids: Array[String]) -> void:
 	if evidence_ids.is_empty():
 		return
 
-	var notif_mgr: Node = get_node_or_null("/root/NotificationManager")
-	if notif_mgr == null:
-		return
-
 	for ev_id: String in evidence_ids:
 		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
 		if ev:
-			notif_mgr.notify_evidence(ev.name)
+			NotificationManager.notify_evidence(ev.name)
 
 
 ## Refreshes the entire UI after state changes.
@@ -251,10 +232,6 @@ func _refresh_ui() -> void:
 
 ## Updates tool button enabled states.
 func _update_tool_buttons() -> void:
-	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
-	if tool_mgr == null:
-		return
-
 	var obj: InvestigableObjectData = _find_object(_selected_object_id) if not _selected_object_id.is_empty() else null
 
 	for child: Node in tool_panel.get_children():
@@ -265,8 +242,8 @@ func _update_tool_buttons() -> void:
 				# Enable only compatible tools
 				var tool_name: String = child.text.substr(2).strip_edges()
 				var compatible: bool = false
-				for tool_id: String in tool_mgr.get_available_tools():
-					if tool_mgr.get_tool_name(tool_id) == tool_name:
+				for tool_id: String in ToolManager.get_available_tools():
+					if ToolManager.get_tool_name(tool_id) == tool_name:
 						compatible = tool_id in obj.tool_requirements
 						break
 				child.disabled = not compatible
@@ -287,9 +264,78 @@ func _find_object(object_id: String) -> InvestigableObjectData:
 	return null
 
 
+## Populates the "Clues found in this area" section for the selected object.
+func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
+	# Remove previous clues section if any
+	var existing: Node = detail_panel.get_node_or_null("CluesSection")
+	if existing:
+		existing.queue_free()
+
+	# Check which evidence from this object has been discovered (or upgraded)
+	var found_clues: Array[Dictionary] = []
+	for ev_id: String in obj.evidence_results:
+		if GameManager.has_evidence(ev_id):
+			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+			found_clues.append({"id": ev_id, "name": ev.name if ev else ev_id})
+		else:
+			# Check if this raw evidence was upgraded to analyzed
+			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+			if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
+				var ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
+				found_clues.append({"id": lab_req.output_evidence_id, "name": ev.name if ev else lab_req.output_evidence_id})
+
+	# Compute forensic hint
+	var hint_text: String = ""
+	var hint_color: Color = Color.WHITE
+	if not obj.tool_requirements.is_empty():
+		var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
+			_location.id, obj.id
+		)
+		var has_unfulfilled_tools: bool = false
+		for tool_req: String in obj.tool_requirements:
+			if not ToolManager.is_valid_tool(tool_req):
+				has_unfulfilled_tools = true
+				break
+		if has_unfulfilled_tools and state == Enums.InvestigationState.PARTIALLY_EXAMINED:
+			hint_text = "Further forensic analysis required — submit discovered evidence to the lab."
+			hint_color = Color(0.9, 0.7, 0.2)
+		elif not has_unfulfilled_tools:
+			hint_text = "Tools may reveal more evidence."
+			hint_color = UIColors.SECONDARY
+
+	if found_clues.is_empty() and hint_text.is_empty():
+		return
+
+	var section: VBoxContainer = VBoxContainer.new()
+	section.name = "CluesSection"
+	section.add_theme_constant_override("separation", 4)
+
+	if not found_clues.is_empty():
+		var header: Label = Label.new()
+		header.text = "Clues found in this area:"
+		header.add_theme_color_override("font_color", UIColors.HEADER)
+		header.add_theme_font_size_override("font_size", 16)
+		section.add_child(header)
+
+		for clue: Dictionary in found_clues:
+			var clue_label: Label = Label.new()
+			clue_label.text = "  - %s" % clue["name"]
+			clue_label.add_theme_color_override("font_color", UIColors.SECONDARY)
+			clue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			section.add_child(clue_label)
+
+	if not hint_text.is_empty():
+		var hint_label: Label = Label.new()
+		hint_label.text = hint_text
+		hint_label.add_theme_color_override("font_color", hint_color)
+		hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		section.add_child(hint_label)
+
+	detail_panel.add_child(section)
+	detail_panel.move_child(section, detail_description.get_index() + 1)
+
+
 ## Navigates back to location map.
 func _on_back_pressed() -> void:
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr:
-		loc_inv_mgr.leave_location()
+	LocationInvestigationManager.leave_location()
 	ScreenManager.navigate_back()

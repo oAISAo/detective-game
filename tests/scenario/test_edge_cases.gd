@@ -30,7 +30,7 @@ var _test_case_data: Dictionary = {
 		{"id": "evt_test", "name": "Test Event", "description": "Event for timeline tests.", "time": "21:00", "day": 1, "location": "loc_scene", "involved_persons": []},
 	],
 	"interrogation_triggers": [
-		{"id": "trig_weapon", "person_id": "p_mark", "evidence_id": "ev_weapon", "dialogue": "Not mine.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
+		{"id": "trig_weapon", "person_id": "p_mark", "evidence_id": "ev_weapon", "target_topic_id": "general", "dialogue": "Not mine.", "impact_level": "MINOR", "reaction_type": "DENIAL", "pressure_points": 1},
 	],
 	"solution": {
 		"suspect": "p_mark",
@@ -149,10 +149,10 @@ func test_interrogation_limit_resets_on_new_day() -> void:
 # =========================================================================
 
 func test_day_does_not_exceed_total() -> void:
-	GameManager.current_day = GameManager.TOTAL_DAYS
+	GameManager.current_day = GameManager.get_total_days()
 	DaySystem.process_morning()
 	DaySystem.try_end_day()
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Should not exceed TOTAL_DAYS")
+	assert_eq(GameManager.current_day, GameManager.get_total_days(), "Should not exceed TOTAL_DAYS")
 
 
 # =========================================================================

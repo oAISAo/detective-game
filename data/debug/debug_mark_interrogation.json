@@ -8,16 +8,16 @@
 		"actions_remaining": 4,
 		"discovered_evidence": ["ev_parking_camera", "ev_bank_transfer", "ev_hidden_safe"],
 		"unlocked_locations": [
-			"victim_apartment",
-			"building_hallway",
-			"parking_lot",
-			"neighbor_apartment",
-			"victim_office"
+			"loc_victim_apartment",
+			"loc_hallway",
+			"loc_parking_lot",
+			"loc_neighbor_apartment",
+			"loc_victim_office"
 		],
 		"visited_locations": [
-			"victim_apartment",
-			"building_hallway",
-			"parking_lot"
+			"loc_victim_apartment",
+			"loc_hallway",
+			"loc_parking_lot"
 		],
 		"unlocked_interrogations": [
 			"p_mark",

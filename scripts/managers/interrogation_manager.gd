@@ -3,7 +3,7 @@
 ## 1. Statement Intake — suspect tells their story, individual claims logged
 ## 2. Interrogation — player selects a focus (statement/topic) and presents evidence
 ## 3. Pressure — earned through contradictions, unlocks escalation
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -17,6 +17,7 @@ signal break_moment_reached(person_id: String)
 signal interrogation_ended(person_id: String)
 signal focus_changed(focus: Dictionary)
 signal contradiction_logged(statement_id: String, evidence_id: String)
+signal topic_discussed(topic_id: String, result: Dictionary)
 signal state_loaded
 
 
@@ -29,6 +30,7 @@ var _current_focus: Dictionary = {}  # { "type": "statement"|"topic", "id": "...
 var _session_contradictions: Array[Dictionary] = []  # [{ statement_id, evidence_id }]
 var _session_statements: Array[String] = []
 var _unlocked_topic_ids: Array[String] = []
+var _session_fired_evidence: Array[String] = []  # evidence_ids used this session (sibling dedup)
 
 
 # --- Persistent State (across sessions) --- #
@@ -40,7 +42,7 @@ var _break_moments: Dictionary = {}  # { person_id: bool }
 
 
 func _ready() -> void:
-	print("[InterrogationManager] Initialized.")
+	super()
 
 
 func reset() -> void:
@@ -51,6 +53,7 @@ func reset() -> void:
 	_session_contradictions.clear()
 	_session_statements.clear()
 	_unlocked_topic_ids.clear()
+	_session_fired_evidence.clear()
 	_fired_triggers.clear()
 	_heard_statements.clear()
 	_accumulated_pressure.clear()
@@ -82,24 +85,20 @@ func start_interrogation(person_id: String) -> bool:
 	_unlocked_topic_ids.clear()
 	_current_pressure = _accumulated_pressure.get(person_id, 0)
 
-	GameManager.record_interrogation(person_id)
-
-	# Start in statement intake phase — suspect tells their story first
+	# Record initial statements and go directly to interrogation phase.
+	# The initial dialogue is shown as context; questioning is available immediately.
 	var session: InterrogationSessionData = CaseManager.get_interrogation_session(person_id)
-	if session and not session.initial_statement_ids.is_empty():
-		_current_phase = Enums.InterrogationPhase.STATEMENT_INTAKE
+	if session:
 		for stmt_id: String in session.initial_statement_ids:
 			_record_statement(stmt_id)
-	else:
-		# No initial statements defined — skip straight to interrogation
-		_current_phase = Enums.InterrogationPhase.INTERROGATION
+	_current_phase = Enums.InterrogationPhase.INTERROGATION
+
+	# Record the interrogation AFTER the session is successfully established,
+	# so the daily counter is not consumed if setup fails.
+	GameManager.record_interrogation(person_id)
 
 	interrogation_started.emit(person_id)
 	phase_changed.emit(_current_phase)
-	print("[InterrogationManager] Interrogation started with %s (phase: %s)" % [
-		person_id,
-		"STATEMENT_INTAKE" if _current_phase == Enums.InterrogationPhase.STATEMENT_INTAKE else "INTERROGATION",
-	])
 	return true
 
 
@@ -114,10 +113,9 @@ func end_interrogation() -> void:
 	_current_phase = Enums.InterrogationPhase.ENDED
 	phase_changed.emit(_current_phase)
 	interrogation_ended.emit(person_id)
-	print("[InterrogationManager] Interrogation ended with %s" % person_id)
 
 	# Clear session state after signal handlers have read it
-	_clear_session_state.call_deferred()
+	_clear_session_state()
 
 
 ## Resets transient session state after an interrogation ends.
@@ -128,6 +126,7 @@ func _clear_session_state() -> void:
 	_session_contradictions.clear()
 	_session_statements.clear()
 	_unlocked_topic_ids.clear()
+	_session_fired_evidence.clear()
 
 
 func advance_to_interrogation() -> Enums.InterrogationPhase:
@@ -185,19 +184,51 @@ func present_evidence(evidence_id: String) -> Dictionary:
 		_current_person_id, evidence_id, _current_focus
 	)
 
-	# Fallback: try the old global lookup for backward compatibility
+	# Fallback: try the global lookup for triggers that match any focus.
+	# A trigger is "global" if it has no specific target, or uses "general" as its topic target.
 	if trigger == null:
 		trigger = CaseManager.get_trigger_by_evidence(_current_person_id, evidence_id)
-		# Only accept global triggers that have no target set (legacy data)
-		if trigger != null and (not trigger.target_statement_id.is_empty() or not trigger.target_topic_id.is_empty()):
-			trigger = null
+		if trigger != null:
+			var is_global: bool = (
+				(trigger.target_statement_id.is_empty() and trigger.target_topic_id.is_empty()) or
+				trigger.target_topic_id == "general"
+			)
+			if not is_global:
+				trigger = null
 
 	if trigger == null:
+		# Sibling dedup: evidence already used against a different focus this session
+		if evidence_id in _session_fired_evidence:
+			return {"triggered": false, "already_fired": true}
+
+		# Check if a trigger exists for this person+evidence but cannot fire right now.
+		# This distinguishes between truly wrong evidence and correct evidence with
+		# unmet prerequisites or wrong focus.
+		var any_trigger: InterrogationTriggerData = CaseManager.get_trigger_by_evidence(
+			_current_person_id, evidence_id
+		)
+		if any_trigger != null:
+			# Prerequisite not met: correct evidence but requires an earlier statement
+			if not any_trigger.requires_statement_id.is_empty() and \
+				any_trigger.requires_statement_id not in _heard_statements:
+				return {"triggered": false, "reason": "prerequisite_not_met"}
+			# Wrong focus: a trigger exists but the player has the wrong focus selected
+			return {"triggered": false, "reason": "wrong_focus"}
+
 		return {"triggered": false, "reason": "wrong_evidence"}
 
 	var person_fired: Array = _fired_triggers.get(_current_person_id, [])
 	if trigger.id in person_fired:
 		return {"triggered": false, "already_fired": true}
+
+	# Sibling dedup: evidence already presented this session against any focus
+	if evidence_id in _session_fired_evidence:
+		return {"triggered": false, "already_fired": true}
+
+	# Hard gate: requires_statement_id must be heard before trigger can fire
+	if not trigger.requires_statement_id.is_empty():
+		if trigger.requires_statement_id not in _heard_statements:
+			return {"triggered": false, "reason": "prerequisite_not_met"}
 
 	var result: Dictionary = _evaluate_trigger(trigger)
 
@@ -205,6 +236,10 @@ func present_evidence(evidence_id: String) -> Dictionary:
 	if not _fired_triggers.has(_current_person_id):
 		_fired_triggers[_current_person_id] = []
 	_fired_triggers[_current_person_id].append(trigger.id)
+
+	# Track evidence_id for sibling dedup
+	if evidence_id not in _session_fired_evidence:
+		_session_fired_evidence.append(evidence_id)
 
 	# Record new statement
 	if not result.get("new_statement_id", "").is_empty():
@@ -217,12 +252,10 @@ func present_evidence(evidence_id: String) -> Dictionary:
 		else:
 			GameManager.discover_evidence(unlock_id)
 
-	# Log contradiction only if the suspect resisted (not admissions/revelations)
+	# Log a contradiction whenever evidence is presented against a focused statement
 	var focus_id: String = _current_focus.get("id", "")
 	if _current_focus.get("type", "") == "statement":
-		var reaction: Enums.ReactionType = result.get("reaction_type", Enums.ReactionType.DENIAL)
-		if reaction not in [Enums.ReactionType.ADMISSION, Enums.ReactionType.REVELATION, Enums.ReactionType.PARTIAL_CONFESSION]:
-			_log_contradiction(focus_id, evidence_id)
+		_log_contradiction(focus_id, evidence_id)
 
 	# Apply pressure
 	var pressure_added: int = result.get("pressure_added", 0)
@@ -247,11 +280,11 @@ func get_rejection_text() -> String:
 
 func _get_default_rejection_text() -> String:
 	var defaults: Array[String] = [
-		"He barely reacts to that.",
-		"That doesn't seem to shake his story.",
-		"He dismisses it immediately.",
-		"She looks at you blankly.",
+		"That doesn't seem relevant.",
 		"That doesn't get a reaction.",
+		"They dismiss it immediately.",
+		"They barely react to that.",
+		"That doesn't seem to shake their story.",
 	]
 	return defaults[randi() % defaults.size()]
 
@@ -265,15 +298,21 @@ func apply_pressure() -> Dictionary:
 		push_error("[InterrogationManager] Cannot apply pressure: no active interrogation")
 		return {}
 
-	var session: InterrogationSessionData = CaseManager.get_interrogation_session(_current_person_id)
-	var gate: int = session.pressure_gate if session else 1
-	var contradiction_count: int = _session_contradictions.size()
-
-	if contradiction_count < gate:
+	# Pressure can only be applied once per person (break is one-time)
+	if _break_moments.get(_current_person_id, false):
 		return {
 			"success": false,
-			"reason": "insufficient_contradictions",
-			"current": contradiction_count,
+			"reason": "already_used",
+		}
+
+	var session: InterrogationSessionData = CaseManager.get_interrogation_session(_current_person_id)
+	var gate: int = session.pressure_gate if session else 1
+
+	if _current_pressure < gate:
+		return {
+			"success": false,
+			"reason": "insufficient_pressure",
+			"current": _current_pressure,
 			"required": gate,
 		}
 
@@ -283,6 +322,11 @@ func apply_pressure() -> Dictionary:
 	if _check_break_moment():
 		var break_dialogue: String = session.break_dialogue if session else ""
 		_process_break_effects(session)
+
+		# Return to INTERROGATION phase after break so player can continue
+		_current_phase = Enums.InterrogationPhase.INTERROGATION
+		phase_changed.emit(_current_phase)
+
 		return {
 			"success": true,
 			"break_moment": true,
@@ -290,6 +334,11 @@ func apply_pressure() -> Dictionary:
 		}
 
 	var pressure_dialogue: String = session.pressure_dialogue if session else ""
+
+	# Return to INTERROGATION after pressure
+	_current_phase = Enums.InterrogationPhase.INTERROGATION
+	phase_changed.emit(_current_phase)
+
 	return {
 		"success": true,
 		"break_moment": false,
@@ -300,9 +349,12 @@ func apply_pressure() -> Dictionary:
 func can_apply_pressure() -> bool:
 	if not is_active():
 		return false
+	# Once break moment has been used, pressure cannot be applied again
+	if _break_moments.get(_current_person_id, false):
+		return false
 	var session: InterrogationSessionData = CaseManager.get_interrogation_session(_current_person_id)
 	var gate: int = session.pressure_gate if session else 1
-	return _session_contradictions.size() >= gate
+	return _current_pressure >= gate
 
 
 func get_pressure_dialogue() -> String:
@@ -341,12 +393,14 @@ func discuss_topic(topic_id: String) -> Dictionary:
 	for unlock_id: String in topic.unlock_evidence:
 		GameManager.discover_evidence(unlock_id)
 
-	return {
+	var result: Dictionary = {
 		"topic_id": topic_id,
 		"statements": produced_statements,
 		"unlocks": topic.unlock_evidence.duplicate(),
 		"dialogue": topic.dialogue,
 	}
+	topic_discussed.emit(topic_id, result)
+	return result
 
 
 func get_available_topics() -> Array[InterrogationTopicData]:
@@ -455,16 +509,11 @@ func get_contradicted_statements() -> Array[Dictionary]:
 # =========================================================================
 
 func _evaluate_trigger(trigger: InterrogationTriggerData) -> Dictionary:
-	var weakened: bool = _is_trigger_weakened(trigger)
 	var person: PersonData = CaseManager.get_person(_current_person_id)
 
 	var effective_impact: Enums.ImpactLevel = trigger.impact_level
 	var effective_pressure: int = trigger.pressure_points
 	var effective_reaction: Enums.ReactionType = trigger.reaction_type
-
-	if weakened:
-		effective_impact = _downgrade_impact(effective_impact)
-		effective_pressure = effective_pressure / 2
 
 	if person:
 		effective_reaction = _apply_personality_modifier(person, effective_reaction, effective_impact)
@@ -478,26 +527,9 @@ func _evaluate_trigger(trigger: InterrogationTriggerData) -> Dictionary:
 		"new_statement_id": trigger.new_statement_id,
 		"unlocks": trigger.unlocks.duplicate(),
 		"pressure_added": effective_pressure,
-		"weakened": weakened,
 		"impact_level": effective_impact,
 		"deflection_target_id": trigger.deflection_target_id,
 	}
-
-
-func _is_trigger_weakened(trigger: InterrogationTriggerData) -> bool:
-	if trigger.requires_statement_id.is_empty():
-		return false
-	return trigger.requires_statement_id not in _heard_statements
-
-
-func _downgrade_impact(impact: Enums.ImpactLevel) -> Enums.ImpactLevel:
-	match impact:
-		Enums.ImpactLevel.BREAKPOINT:
-			return Enums.ImpactLevel.MAJOR
-		Enums.ImpactLevel.MAJOR:
-			return Enums.ImpactLevel.MINOR
-		_:
-			return Enums.ImpactLevel.MINOR
 
 
 func _apply_personality_modifier(
@@ -544,7 +576,6 @@ func _check_break_moment() -> bool:
 		_current_phase = Enums.InterrogationPhase.BREAK_MOMENT
 		phase_changed.emit(_current_phase)
 		break_moment_reached.emit(_current_person_id)
-		print("[InterrogationManager] Break moment reached for %s" % _current_person_id)
 		return true
 
 	return false
@@ -609,20 +640,20 @@ func _is_topic_available(topic: InterrogationTopicData) -> bool:
 
 
 func _evaluate_topic_condition(condition: String) -> bool:
-	var parts: PackedStringArray = condition.split(":", true, 1)
-	if parts.size() < 2:
+	var parsed: PackedStringArray = ActionStringParser.parse(condition)
+	var condition_type: String = parsed[0]
+	var condition_value: String = parsed[1]
+
+	if condition_type.is_empty():
 		push_warning("[InterrogationManager] Invalid condition format: %s" % condition)
 		return false
 
-	var condition_type: String = parts[0]
-	var condition_value: String = parts[1]
-
 	match condition_type:
-		"evidence":
+		ActionStringParser.TOPIC_EVIDENCE:
 			return GameManager.has_evidence(condition_value)
-		"statement":
+		ActionStringParser.TOPIC_STATEMENT:
 			return condition_value in _heard_statements
-		"location":
+		ActionStringParser.TOPIC_LOCATION:
 			return GameManager.has_visited_location(condition_value)
 		_:
 			push_warning("[InterrogationManager] Unknown condition type: %s" % condition_type)
@@ -634,12 +665,27 @@ func _evaluate_topic_condition(condition: String) -> bool:
 # =========================================================================
 
 func serialize() -> Dictionary:
-	return {
+	var data: Dictionary = {
 		"fired_triggers": _fired_triggers.duplicate(true),
 		"heard_statements": _heard_statements.duplicate(),
 		"accumulated_pressure": _accumulated_pressure.duplicate(),
 		"break_moments": _break_moments.duplicate(),
 	}
+
+	# Save in-progress session state so mid-interrogation saves are supported
+	if is_active():
+		data["session"] = {
+			"person_id": _current_person_id,
+			"phase": _current_phase,
+			"pressure": _current_pressure,
+			"focus": _current_focus.duplicate(),
+			"contradictions": _session_contradictions.duplicate(true),
+			"statements": _session_statements.duplicate(),
+			"unlocked_topics": _unlocked_topic_ids.duplicate(),
+			"fired_evidence": _session_fired_evidence.duplicate(),
+		}
+
+	return data
 
 
 func deserialize(data: Dictionary) -> void:
@@ -647,4 +693,19 @@ func deserialize(data: Dictionary) -> void:
 	_heard_statements.assign(data.get("heard_statements", []))
 	_accumulated_pressure = data.get("accumulated_pressure", {})
 	_break_moments = data.get("break_moments", {})
+
+	# Restore in-progress session if one was saved
+	var session: Dictionary = data.get("session", {})
+	if not session.is_empty():
+		_current_person_id = session.get("person_id", "")
+		_current_phase = session.get("phase", Enums.InterrogationPhase.INACTIVE) as Enums.InterrogationPhase
+		_current_pressure = session.get("pressure", 0)
+		_current_focus = session.get("focus", {})
+		_session_contradictions.assign(session.get("contradictions", []))
+		_session_statements.assign(session.get("statements", []))
+		_unlocked_topic_ids.assign(session.get("unlocked_topics", []))
+		_session_fired_evidence.assign(session.get("fired_evidence", []))
+	else:
+		_clear_session_state()
+
 	state_loaded.emit()

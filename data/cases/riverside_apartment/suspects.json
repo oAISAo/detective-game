@@ -35,9 +35,9 @@
 		{
 			"id": "p_sarah",
 			"name": "Sarah Klein",
-			"role": "SUSPECT",
+			"role": "WITNESS",
 			"personality_traits": [
-				"CALM"
+				"ANXIOUS"
 			],
 			"relationships": [
 				{
@@ -45,7 +45,7 @@
 					"type": "FRIEND"
 				}
 			],
-			"pressure_threshold": 3
+			"pressure_threshold": 2
 		},
 		{
 			"id": "p_julia",

@@ -65,6 +65,9 @@ static func _apply_debug_state(data: Dictionary) -> bool:
 	# Reset and prepare game state
 	GameManager.new_game()
 
+	# Enable debug mode for debug presets
+	GameManager.debug_mode = true
+
 	# Load the case
 	CaseManager.unload_case()
 	if not CaseManager.load_case_folder(case_id):

@@ -11,7 +11,7 @@
 				"p_victim"
 			],
 			"supporting_evidence": [
-				"ev_mark_fingerprint_desk"
+				"ev_desk_fingerprint_raw"
 			],
 			"certainty_level": "CONFIRMED"
 		},
@@ -118,6 +118,32 @@
 				"ev_sarah_second_testimony"
 			],
 			"certainty_level": "LIKELY"
+		},
+		{
+			"id": "evt_surv_julia_call",
+			"description": "Phone tap intercepts Julia calling an unknown number, nervously asking about 'getting rid of evidence'.",
+			"time": "14:30",
+			"day": 2,
+			"location": "",
+			"involved_persons": [
+				"p_julia"
+			],
+			"supporting_evidence": [],
+			"certainty_level": "CONFIRMED"
+		},
+		{
+			"id": "evt_surv_mark_transfer",
+			"description": "Financial monitoring detects Mark attempting to move funds to an offshore account.",
+			"time": "11:15",
+			"day": 2,
+			"location": "",
+			"involved_persons": [
+				"p_mark"
+			],
+			"supporting_evidence": [
+				"ev_bank_transfer"
+			],
+			"certainty_level": "CONFIRMED"
 		}
 	],
 	"statements": [
@@ -217,6 +243,37 @@
 			"contradicting_evidence": []
 		},
 		{
+			"id": "stmt_mark_lied_to_hide_argument",
+			"person_id": "p_mark",
+			"text": "I lied because we argued and I didn't want it to look worse.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_parking_camera"
+			],
+			"related_event": "evt_argument_money",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_money_admission",
+			"person_id": "p_mark",
+			"text": "I moved money from the company and Daniel found out.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_bank_transfer"
+			],
+			"related_event": "evt_argument_money",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_mark_julia_knew",
+			"person_id": "p_mark",
+			"text": "Julia may have known Daniel discovered the missing money.",
+			"day_given": 2,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
 			"id": "stmt_julia_initial",
 			"person_id": "p_julia",
 			"text": "I wasn't at the apartment that night.",
@@ -232,7 +289,7 @@
 		{
 			"id": "stmt_sarah_initial",
 			"person_id": "p_sarah",
-			"text": "I heard some arguing but didn't see anything.",
+			"text": "I heard some arguing, but I didn't see anything.",
 			"day_given": 1,
 			"related_evidence": [
 				"ev_sarah_testimony"
@@ -241,6 +298,35 @@
 			"contradicting_evidence": [
 				"ev_hallway_camera"
 			]
+		},
+		{
+			"id": "stmt_sarah_heard_argument",
+			"person_id": "p_sarah",
+			"text": "There was definitely shouting next door.",
+			"day_given": 1,
+			"related_evidence": [
+				"ev_sarah_testimony"
+			],
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_sarah_didnt_look",
+			"person_id": "p_sarah",
+			"text": "I didn't want to get involved.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_sarah_not_unusual",
+			"person_id": "p_sarah",
+			"text": "I'd heard raised voices before, but never like that.",
+			"day_given": 1,
+			"related_evidence": [],
+			"related_event": "",
+			"contradicting_evidence": []
 		},
 		{
 			"id": "stmt_lucas_initial",
@@ -254,6 +340,28 @@
 			]
 		},
 		{
+			"id": "stmt_sarah_saw_woman",
+			"person_id": "p_sarah",
+			"text": "I saw a woman leave Daniel's apartment that night.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_hallway_camera"
+			],
+			"related_event": "evt_julia_leaves",
+			"contradicting_evidence": []
+		},
+		{
+			"id": "stmt_lucas_heard_argument",
+			"person_id": "p_lucas",
+			"text": "I came up to the third floor around 20:45 and heard a man and a woman arguing loudly in the apartment.",
+			"day_given": 2,
+			"related_evidence": [
+				"ev_lucas_work_log"
+			],
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": []
+		},
+		{
 			"id": "stmt_sarah_confronted",
 			"person_id": "p_sarah",
 			"text": "I may have heard a woman's voice...",
@@ -261,13 +369,15 @@
 			"related_evidence": [
 				"ev_hallway_camera"
 			],
-			"related_event": "",
-			"contradicting_evidence": []
+			"related_event": "evt_loud_argument",
+			"contradicting_evidence": [
+				"ev_shoe_print"
+			]
 		},
 		{
 			"id": "stmt_sarah_footsteps",
 			"person_id": "p_sarah",
-			"text": "Someone walked past my door quickly.",
+			"text": "I heard someone walk past my door quickly.",
 			"day_given": 2,
 			"related_evidence": [
 				"ev_shoe_print"
@@ -322,7 +432,13 @@
 			"time_cost": 1,
 			"target": "loc_victim_apartment",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_knife",
+				"evidence:ev_wine_glasses",
+				"evidence:ev_broken_picture_frame",
+				"evidence:ev_victim_phone",
+				"evidence:ev_knife_block"
+			]
 		},
 		{
 			"id": "act_visit_hallway",
@@ -331,7 +447,12 @@
 			"time_cost": 1,
 			"target": "loc_hallway",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_hallway_camera",
+				"evidence:ev_elevator_logs",
+				"evidence:ev_shoe_print_raw",
+				"evidence:ev_lucas_work_log"
+			]
 		},
 		{
 			"id": "act_visit_parking",
@@ -340,7 +461,9 @@
 			"time_cost": 1,
 			"target": "loc_parking_lot",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_parking_camera"
+			]
 		},
 		{
 			"id": "act_visit_neighbor",
@@ -349,7 +472,9 @@
 			"time_cost": 1,
 			"target": "loc_neighbor_apartment",
 			"requirements": [],
-			"results": []
+			"results": [
+				"evidence:ev_sarah_testimony"
+			]
 		},
 		{
 			"id": "act_visit_office",
@@ -357,8 +482,16 @@
 			"type": "VISIT_LOCATION",
 			"time_cost": 1,
 			"target": "loc_victim_office",
-			"requirements": [],
-			"results": []
+			"requirements": [
+				"day:2"
+			],
+			"results": [
+				"evidence:ev_daniel_email",
+				"evidence:ev_bank_transfer",
+				"evidence:ev_accounting_files",
+				"evidence:ev_hidden_safe",
+				"evidence:ev_personal_journal"
+			]
 		},
 		{
 			"id": "act_interrogate_mark",
@@ -384,7 +517,9 @@
 			"type": "INTERROGATION",
 			"time_cost": 1,
 			"target": "p_julia",
-			"requirements": [],
+			"requirements": [
+				"day:2"
+			],
 			"results": []
 		},
 		{
@@ -393,7 +528,9 @@
 			"type": "INTERROGATION",
 			"time_cost": 1,
 			"target": "p_lucas",
-			"requirements": [],
+			"requirements": [
+				"day:2"
+			],
 			"results": []
 		}
 	],
@@ -444,7 +581,7 @@
 		},
 		{
 			"id": "lab_fingerprint_desk",
-			"input_evidence_id": "ev_mark_fingerprint_desk",
+			"input_evidence_id": "ev_desk_fingerprint_raw",
 			"analysis_type": "fingerprint_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
@@ -452,7 +589,7 @@
 		},
 		{
 			"id": "lab_shoe_print",
-			"input_evidence_id": "ev_shoe_print",
+			"input_evidence_id": "ev_shoe_print_raw",
 			"analysis_type": "footwear_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
@@ -466,7 +603,9 @@
 			"type": "PHONE_TAP",
 			"day_installed": 0,
 			"active_days": 2,
-			"result_events": []
+			"result_events": [
+				"evt_surv_julia_call"
+			]
 		},
 		{
 			"id": "surv_mark_financial",
@@ -474,7 +613,9 @@
 			"type": "FINANCIAL_MONITORING",
 			"day_installed": 0,
 			"active_days": 2,
-			"result_events": []
+			"result_events": [
+				"evt_surv_mark_transfer"
+			]
 		}
 	]
 }

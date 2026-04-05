@@ -19,6 +19,9 @@ signal actions_remaining_changed(remaining: int)
 ## Emitted when new evidence is discovered.
 signal evidence_discovered(evidence_id: String)
 
+## Emitted when raw evidence is upgraded to its analyzed version via lab results.
+signal evidence_upgraded(old_evidence_id: String, new_evidence_id: String)
+
 ## Emitted when a new insight is created.
 signal insight_discovered(insight_id: String)
 
@@ -43,9 +46,6 @@ signal game_reset
 
 
 # --- Constants --- #
-
-## Number of days in the investigation.
-const TOTAL_DAYS: int = 4
 
 ## Number of major actions the player gets per day.
 const ACTIONS_PER_DAY: int = 4
@@ -104,15 +104,6 @@ var mandatory_actions_completed: Array[String] = []
 ## IDs of warrants the player has obtained.
 var warrants_obtained: Array[String] = []
 
-## The player's detective board state (serialized separately).
-var player_board_state: Dictionary = {}
-
-## The player's timeline data (serialized separately).
-var player_timeline: Array = []
-
-## The player's theories (serialized separately).
-var player_theories: Array = []
-
 ## Chronological log of all player actions.
 var investigation_log: Array[Dictionary] = []
 
@@ -122,16 +113,35 @@ var hints_used: int = 0
 ## Whether the game is currently running.
 var game_active: bool = false
 
+## Whether debug mode is active (shows extra status text in UI).
+var debug_mode: bool = false
+
+## Registry of subsystems that auto-register for reset/serialize/deserialize.
+var _subsystems: Array[Node] = []
+
+
+# --- Subsystem Registry --- #
+
+## Registers a subsystem so it participates in reset/serialize/deserialize.
+func register_subsystem(subsystem: Node) -> void:
+	if subsystem not in _subsystems:
+		_subsystems.append(subsystem)
+
+
+## Unregisters a subsystem.
+func unregister_subsystem(subsystem: Node) -> void:
+	_subsystems.erase(subsystem)
+
 
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[GameManager] Initialized.")
+	pass
 
 
 ## Starts a new investigation, resetting all state.
 func new_game() -> void:
-	current_day = 1
+	current_day = get_start_day()
 	current_phase = Enums.DayPhase.MORNING
 	actions_remaining = ACTIONS_PER_DAY
 	discovered_evidence.clear()
@@ -146,85 +156,16 @@ func new_game() -> void:
 	mandatory_actions_required.clear()
 	mandatory_actions_completed.clear()
 	warrants_obtained.clear()
-	player_board_state.clear()
-	player_timeline.clear()
-	player_theories.clear()
 	investigation_log.clear()
 	hints_used = 0
 	game_active = true
+	debug_mode = false
 
-	# Reset Phase 2 systems if available
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
-	if day_sys and day_sys.has_method("reset"):
-		day_sys.call("reset")
-	var action_sys: Node = get_node_or_null("/root/ActionSystem")
-	if action_sys and action_sys.has_method("reset"):
-		action_sys.call("reset")
-
-	# Reset Phase 3 systems if available
-	var event_sys: Node = get_node_or_null("/root/EventSystem")
-	if event_sys and event_sys.has_method("reset"):
-		event_sys.call("reset")
-	var dialogue_sys: Node = get_node_or_null("/root/DialogueSystem")
-	if dialogue_sys and dialogue_sys.has_method("reset"):
-		dialogue_sys.call("reset")
-
-	# Reset Phase 4 systems if available
-	var screen_mgr: Node = get_node_or_null("/root/ScreenManager")
-	if screen_mgr and screen_mgr.has_method("reset"):
-		screen_mgr.call("reset")
-
-	# Reset Phase 5 systems if available
-	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
-	if evidence_mgr and evidence_mgr.has_method("reset"):
-		evidence_mgr.call("reset")
-
-	# Reset Phase 6 systems if available
-	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
-	if tool_mgr and tool_mgr.has_method("reset"):
-		tool_mgr.call("reset")
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr and loc_inv_mgr.has_method("reset"):
-		loc_inv_mgr.call("reset")
-
-	# Reset Phase 7 systems if available
-	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
-	if interr_mgr and interr_mgr.has_method("reset"):
-		interr_mgr.call("reset")
-
-	# Reset Phase 8 systems if available
-	var board_mgr: Node = get_node_or_null("/root/BoardManager")
-	if board_mgr and board_mgr.has_method("reset"):
-		board_mgr.call("reset")
-
-	# Reset Phase 9 systems if available
-	var timeline_mgr: Node = get_node_or_null("/root/TimelineManager")
-	if timeline_mgr and timeline_mgr.has_method("reset"):
-		timeline_mgr.call("reset")
-
-	# Reset Phase 10 systems if available
-	var theory_mgr: Node = get_node_or_null("/root/TheoryManager")
-	if theory_mgr and theory_mgr.has_method("reset"):
-		theory_mgr.call("reset")
-
-	# Reset Phase 11 systems if available
-	var lab_mgr: Node = get_node_or_null("/root/LabManager")
-	if lab_mgr and lab_mgr.has_method("reset"):
-		lab_mgr.call("reset")
-	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
-	if surv_mgr and surv_mgr.has_method("reset"):
-		surv_mgr.call("reset")
-	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
-	if warrant_mgr and warrant_mgr.has_method("reset"):
-		warrant_mgr.call("reset")
-
-	# Reset Phase 12 systems if available
-	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
-	if concl_mgr and concl_mgr.has_method("reset"):
-		concl_mgr.call("reset")
+	# Reset all registered subsystems
+	for subsystem in _subsystems:
+		subsystem.reset()
 
 	game_reset.emit()
-	print("[GameManager] New game started.")
 
 
 # --- Evidence --- #
@@ -237,13 +178,31 @@ func discover_evidence(evidence_id: String) -> bool:
 	evidence_discovered.emit(evidence_id)
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
 	var ev_name: String = ev.name if ev else evidence_id
-	_log_action("Evidence discovered: %s" % ev_name)
+	log_action("Evidence discovered: %s" % ev_name)
 	return true
 
 
 ## Returns true if the given evidence has been discovered.
 func has_evidence(evidence_id: String) -> bool:
 	return evidence_id in discovered_evidence
+
+
+## Upgrades raw evidence to its analyzed version (replaces in place).
+## Returns true if the upgrade was performed.
+func upgrade_evidence(raw_evidence_id: String, analyzed_evidence_id: String) -> bool:
+	var idx: int = discovered_evidence.find(raw_evidence_id)
+	if idx == -1:
+		# Raw evidence not in inventory — just discover the analyzed version
+		return discover_evidence(analyzed_evidence_id)
+	if analyzed_evidence_id in discovered_evidence:
+		return false
+	discovered_evidence[idx] = analyzed_evidence_id
+	evidence_upgraded.emit(raw_evidence_id, analyzed_evidence_id)
+	evidence_discovered.emit(analyzed_evidence_id)
+	var ev: EvidenceData = CaseManager.get_evidence(analyzed_evidence_id)
+	var ev_name: String = ev.name if ev else analyzed_evidence_id
+	log_action("Evidence upgraded: %s" % ev_name)
+	return true
 
 
 # --- Insights --- #
@@ -254,7 +213,7 @@ func discover_insight(insight_id: String) -> bool:
 		return false
 	discovered_insights.append(insight_id)
 	insight_discovered.emit(insight_id)
-	_log_action("New insight discovered")
+	log_action("New insight discovered")
 	return true
 
 
@@ -268,7 +227,7 @@ func unlock_location(location_id: String) -> bool:
 	location_unlocked.emit(location_id)
 	var loc: LocationData = CaseManager.get_location(location_id)
 	var loc_name: String = loc.name if loc else location_id
-	_log_action("New location available: %s" % loc_name)
+	log_action("New location available: %s" % loc_name)
 	return true
 
 
@@ -288,7 +247,7 @@ func visit_location(location_id: String) -> bool:
 	location_visited.emit(location_id)
 	var loc: LocationData = CaseManager.get_location(location_id)
 	var loc_name: String = loc.name if loc else location_id
-	_log_action("Location visited: %s" % loc_name)
+	log_action("Location visited: %s" % loc_name)
 	return true
 
 
@@ -307,7 +266,7 @@ func unlock_interrogation(person_id: String) -> bool:
 	interrogation_unlocked.emit(person_id)
 	var person: PersonData = CaseManager.get_person(person_id)
 	var person_name: String = person.name if person else person_id
-	_log_action("Suspect available for questioning: %s" % person_name)
+	log_action("Suspect available for questioning: %s" % person_name)
 	return true
 
 
@@ -350,7 +309,7 @@ func complete_mandatory_action(action_id: String) -> bool:
 		return false
 	mandatory_actions_completed.append(action_id)
 	mandatory_action_completed.emit(action_id)
-	_log_action("Mandatory action completed: %s" % action_id)
+	log_action("Mandatory action completed: %s" % action_id)
 	return true
 
 
@@ -364,6 +323,37 @@ func get_remaining_mandatory_actions() -> Array[String]:
 
 
 # --- Day Phase --- #
+
+## Returns the first investigation day from CaseData (fallback: 1).
+func get_start_day() -> int:
+	var cd: CaseData = CaseManager.get_case_data()
+	return cd.start_day if cd else 1
+
+
+## Returns the last investigation day from CaseData (fallback: 4).
+func get_total_days() -> int:
+	var cd: CaseData = CaseManager.get_case_data()
+	return cd.end_day if cd else 4
+
+
+## Sets the current phase and emits the phase_changed signal.
+func set_phase(new_phase: Enums.DayPhase) -> void:
+	current_phase = new_phase
+	phase_changed.emit(current_phase)
+
+
+## Resets action points to the daily maximum and emits the signal.
+func reset_actions() -> void:
+	actions_remaining = ACTIONS_PER_DAY
+	actions_remaining_changed.emit(actions_remaining)
+
+
+## Advances to the next day, clears daily interrogation counts, and emits day_changed.
+func advance_day() -> void:
+	current_day += 1
+	interrogation_counts_today.clear()
+	day_changed.emit(current_day)
+
 
 ## Returns a display string for the current phase.
 func get_phase_display() -> String:
@@ -385,7 +375,7 @@ func is_daytime() -> bool:
 # --- Investigation Log --- #
 
 ## Adds an entry to the investigation log.
-func _log_action(description: String) -> void:
+func log_action(description: String) -> void:
 	var entry: Dictionary = {
 		"day": current_day,
 		"phase": current_phase,
@@ -424,7 +414,7 @@ func use_hint() -> bool:
 	if hints_used >= MAX_HINTS_PER_CASE:
 		return false
 	hints_used += 1
-	_log_action("Hint used (%d/%d)." % [hints_used, MAX_HINTS_PER_CASE])
+	log_action("Hint used (%d/%d)." % [hints_used, MAX_HINTS_PER_CASE])
 	return true
 
 
@@ -463,67 +453,11 @@ func serialize() -> Dictionary:
 		"game_active": game_active,
 	}
 
-	# Include Phase 2 system state if available
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
-	if day_sys and day_sys.has_method("serialize"):
-		data["day_system"] = day_sys.call("serialize")
-	var action_sys: Node = get_node_or_null("/root/ActionSystem")
-	if action_sys and action_sys.has_method("serialize"):
-		data["action_system"] = action_sys.call("serialize")
-
-	# Include Phase 3 system state if available
-	var event_sys: Node = get_node_or_null("/root/EventSystem")
-	if event_sys and event_sys.has_method("serialize"):
-		data["event_system"] = event_sys.call("serialize")
-
-	# Include Phase 5 system state if available
-	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
-	if evidence_mgr and evidence_mgr.has_method("serialize"):
-		data["evidence_manager"] = evidence_mgr.call("serialize")
-
-	# Include Phase 6 system state if available
-	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
-	if tool_mgr and tool_mgr.has_method("serialize"):
-		data["tool_manager"] = tool_mgr.call("serialize")
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr and loc_inv_mgr.has_method("serialize"):
-		data["location_investigation_manager"] = loc_inv_mgr.call("serialize")
-
-	# Include Phase 7 system state if available
-	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
-	if interr_mgr and interr_mgr.has_method("serialize"):
-		data["interrogation_manager"] = interr_mgr.call("serialize")
-
-	# Include Phase 8 system state if available
-	var board_mgr: Node = get_node_or_null("/root/BoardManager")
-	if board_mgr and board_mgr.has_method("serialize"):
-		data["board_manager"] = board_mgr.call("serialize")
-
-	# Include Phase 9 system state if available
-	var timeline_mgr: Node = get_node_or_null("/root/TimelineManager")
-	if timeline_mgr and timeline_mgr.has_method("serialize"):
-		data["timeline_manager"] = timeline_mgr.call("serialize")
-
-	# Include Phase 10 system state if available
-	var theory_mgr: Node = get_node_or_null("/root/TheoryManager")
-	if theory_mgr and theory_mgr.has_method("serialize"):
-		data["theory_manager"] = theory_mgr.call("serialize")
-
-	# Include Phase 11 system state if available
-	var lab_mgr: Node = get_node_or_null("/root/LabManager")
-	if lab_mgr and lab_mgr.has_method("serialize"):
-		data["lab_manager"] = lab_mgr.call("serialize")
-	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
-	if surv_mgr and surv_mgr.has_method("serialize"):
-		data["surveillance_manager"] = surv_mgr.call("serialize")
-	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
-	if warrant_mgr and warrant_mgr.has_method("serialize"):
-		data["warrant_manager"] = warrant_mgr.call("serialize")
-
-	# Include Phase 12 system state if available
-	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
-	if concl_mgr and concl_mgr.has_method("serialize"):
-		data["conclusion_manager"] = concl_mgr.call("serialize")
+	# Serialize all registered subsystems
+	for subsystem in _subsystems:
+		var result: Dictionary = subsystem.serialize()
+		if not result.is_empty():
+			data[subsystem.name.to_snake_case()] = result
 
 	return data
 
@@ -559,67 +493,11 @@ func deserialize(data: Dictionary) -> void:
 	hints_used = data.get("hints_used", 0)
 	game_active = data.get("game_active", false)
 
-	# Restore Phase 2 system state if available
-	var day_sys: Node = get_node_or_null("/root/DaySystem")
-	if day_sys and day_sys.has_method("deserialize") and data.has("day_system"):
-		day_sys.call("deserialize", data["day_system"])
-	var action_sys: Node = get_node_or_null("/root/ActionSystem")
-	if action_sys and action_sys.has_method("deserialize") and data.has("action_system"):
-		action_sys.call("deserialize", data["action_system"])
-
-	# Restore Phase 3 system state if available
-	var event_sys: Node = get_node_or_null("/root/EventSystem")
-	if event_sys and event_sys.has_method("deserialize") and data.has("event_system"):
-		event_sys.call("deserialize", data["event_system"])
-
-	# Restore Phase 5 system state if available
-	var evidence_mgr: Node = get_node_or_null("/root/EvidenceManager")
-	if evidence_mgr and evidence_mgr.has_method("deserialize") and data.has("evidence_manager"):
-		evidence_mgr.call("deserialize", data["evidence_manager"])
-
-	# Restore Phase 6 system state if available
-	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
-	if tool_mgr and tool_mgr.has_method("deserialize") and data.has("tool_manager"):
-		tool_mgr.call("deserialize", data["tool_manager"])
-	var loc_inv_mgr: Node = get_node_or_null("/root/LocationInvestigationManager")
-	if loc_inv_mgr and loc_inv_mgr.has_method("deserialize") and data.has("location_investigation_manager"):
-		loc_inv_mgr.call("deserialize", data["location_investigation_manager"])
-
-	# Restore Phase 7 system state if available
-	var interr_mgr: Node = get_node_or_null("/root/InterrogationManager")
-	if interr_mgr and interr_mgr.has_method("deserialize") and data.has("interrogation_manager"):
-		interr_mgr.call("deserialize", data["interrogation_manager"])
-
-	# Restore Phase 8 system state if available
-	var board_mgr: Node = get_node_or_null("/root/BoardManager")
-	if board_mgr and board_mgr.has_method("deserialize") and data.has("board_manager"):
-		board_mgr.call("deserialize", data["board_manager"])
-
-	# Restore Phase 9 system state if available
-	var timeline_mgr: Node = get_node_or_null("/root/TimelineManager")
-	if timeline_mgr and timeline_mgr.has_method("deserialize") and data.has("timeline_manager"):
-		timeline_mgr.call("deserialize", data["timeline_manager"])
-
-	# Restore Phase 10 system state if available
-	var theory_mgr: Node = get_node_or_null("/root/TheoryManager")
-	if theory_mgr and theory_mgr.has_method("deserialize") and data.has("theory_manager"):
-		theory_mgr.call("deserialize", data["theory_manager"])
-
-	# Restore Phase 11 system state if available
-	var lab_mgr: Node = get_node_or_null("/root/LabManager")
-	if lab_mgr and lab_mgr.has_method("deserialize") and data.has("lab_manager"):
-		lab_mgr.call("deserialize", data["lab_manager"])
-	var surv_mgr: Node = get_node_or_null("/root/SurveillanceManager")
-	if surv_mgr and surv_mgr.has_method("deserialize") and data.has("surveillance_manager"):
-		surv_mgr.call("deserialize", data["surveillance_manager"])
-	var warrant_mgr: Node = get_node_or_null("/root/WarrantManager")
-	if warrant_mgr and warrant_mgr.has_method("deserialize") and data.has("warrant_manager"):
-		warrant_mgr.call("deserialize", data["warrant_manager"])
-
-	# Restore Phase 12 system state if available
-	var concl_mgr: Node = get_node_or_null("/root/ConclusionManager")
-	if concl_mgr and concl_mgr.has_method("deserialize") and data.has("conclusion_manager"):
-		concl_mgr.call("deserialize", data["conclusion_manager"])
+	# Restore all registered subsystems
+	for subsystem in _subsystems:
+		var key: String = subsystem.name.to_snake_case()
+		if data.has(key):
+			subsystem.deserialize(data[key])
 
 	# Re-emit core state signals so any listening UI refreshes after load
 	day_changed.emit(current_day)

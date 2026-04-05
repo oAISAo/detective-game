@@ -2,7 +2,7 @@
 ## Manages screen navigation, transitions, and history for the investigation desk.
 ## Phase 4A: Provides centralized screen loading, back navigation, and modal management.
 ## Screens are loaded into the GameRoot's screen_container; modals into modal_layer.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -74,7 +74,13 @@ var navigation_data: Dictionary = {}
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[ScreenManager] Initialized.")
+	super()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_back") and can_go_back():
+		navigate_back()
+		get_viewport().set_input_as_handled()
 
 
 # --- Screen Navigation --- #
@@ -112,6 +118,7 @@ func navigate_to(screen_id: String, data: Dictionary = {}) -> bool:
 	# Clear existing screen
 	var container: Node = game_root.get_node("ScreenContainer")
 	for child: Node in container.get_children():
+		container.remove_child(child)
 		child.queue_free()
 
 	# Load and instantiate the new screen
@@ -127,7 +134,6 @@ func navigate_to(screen_id: String, data: Dictionary = {}) -> bool:
 
 	_transitioning = false
 	screen_changed.emit(screen_id)
-	print("[ScreenManager] Navigated to: %s" % screen_id)
 	return true
 
 
@@ -158,6 +164,7 @@ func navigate_back() -> bool:
 
 	var container: Node = game_root.get_node("ScreenContainer")
 	for child: Node in container.get_children():
+		container.remove_child(child)
 		child.queue_free()
 
 	var scene: PackedScene = _load_scene(prev_screen)
@@ -171,7 +178,6 @@ func navigate_back() -> bool:
 
 	_transitioning = false
 	screen_changed.emit(prev_screen)
-	print("[ScreenManager] Navigated back to: %s" % prev_screen)
 	return true
 
 
@@ -222,7 +228,6 @@ func open_modal(modal_id: String) -> Node:
 	instance.tree_exiting.connect(_on_modal_exiting.bind(modal_id))
 
 	modal_opened.emit(modal_id)
-	print("[ScreenManager] Modal opened: %s" % modal_id)
 	return instance
 
 
@@ -236,7 +241,6 @@ func close_modal(modal_id: String) -> void:
 	if is_instance_valid(modal_node):
 		modal_node.queue_free()
 	modal_closed.emit(modal_id)
-	print("[ScreenManager] Modal closed: %s" % modal_id)
 
 
 ## Closes all open modals.

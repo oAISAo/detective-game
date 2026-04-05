@@ -2,7 +2,7 @@
 ## Manages evidence-related features: filtering, searching, pinning,
 ## comparison, contradiction detection, and progressive hints.
 ## Phase 5: Central hub for all evidence system logic.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -42,8 +42,14 @@ var detected_contradictions: Array[Dictionary] = []
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	GameManager.evidence_discovered.connect(_on_evidence_discovered)
-	print("[EvidenceManager] Initialized.")
+	super()
+	# Defer signal connection to ensure GameManager is initialized regardless of autoload order
+	_connect_game_manager_signals.call_deferred()
+
+
+func _connect_game_manager_signals() -> void:
+	if GameManager and GameManager.has_signal("evidence_discovered"):
+		GameManager.evidence_discovered.connect(_on_evidence_discovered)
 
 
 # --- Query: Discovered Evidence Data --- #
@@ -202,9 +208,6 @@ func check_contradictions() -> Array[Dictionary]:
 	var new_list: Array[Dictionary] = []
 	var all_stmts: Array[StatementData] = CaseManager.get_all_statements()
 	for stmt: StatementData in all_stmts:
-		# Only check statements the player has already encountered
-		if stmt.day_given <= 0 or stmt.day_given > GameManager.current_day:
-			continue
 		for ev_id: String in stmt.contradicting_evidence:
 			if GameManager.has_evidence(ev_id):
 				new_list.append({

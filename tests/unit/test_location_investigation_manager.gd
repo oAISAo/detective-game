@@ -31,6 +31,7 @@ var _test_case_data: Dictionary = {
 			"name": "Fingerprints on Glass",
 			"description": "Latent fingerprints found on a wine glass.",
 			"type": "FORENSIC",
+			"discovery_method": "TOOL",
 			"location_found": "loc_apt",
 			"related_persons": [],
 			"tags": ["fingerprint"],
@@ -55,6 +56,7 @@ var _test_case_data: Dictionary = {
 			"name": "Chemical Stain",
 			"description": "A chemical residue found on the counter.",
 			"type": "FORENSIC",
+			"discovery_method": "TOOL",
 			"location_found": "loc_apt",
 			"related_persons": [],
 			"tags": ["chemical"],
@@ -187,6 +189,16 @@ func test_first_visit_no_actions_fails() -> void:
 	GameManager.actions_remaining = 0
 	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
 	assert_false(result, "Should fail with no actions remaining")
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for first visit.")
+
+
+func test_first_visit_second_location_no_actions_fails() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
+	_loc_inv_mgr.leave_location()
+	GameManager.actions_remaining = 0
+	var result: bool = _loc_inv_mgr.start_investigation("loc_hallway")
+	assert_false(result, "Should fail visiting new location with no actions")
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for first visit.")
 
 
 func test_return_visit_full_costs_action() -> void:
@@ -282,11 +294,11 @@ func test_inspect_object_discovers_evidence_no_tools() -> void:
 	assert_true(GameManager.has_evidence("ev_note"))
 
 
-func test_inspect_object_with_tool_requirements_discovers_evidence() -> void:
+func test_inspect_object_with_tool_requirements_discovers_no_visual_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
-	# obj_glass has visual_inspection + tool_requirements; visual inspection discovers evidence
+	# obj_glass has visual_inspection + tool_requirements; evidence is TOOL-method only
 	var discovered: Array[String] = _loc_inv_mgr.inspect_object("loc_apt", "obj_glass")
-	assert_gt(discovered.size(), 0, "Visual inspection should discover evidence even with tool requirements")
+	assert_eq(discovered.size(), 0, "Visual inspection should not discover TOOL-method evidence")
 
 
 func test_inspect_twice_returns_empty() -> void:
@@ -339,6 +351,7 @@ func test_use_incompatible_tool_returns_empty() -> void:
 		"loc_apt", "obj_glass", "uv_light"
 	)
 	assert_eq(discovered.size(), 0, "Incompatible tool should reveal nothing")
+	assert_push_warning("[LocationInvestigationManager] Tool 'UV Light' is not compatible with 'Wine Glass'")
 
 
 func test_use_tool_twice_returns_empty() -> void:

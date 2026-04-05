@@ -209,6 +209,7 @@ func test_remove_theory_emits_signal() -> void:
 func test_remove_theory_nonexistent_returns_false() -> void:
 	var result: bool = TheoryManager.remove_theory("nonexistent")
 	assert_false(result)
+	assert_push_warning("[TheoryManager]")
 
 
 # =========================================================================
@@ -233,6 +234,7 @@ func test_set_suspect_emits_updated() -> void:
 func test_set_suspect_nonexistent_returns_false() -> void:
 	var ok: bool = TheoryManager.set_suspect("nonexistent", "p_mark")
 	assert_false(ok)
+	assert_push_warning("[TheoryManager]")
 
 
 func test_set_motive() -> void:
@@ -245,6 +247,7 @@ func test_set_motive() -> void:
 func test_set_motive_nonexistent_returns_false() -> void:
 	var ok: bool = TheoryManager.set_motive("nonexistent", "motive")
 	assert_false(ok)
+	assert_push_warning("[TheoryManager]")
 
 
 func test_set_time() -> void:
@@ -258,6 +261,7 @@ func test_set_time() -> void:
 func test_set_time_nonexistent_returns_false() -> void:
 	var ok: bool = TheoryManager.set_time("nonexistent", 1260, 1)
 	assert_false(ok)
+	assert_push_warning("[TheoryManager]")
 
 
 func test_set_method() -> void:
@@ -270,6 +274,7 @@ func test_set_method() -> void:
 func test_set_method_nonexistent_returns_false() -> void:
 	var ok: bool = TheoryManager.set_method("nonexistent", "method")
 	assert_false(ok)
+	assert_push_warning("[TheoryManager]")
 
 
 func test_set_timeline_links() -> void:
@@ -284,6 +289,7 @@ func test_set_timeline_links_nonexistent_returns_false() -> void:
 	var ids: Array[String] = ["tl_1"]
 	var ok: bool = TheoryManager.set_timeline_links("nonexistent", ids)
 	assert_false(ok)
+	assert_push_warning("[TheoryManager]")
 
 
 # =========================================================================
@@ -321,6 +327,7 @@ func test_attach_evidence_max_three_per_step() -> void:
 	var ok: bool = TheoryManager.attach_evidence(t["id"], "suspect", "ev_phone")
 	assert_false(ok, "Should reject 4th evidence")
 	assert_eq(TheoryManager.get_step_evidence(t["id"], "suspect").size(), 3)
+	assert_push_warning("[TheoryManager]")
 
 
 func test_attach_evidence_invalid_step_returns_false() -> void:
@@ -333,6 +340,7 @@ func test_attach_evidence_invalid_step_returns_false() -> void:
 func test_attach_evidence_nonexistent_theory_returns_false() -> void:
 	var ok: bool = TheoryManager.attach_evidence("nonexistent", "suspect", "ev_knife")
 	assert_false(ok)
+	assert_push_warning("[TheoryManager]")
 
 
 func test_detach_evidence() -> void:

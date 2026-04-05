@@ -18,6 +18,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -36,9 +40,157 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Case Report"
 
-[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ReportContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SuspectSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection"]
+layout_mode = 2
+
+[node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Suspect"
+
+[node name="SuspectAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = ""
+
+[node name="EvidenceLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection/VBoxContainer"]
+layout_mode = 2
+text = "Supporting Evidence:"
+
+[node name="SuspectEvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MotiveSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection"]
+layout_mode = 2
+
+[node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Motive"
+
+[node name="MotiveAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = ""
+
+[node name="EvidenceLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection/VBoxContainer"]
+layout_mode = 2
+text = "Supporting Evidence:"
+
+[node name="MotiveEvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="WeaponSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection"]
+layout_mode = 2
+
+[node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Weapon / Method"
+
+[node name="WeaponAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = ""
+
+[node name="EvidenceLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection/VBoxContainer"]
+layout_mode = 2
+text = "Supporting Evidence:"
+
+[node name="WeaponEvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TimeSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection"]
+layout_mode = 2
+
+[node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Time of Crime"
+
+[node name="TimeAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = ""
+
+[node name="EvidenceLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection/VBoxContainer"]
+layout_mode = 2
+text = "Supporting Evidence:"
+
+[node name="TimeEvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AccessSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection"]
+layout_mode = 2
+
+[node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Access / Opportunity"
+
+[node name="AccessAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = ""
+
+[node name="EvidenceLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection/VBoxContainer"]
+layout_mode = 2
+text = "Supporting Evidence:"
+
+[node name="AccessEvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatusLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
 text = "Ready to submit."
 
 [node name="SubmitButton" type="Button" parent="MarginContainer/VBoxContainer"]

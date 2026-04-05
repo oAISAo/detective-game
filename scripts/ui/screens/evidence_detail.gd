@@ -22,6 +22,7 @@ extends Control
 
 var _evidence_id: String = ""
 var _comparing: bool = false
+var _lab_section: VBoxContainer = null
 
 
 func _ready() -> void:
@@ -34,6 +35,12 @@ func _ready() -> void:
 
 	if _evidence_id.is_empty():
 		title_label.text = "No Evidence Selected"
+		pin_button.visible = false
+		compare_button.visible = false
+		send_to_board_button.visible = false
+		evidence_image.visible = false
+		comparison_panel.visible = false
+		description_label.text = ""
 		return
 
 	_populate_detail()
@@ -44,6 +51,12 @@ func _populate_detail() -> void:
 	var ev: EvidenceData = CaseManager.get_evidence(_evidence_id)
 	if ev == null:
 		title_label.text = "Evidence Not Found"
+		pin_button.visible = false
+		compare_button.visible = false
+		send_to_board_button.visible = false
+		evidence_image.visible = false
+		comparison_panel.visible = false
+		description_label.text = ""
 		return
 
 	title_label.text = ev.name
@@ -54,6 +67,9 @@ func _populate_detail() -> void:
 
 	# Info grid (key-value pairs)
 	_populate_info_grid(ev)
+
+	# Lab submission section
+	_populate_lab_section(ev)
 
 	# Tags
 	_populate_tags(ev)
@@ -77,33 +93,43 @@ func _populate_detail() -> void:
 
 func _populate_info_grid(ev: EvidenceData) -> void:
 	for child: Node in info_grid.get_children():
+		info_grid.remove_child(child)
 		child.queue_free()
 
-	_add_info_row("Type", _get_type_label(ev.type))
-	_add_info_row("Location", _get_location_name(ev.location_found))
+	_add_info_row("Type", UIHelper.get_evidence_type_label(ev.type))
+	_add_info_row("Location", UIHelper.get_location_name(ev.location_found))
 	_add_info_row("Discovery Method", _get_discovery_method_label(ev.discovery_method))
 	_add_info_row("Importance", _get_importance_label(ev.importance_level))
 	_add_info_row("Weight", "%.0f%%" % (ev.weight * 100.0))
 
 	if ev.requires_lab_analysis:
-		_add_info_row("Lab Status", _get_lab_status_label(ev.lab_status))
 		if not ev.lab_result_text.is_empty():
 			_add_info_row("Lab Result", ev.lab_result_text)
+		else:
+			_add_info_row("Lab Status", _get_lab_status_label(ev.lab_status))
+
+	# Also show lab status for raw evidence that can be submitted
+	if not ev.requires_lab_analysis and CaseManager.get_lab_request_for_evidence(ev.id) != null:
+		_add_info_row("Lab Status", _get_lab_status_label(ev.lab_status))
 
 
 func _add_info_row(key: String, value: String) -> void:
 	var key_label: Label = Label.new()
 	key_label.text = key + ":"
 	key_label.add_theme_color_override("font_color", Color(0.6, 0.58, 0.55))
+	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info_grid.add_child(key_label)
 
 	var value_label: Label = Label.new()
 	value_label.text = value
+	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info_grid.add_child(value_label)
 
 
 func _populate_tags(ev: EvidenceData) -> void:
 	for child: Node in tags_container.get_children():
+		tags_container.remove_child(child)
 		child.queue_free()
 
 	if ev.tags.is_empty():
@@ -112,18 +138,19 @@ func _populate_tags(ev: EvidenceData) -> void:
 	for tag: String in ev.tags:
 		var tag_label: Label = Label.new()
 		tag_label.text = "  %s  " % tag
-		tag_label.add_theme_color_override("font_color", Color(0.7, 0.68, 0.65))
+		tag_label.add_theme_color_override("font_color", UIColors.HEADER)
 		tags_container.add_child(tag_label)
 
 
 func _populate_related_persons(ev: EvidenceData) -> void:
 	for child: Node in related_persons_list.get_children():
+		related_persons_list.remove_child(child)
 		child.queue_free()
 
 	if ev.related_persons.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		related_persons_list.add_child(none_label)
 		return
 
@@ -136,6 +163,7 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 
 func _populate_related_statements(ev: EvidenceData) -> void:
 	for child: Node in related_statements_list.get_children():
+		related_statements_list.remove_child(child)
 		child.queue_free()
 
 	# Find statements that reference this evidence
@@ -148,7 +176,7 @@ func _populate_related_statements(ev: EvidenceData) -> void:
 	if related.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		related_statements_list.add_child(none_label)
 		return
 
@@ -164,18 +192,19 @@ func _populate_related_statements(ev: EvidenceData) -> void:
 
 func _populate_legal_categories(ev: EvidenceData) -> void:
 	for child: Node in legal_categories_list.get_children():
+		legal_categories_list.remove_child(child)
 		child.queue_free()
 
 	if ev.legal_categories.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		legal_categories_list.add_child(none_label)
 		return
 
 	for cat_val: int in ev.legal_categories:
 		var cat_label: Label = Label.new()
-		cat_label.text = "• %s" % _get_legal_category_label(cat_val)
+		cat_label.text = "• %s" % UIHelper.get_legal_category_label(cat_val)
 		legal_categories_list.add_child(cat_label)
 
 
@@ -201,8 +230,95 @@ func _on_compare_pressed() -> void:
 		_populate_comparison_targets()
 
 
+## Populates the lab submission section for raw evidence that can be analyzed.
+func _populate_lab_section(ev: EvidenceData) -> void:
+	# Remove previous lab section if it exists
+	if _lab_section != null:
+		_lab_section.queue_free()
+		_lab_section = null
+
+	# Check if this evidence has a lab request template
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(_evidence_id)
+	if lab_req == null:
+		return
+
+	_lab_section = VBoxContainer.new()
+	_lab_section.add_theme_constant_override("separation", 8)
+
+	var header: Label = Label.new()
+	header.text = "Forensic Analysis"
+	header.add_theme_font_size_override("font_size", 20)
+	header.add_theme_color_override("font_color", UIColors.HEADER)
+	_lab_section.add_child(header)
+
+	var output_ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
+	var output_discovered: bool = GameManager.has_evidence(lab_req.output_evidence_id)
+	var already_submitted: bool = LabManager.is_evidence_submitted(_evidence_id)
+
+	if output_discovered:
+		# Lab analysis complete — show result
+		var status_label: Label = Label.new()
+		status_label.text = "Lab analysis complete."
+		status_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
+		_lab_section.add_child(status_label)
+		if output_ev:
+			var result_label: Label = Label.new()
+			result_label.text = "Result: %s" % output_ev.name
+			result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_lab_section.add_child(result_label)
+	elif already_submitted:
+		# Pending lab analysis
+		var status_label: Label = Label.new()
+		status_label.text = "Submitted to Lab — Results pending."
+		status_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+		_lab_section.add_child(status_label)
+	else:
+		# Can be submitted
+		var desc_label: Label = Label.new()
+		desc_label.text = "This evidence can be submitted for forensic analysis."
+		desc_label.add_theme_color_override("font_color", UIColors.SECONDARY)
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_lab_section.add_child(desc_label)
+		var submit_btn: Button = Button.new()
+		submit_btn.text = "Submit to Lab"
+		submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		submit_btn.pressed.connect(_on_submit_to_lab)
+		_lab_section.add_child(submit_btn)
+
+	# Insert lab section after the info grid (before tags)
+	var info_section: Node = info_grid.get_parent()
+	var main_content: Node = info_section.get_parent()
+	var idx: int = info_section.get_index() + 1
+	main_content.add_child(_lab_section)
+	main_content.move_child(_lab_section, idx)
+
+
+## Handles lab submission from the evidence detail screen.
+func _on_submit_to_lab() -> void:
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(_evidence_id)
+	if lab_req == null:
+		return
+
+	var result: Dictionary = LabManager.submit_request(
+		_evidence_id,
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	if result.is_empty():
+		NotificationManager.notify("Submission Failed", "Could not submit lab request.")
+		return
+
+	var ev: EvidenceData = CaseManager.get_evidence(_evidence_id)
+	var ev_name: String = ev.name if ev else _evidence_id
+	NotificationManager.notify_lab_result("%s submitted for %s." % [ev_name, lab_req.analysis_type])
+	_populate_detail()
+
+
 func _populate_comparison_targets() -> void:
 	for child: Node in comparison_list.get_children():
+		comparison_list.remove_child(child)
 		child.queue_free()
 
 	var targets: Array[String] = EvidenceManager.get_valid_comparisons_for(_evidence_id)
@@ -210,7 +326,7 @@ func _populate_comparison_targets() -> void:
 	if targets.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "No valid comparisons available."
-		none_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		none_label.add_theme_color_override("font_color", UIColors.MUTED)
 		comparison_list.add_child(none_label)
 		return
 
@@ -227,6 +343,7 @@ func _populate_comparison_targets() -> void:
 func _on_compare_with(other_id: String) -> void:
 	var insight: InsightData = EvidenceManager.compare_evidence(_evidence_id, other_id)
 	for child: Node in comparison_list.get_children():
+		comparison_list.remove_child(child)
 		child.queue_free()
 
 	if insight != null:
@@ -238,7 +355,7 @@ func _on_compare_with(other_id: String) -> void:
 	else:
 		var result_label: Label = Label.new()
 		result_label.text = "No new insights from this comparison."
-		result_label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.45))
+		result_label.add_theme_color_override("font_color", UIColors.MUTED)
 		comparison_list.add_child(result_label)
 
 
@@ -254,25 +371,6 @@ func _on_send_to_board_pressed() -> void:
 
 
 # --- Label Helpers --- #
-
-func _get_type_label(type: Enums.EvidenceType) -> String:
-	match type:
-		Enums.EvidenceType.FORENSIC: return "Forensic"
-		Enums.EvidenceType.DOCUMENT: return "Document"
-		Enums.EvidenceType.PHOTO: return "Photo"
-		Enums.EvidenceType.RECORDING: return "Recording"
-		Enums.EvidenceType.FINANCIAL: return "Financial"
-		Enums.EvidenceType.DIGITAL: return "Digital"
-		Enums.EvidenceType.OBJECT: return "Object"
-	return "Unknown"
-
-
-func _get_location_name(location_id: String) -> String:
-	if location_id.is_empty():
-		return "Unknown"
-	var loc: LocationData = CaseManager.get_location(location_id)
-	return loc.name if loc else location_id
-
 
 func _get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
 	match method:
@@ -297,13 +395,4 @@ func _get_lab_status_label(status: Enums.LabStatus) -> String:
 		Enums.LabStatus.NOT_SUBMITTED: return "Not Submitted"
 		Enums.LabStatus.PROCESSING: return "Processing..."
 		Enums.LabStatus.COMPLETED: return "Complete"
-	return "Unknown"
-
-
-func _get_legal_category_label(cat: int) -> String:
-	match cat:
-		Enums.LegalCategory.PRESENCE: return "Presence"
-		Enums.LegalCategory.MOTIVE: return "Motive"
-		Enums.LegalCategory.OPPORTUNITY: return "Opportunity"
-		Enums.LegalCategory.CONNECTION: return "Connection"
 	return "Unknown"

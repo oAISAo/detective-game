@@ -289,7 +289,7 @@ func test_new_game_resets_all_state() -> void:
 
 func test_log_entry_phase_is_enum_not_string() -> void:
 	GameManager.current_phase = Enums.DayPhase.MORNING
-	GameManager._log_action("Test action")
+	GameManager.log_action("Test action")
 	var log: Array[Dictionary] = GameManager.get_investigation_log()
 	assert_false(log.is_empty(), "Log should have entries")
 	var entry: Dictionary = log[log.size() - 1]
@@ -301,7 +301,7 @@ func test_log_entry_exists_for_all_phases() -> void:
 	for phase: int in [Enums.DayPhase.MORNING, Enums.DayPhase.DAYTIME,
 						Enums.DayPhase.NIGHT]:
 		GameManager.current_phase = phase as Enums.DayPhase
-		GameManager._log_action("Action at phase %d" % phase)
+		GameManager.log_action("Action at phase %d" % phase)
 	var log: Array[Dictionary] = GameManager.get_investigation_log()
 	assert_eq(log.size(), 3, "Should have 3 entries (one per phase)")
 

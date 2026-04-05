@@ -2,7 +2,7 @@
 ## Manages the data-driven action economy: availability checking,
 ## prerequisite validation, action execution, and result processing.
 ## Phase 2: Core action system with requirement/result parsing.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -32,7 +32,7 @@ var actions_executed_today: Array[String] = []
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[ActionSystem] Initialized.")
+	super()
 
 
 # --- Action Availability --- #
@@ -148,7 +148,7 @@ func execute_action(action_id: String) -> bool:
 	_apply_results(action.results)
 
 	# Log the action
-	GameManager._log_action("Action: %s" % action.name)
+	GameManager.log_action("Action: %s" % action.name)
 
 	action_executed.emit(action_id, action)
 	return true
@@ -162,30 +162,31 @@ func _check_requirements(requirements: Array[String]) -> Array[String]:
 	var failures: Array[String] = []
 
 	for req: String in requirements:
-		var parts: PackedStringArray = req.split(":", true, 1)
-		if parts.size() < 2:
+		var parsed: PackedStringArray = ActionStringParser.parse(req)
+		var req_type: String = parsed[0]
+		var req_value: String = parsed[1]
+
+		if req_type.is_empty():
 			failures.append("Invalid requirement format: %s" % req)
 			continue
-		var req_type: String = parts[0].strip_edges()
-		var req_value: String = parts[1].strip_edges()
 
 		match req_type:
-			"evidence":
+			ActionStringParser.REQ_EVIDENCE:
 				if not GameManager.has_evidence(req_value):
 					failures.append("Requires evidence: %s" % req_value)
-			"location":
+			ActionStringParser.REQ_LOCATION:
 				if not GameManager.has_visited_location(req_value):
 					failures.append("Requires visiting location: %s" % req_value)
-			"warrant":
+			ActionStringParser.REQ_WARRANT:
 				if req_value not in GameManager.warrants_obtained:
 					failures.append("Requires warrant: %s" % req_value)
-			"action_completed":
+			ActionStringParser.REQ_ACTION_COMPLETED:
 				if req_value not in executed_actions:
 					failures.append("Requires completing action: %s" % req_value)
-			"insight":
+			ActionStringParser.REQ_INSIGHT:
 				if req_value not in GameManager.discovered_insights:
 					failures.append("Requires insight: %s" % req_value)
-			"day":
+			ActionStringParser.REQ_DAY:
 				if GameManager.current_day < int(req_value):
 					failures.append("Not available until day %s" % req_value)
 			_:
@@ -200,12 +201,13 @@ func _check_requirements(requirements: Array[String]) -> Array[String]:
 ## Applies all results from an action's results array.
 func _apply_results(results: Array[String]) -> void:
 	for result: String in results:
-		var parts: PackedStringArray = result.split(":", true, 1)
-		if parts.size() < 2:
+		var parsed: PackedStringArray = ActionStringParser.parse(result)
+		var result_type: String = parsed[0]
+		var result_value: String = parsed[1]
+
+		if result_type.is_empty():
 			push_warning("[ActionSystem] Invalid result format: %s" % result)
 			continue
-		var result_type: String = parts[0].strip_edges()
-		var result_value: String = parts[1].strip_edges()
 
 		_apply_single_result(result_type, result_value)
 		action_result_applied.emit(result_type, result_value)
@@ -214,21 +216,21 @@ func _apply_results(results: Array[String]) -> void:
 ## Applies a single result entry.
 func _apply_single_result(result_type: String, result_value: String) -> void:
 	match result_type:
-		"evidence":
+		ActionStringParser.RES_EVIDENCE:
 			GameManager.discover_evidence(result_value)
-		"insight":
+		ActionStringParser.RES_INSIGHT:
 			GameManager.discover_insight(result_value)
-		"location":
+		ActionStringParser.RES_LOCATION:
 			GameManager.visit_location(result_value)
-		"warrant":
+		ActionStringParser.RES_WARRANT:
 			if result_value not in GameManager.warrants_obtained:
 				GameManager.warrants_obtained.append(result_value)
-				GameManager._log_action("Warrant obtained: %s" % result_value)
-		"mandatory":
+				GameManager.log_action("Warrant obtained: %s" % result_value)
+		ActionStringParser.RES_MANDATORY:
 			GameManager.complete_mandatory_action(result_value)
-		"lab_request":
+		ActionStringParser.RES_LAB_REQUEST:
 			_submit_lab_request(result_value)
-		"surveillance":
+		ActionStringParser.RES_SURVEILLANCE:
 			_submit_surveillance(result_value)
 		_:
 			push_warning("[ActionSystem] Unknown result type: %s" % result_type)
@@ -245,7 +247,7 @@ func _submit_lab_request(evidence_id: String) -> void:
 		"output_evidence_id": "%s_analyzed" % evidence_id,
 	}
 	GameManager.active_lab_requests.append(request)
-	GameManager._log_action("Lab request submitted: %s (results Day %d)" % [
+	GameManager.log_action("Lab request submitted: %s (results Day %d)" % [
 		evidence_id, request["completion_day"]
 	])
 	delayed_action_submitted.emit(request["id"], "lab_request")
@@ -262,7 +264,7 @@ func _submit_surveillance(target_person: String) -> void:
 		"result_events": [],
 	}
 	GameManager.active_surveillance.append(surv)
-	GameManager._log_action("Surveillance installed: %s (active %d days)" % [
+	GameManager.log_action("Surveillance installed: %s (active %d days)" % [
 		target_person, surv["active_days"]
 	])
 	delayed_action_submitted.emit(surv["id"], "surveillance")

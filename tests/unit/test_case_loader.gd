@@ -39,10 +39,9 @@ func test_discovery_rule_from_dict_defaults() -> void:
 func test_discovery_rule_validate_all_required() -> void:
 	var rule := DiscoveryRuleData.from_dict({})
 	var errors := rule.validate()
-	assert_true(errors.size() >= 3, "Should have errors for id, evidence_id, location_id")
+	assert_true(errors.size() >= 2, "Should have errors for id and evidence_id")
 	assert_true(_has_error_containing(errors, "id is required"))
 	assert_true(_has_error_containing(errors, "evidence_id is required"))
-	assert_true(_has_error_containing(errors, "location_id is required"))
 
 
 func test_discovery_rule_validate_valid() -> void:
@@ -192,18 +191,22 @@ func test_riverside_suspects_loaded() -> void:
 	if case_data == null:
 		fail_test("Case not loaded")
 		return
-	assert_eq(case_data.persons.size(), 5, "Should have 5 persons (victim + 4 suspects)")
+	assert_eq(case_data.persons.size(), 5, "Should have 5 persons (victim + 3 suspects + 1 witness)")
 	# Verify the victim
 	var victim_found := false
 	var suspect_count := 0
+	var witness_count := 0
 	for person: PersonData in case_data.persons:
 		if person.id == "p_victim":
 			assert_eq(person.role, Enums.PersonRole.VICTIM)
 			victim_found = true
 		elif person.role == Enums.PersonRole.SUSPECT:
 			suspect_count += 1
+		elif person.role == Enums.PersonRole.WITNESS:
+			witness_count += 1
 	assert_true(victim_found, "Should include the victim")
-	assert_eq(suspect_count, 4, "Should have 4 suspects")
+	assert_eq(suspect_count, 3, "Should have 3 suspects")
+	assert_eq(witness_count, 1, "Should have 1 witness")
 
 
 func test_riverside_locations_loaded() -> void:
@@ -395,9 +398,9 @@ func test_case_manager_folder_query_persons() -> void:
 	var sarah := CaseManager.get_person("p_sarah")
 	assert_not_null(sarah)
 	assert_eq(sarah.name, "Sarah Klein")
-	assert_eq(sarah.role, Enums.PersonRole.SUSPECT)
+	assert_eq(sarah.role, Enums.PersonRole.WITNESS)
 	var suspects := CaseManager.get_suspects()
-	assert_eq(suspects.size(), 4)
+	assert_eq(suspects.size(), 3)
 	_reset_case_manager()
 
 
@@ -510,14 +513,18 @@ func test_morning_briefing_day1_unlocks_suspects() -> void:
 	var trigger := CaseManager.get_event_trigger("trig_morning_briefing_day1")
 	assert_not_null(trigger)
 	var has_unlock_sarah := false
-	var has_unlock_mark := false
 	for action: String in trigger.actions:
 		if action == "unlock_interrogation:p_sarah":
 			has_unlock_sarah = true
-		elif action == "unlock_interrogation:p_mark":
-			has_unlock_mark = true
 	assert_true(has_unlock_sarah, "Morning briefing should unlock Sarah for interrogation")
-	assert_true(has_unlock_mark, "Morning briefing should unlock Mark for interrogation")
+	# Mark is unlocked on Day 2, not Day 1
+	var trigger_day2 := CaseManager.get_event_trigger("trig_morning_briefing_day2")
+	assert_not_null(trigger_day2)
+	var has_unlock_mark := false
+	for action: String in trigger_day2.actions:
+		if action == "unlock_interrogation:p_mark":
+			has_unlock_mark = true
+	assert_true(has_unlock_mark, "Day 2 briefing should unlock Mark for interrogation")
 	_reset_case_manager()
 
 

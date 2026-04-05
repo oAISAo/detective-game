@@ -81,7 +81,7 @@ func test_morning_resets_actions_to_four() -> void:
 
 
 func test_process_morning_final_day_warning() -> void:
-	GameManager.current_day = GameManager.TOTAL_DAYS
+	GameManager.current_day = GameManager.get_total_days()
 	watch_signals(DaySystem)
 	var briefing: Array[String] = DaySystem.process_morning()
 	assert_signal_emitted(DaySystem, "final_day_warning")
@@ -257,7 +257,7 @@ func test_unused_actions_do_not_carry_over() -> void:
 # --- Investigation End --- #
 
 func test_night_at_final_day_emits_time_expired() -> void:
-	GameManager.current_day = GameManager.TOTAL_DAYS
+	GameManager.current_day = GameManager.get_total_days()
 	DaySystem.process_morning()
 	watch_signals(DaySystem)
 	DaySystem.try_end_day()
@@ -265,18 +265,18 @@ func test_night_at_final_day_emits_time_expired() -> void:
 
 
 func test_night_at_final_day_does_not_advance_day() -> void:
-	GameManager.current_day = GameManager.TOTAL_DAYS
+	GameManager.current_day = GameManager.get_total_days()
 	DaySystem.process_morning()
 	DaySystem.try_end_day()
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Day should not advance past TOTAL_DAYS")
+	assert_eq(GameManager.current_day, GameManager.get_total_days(), "Day should not advance past TOTAL_DAYS")
 
 
 func test_full_four_day_cycle() -> void:
-	for day: int in range(1, GameManager.TOTAL_DAYS):
+	for day: int in range(1, GameManager.get_total_days()):
 		assert_eq(GameManager.current_day, day, "Day should be %d" % day)
 		DaySystem.process_morning()
 		DaySystem.try_end_day()
-	assert_eq(GameManager.current_day, GameManager.TOTAL_DAYS, "Should end at TOTAL_DAYS")
+	assert_eq(GameManager.current_day, GameManager.get_total_days(), "Should end at TOTAL_DAYS")
 
 
 # --- Lab Processing --- #

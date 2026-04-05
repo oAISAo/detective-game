@@ -8,7 +8,7 @@
 ##          the player presses "End Day". Running out of actions does NOT auto-end the day.
 ## Night:   Processes queued systems (lab, surveillance, timed triggers).
 ##          Automatically transitions to next day's Morning.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -53,7 +53,7 @@ var _legacy_fired_triggers: Array[String] = []
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[DaySystem] Initialized.")
+	super()
 
 
 # --- Phase Transitions --- #
@@ -88,7 +88,7 @@ func process_morning() -> Array[String]:
 		briefing.append_array(trigger_events)
 
 	# 4. Check for final day warning
-	if GameManager.current_day == GameManager.TOTAL_DAYS:
+	if GameManager.current_day == GameManager.get_total_days():
 		briefing.append("FINAL DAY — This is your last chance to complete the investigation.")
 		final_day_warning.emit()
 
@@ -129,19 +129,15 @@ func force_advance_day() -> void:
 
 ## Transitions from Morning to Daytime.
 func _transition_to_daytime() -> void:
-	GameManager.current_phase = Enums.DayPhase.DAYTIME
-	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
-	GameManager.phase_changed.emit(GameManager.current_phase)
-	GameManager.actions_remaining_changed.emit(GameManager.actions_remaining)
+	GameManager.set_phase(Enums.DayPhase.DAYTIME)
+	GameManager.reset_actions()
 	phase_transitioned.emit(Enums.DayPhase.DAYTIME)
-	print("[DaySystem] Day %d — Transitioned to Daytime." % GameManager.current_day)
 
 
 ## Transitions to Night, processes all night systems, then advances to next Morning.
 func _process_night() -> void:
 	# Transition to Night phase
-	GameManager.current_phase = Enums.DayPhase.NIGHT
-	GameManager.phase_changed.emit(GameManager.current_phase)
+	GameManager.set_phase(Enums.DayPhase.NIGHT)
 	phase_transitioned.emit(Enums.DayPhase.NIGHT)
 	night_processing_started.emit()
 
@@ -156,25 +152,25 @@ func _process_night() -> void:
 		_evaluate_timed_triggers()
 
 	# 4. Log the day end
-	GameManager._log_action("Day %d ended — Night processing complete." % GameManager.current_day)
+	GameManager.log_action("Day %d ended — Night processing complete." % GameManager.current_day)
 
 	# 5. Check if investigation is over
-	if GameManager.current_day >= GameManager.TOTAL_DAYS:
+	if GameManager.current_day >= GameManager.get_total_days():
 		investigation_time_expired.emit()
 		night_processing_completed.emit(GameManager.current_day)
 		return
 
 	# 6. Advance to next day's Morning
-	GameManager.current_day += 1
-	GameManager.current_phase = Enums.DayPhase.MORNING
-	GameManager.actions_remaining = GameManager.ACTIONS_PER_DAY
-	GameManager.interrogation_counts_today.clear()
+	GameManager.advance_day()
+	GameManager.set_phase(Enums.DayPhase.MORNING)
+	GameManager.reset_actions()
 	_morning_briefing_shown = false
 
-	GameManager.day_changed.emit(GameManager.current_day)
-	GameManager.phase_changed.emit(GameManager.current_phase)
-	GameManager.actions_remaining_changed.emit(GameManager.actions_remaining)
-	GameManager._log_action("Day %d begins." % GameManager.current_day)
+	# End any active interrogation session left over from the previous day
+	if InterrogationManager.is_active():
+		InterrogationManager.end_interrogation()
+
+	GameManager.log_action("Day %d begins." % GameManager.current_day)
 
 	# Reset ActionSystem daily tracking
 	var action_sys: Node = get_node_or_null("/root/ActionSystem")
@@ -196,10 +192,18 @@ func _process_lab_completions() -> Array[Dictionary]:
 		var req: Dictionary = request as Dictionary
 		if req.get("completion_day", 0) <= GameManager.current_day:
 			completed.append(req)
-			# Auto-discover the output evidence
+			# Auto-discover the output evidence, upgrading the raw version in place
 			var output_id: String = req.get("output_evidence_id", "")
+			var input_id: String = req.get("input_evidence_id", "")
 			if not output_id.is_empty():
-				GameManager.discover_evidence(output_id)
+				if not input_id.is_empty():
+					GameManager.upgrade_evidence(input_id, output_id)
+				else:
+					GameManager.discover_evidence(output_id)
+				# Notify the player about the lab result
+				var output_ev: EvidenceData = CaseManager.get_evidence(output_id)
+				var ev_name: String = output_ev.name if output_ev else output_id
+				NotificationManager.notify_lab_result("Lab result: %s" % ev_name)
 			# Sync authoritative state in LabManager
 			var lab_mgr: Node = get_node_or_null("/root/LabManager")
 			if lab_mgr and lab_mgr.has_method("_on_lab_result_ready"):
@@ -267,7 +271,7 @@ func _evaluate_day_start_triggers() -> Array[String]:
 		_legacy_fired_triggers.append(trigger.id)
 		for action_str: String in trigger.actions:
 			results.append(action_str)
-		GameManager._log_action("Trigger fired (legacy): %s" % trigger.id)
+		GameManager.log_action("Trigger fired (legacy): %s" % trigger.id)
 
 	return results
 
@@ -285,7 +289,7 @@ func _evaluate_timed_triggers() -> void:
 		if trigger.trigger_day != next_day:
 			continue
 		_legacy_fired_triggers.append(trigger.id)
-		GameManager._log_action("Timed trigger queued (legacy): %s (fires Day %d)" % [trigger.id, next_day])
+		GameManager.log_action("Timed trigger queued (legacy): %s (fires Day %d)" % [trigger.id, next_day])
 
 
 # --- Serialization --- #

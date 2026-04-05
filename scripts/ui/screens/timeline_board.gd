@@ -59,17 +59,12 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	_safe_disconnect(TimelineManager.entry_placed, _on_timeline_changed)
-	_safe_disconnect(TimelineManager.entry_removed, _on_entry_removed)
-	_safe_disconnect(TimelineManager.hypothesis_added, _on_timeline_changed)
-	_safe_disconnect(TimelineManager.hypothesis_removed, _on_entry_removed)
-	_safe_disconnect(TimelineManager.timeline_cleared, _on_timeline_cleared)
-	_safe_disconnect(TimelineManager.state_loaded, _rebuild_timeline)
-
-
-func _safe_disconnect(sig: Signal, callable: Callable) -> void:
-	if sig.is_connected(callable):
-		sig.disconnect(callable)
+	UIHelper.safe_disconnect(TimelineManager.entry_placed, _on_timeline_changed)
+	UIHelper.safe_disconnect(TimelineManager.entry_removed, _on_entry_removed)
+	UIHelper.safe_disconnect(TimelineManager.hypothesis_added, _on_timeline_changed)
+	UIHelper.safe_disconnect(TimelineManager.hypothesis_removed, _on_entry_removed)
+	UIHelper.safe_disconnect(TimelineManager.timeline_cleared, _on_timeline_cleared)
+	UIHelper.safe_disconnect(TimelineManager.state_loaded, _rebuild_timeline)
 
 
 # --- Day Selector --- #
@@ -101,6 +96,7 @@ func _rebuild_timeline() -> void:
 
 func _clear_timeline_ui() -> void:
 	for child: Node in timeline_container.get_children():
+		timeline_container.remove_child(child)
 		child.queue_free()
 
 

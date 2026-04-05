@@ -1,0 +1,38 @@
+{
+	"name": "Mark Bennett Full Interrogation",
+	"description": "Full debug setup for Mark Bennett interrogation testing. Day 2, all three key evidence items available, all suspects unlocked. Allows testing the complete 3-phase interrogation flow.",
+	"case_id": "riverside_apartment",
+	"game_state": {
+		"current_day": 2,
+		"current_phase": 1,
+		"actions_remaining": 4,
+		"discovered_evidence": ["ev_parking_camera", "ev_bank_transfer", "ev_hidden_safe"],
+		"unlocked_locations": [
+			"loc_victim_apartment",
+			"loc_hallway",
+			"loc_parking_lot",
+			"loc_neighbor_apartment",
+			"loc_victim_office"
+		],
+		"visited_locations": [
+			"loc_victim_apartment",
+			"loc_hallway",
+			"loc_parking_lot"
+		],
+		"unlocked_interrogations": [
+			"p_mark",
+			"p_sarah",
+			"p_julia",
+			"p_lucas"
+		],
+		"completed_interrogations": {},
+		"interrogation_counts_today": {},
+		"active_lab_requests": [],
+		"active_surveillance": [],
+		"mandatory_actions_required": [],
+		"mandatory_actions_completed": [],
+		"warrants_obtained": [],
+		"game_active": true
+	},
+	"notifications": ["Debug Mode Active \u2014 Mark Bennett full interrogation preset loaded. All three evidence items ready (parking camera, bank transfer, hidden safe)."]
+}

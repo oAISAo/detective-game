@@ -2,7 +2,7 @@
 ## Manages the case conclusion flow: case report submission, prosecutor
 ## confidence scoring, outcome determination, and epilogue generation.
 ## This is the endgame system — the most important emotional moment of the game.
-extends Node
+extends BaseSubsystem
 
 
 # --- Signals --- #
@@ -80,7 +80,7 @@ var _player_choice: String = ""
 # --- Lifecycle --- #
 
 func _ready() -> void:
-	print("[ConclusionManager] Initialized.")
+	super()
 
 
 # --- Report Submission --- #
@@ -403,7 +403,7 @@ func _determine_outcome() -> void:
 		_outcome = Enums.CaseOutcome.INCORRECT_THEORY
 
 	outcome_determined.emit(_outcome)
-	GameManager._log_action("Case concluded: %s" % get_outcome_name())
+	GameManager.log_action("Case concluded: %s" % get_outcome_name())
 
 
 ## Returns whether the submitted suspect matches the solution.
