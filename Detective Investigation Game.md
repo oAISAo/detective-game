@@ -1087,6 +1087,7 @@ Events
     21:05 estimated death
 
 From these pieces the player builds the truth.
+
 Core Gameplay Pillars
 Overview
 The Core Gameplay Pillars define the fundamental design principles of the detective investigation game. These pillars ensure that every system, mechanic, and feature contributes to the intended player experience.
@@ -1168,6 +1169,19 @@ Players are not given explicit solutions or constant hints. Instead, the game en
 Solving the case should feel like a genuine accomplishment.
 The goal is not to appeal to every player, but to create a memorable experience for players who enjoy complex investigative challenges.
 
+Pillar 9 — Commitment Under Uncertainty
+The player must periodically make meaningful investigative judgments before possessing perfect information.
+Examples:
+- which lead to pursue today
+- which evidence is worth lab time
+- whether a suspect is lying
+- whether to request a warrant
+- whether a contradiction is strong enough to confront
+- which theory best explains current facts
+The player should rarely have complete certainty.
+Instead, they must act on probability, interpretation, and strategic confidence.
+This creates real detective tension and prevents passive completion-based play.
+
 Pillar Summary
 The entire design of the game is built around the following principles:
 Player-driven deduction
@@ -1179,6 +1193,7 @@ Freedom of investigation
 Consequences and time pressure
 Intellectual challenge
 These pillars define the identity of the game and guide all future design decisions.
+
 The 5-Layer Mystery Structure
 A strong detective case usually contains five stacked mysteries.
 Players think they are solving the murder, but every layer reveals a deeper problem.

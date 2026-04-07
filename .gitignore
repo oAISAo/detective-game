@@ -30,3 +30,6 @@ Thumbs.db
 
 # GUT test results
 .gut_editor_config.tres
+
+# font file 
+MaterialSymbolsOutlined.ttf

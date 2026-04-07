@@ -5,6 +5,7 @@
 			"name": "Victim's Apartment",
 			"description": "Daniel Ross's apartment where his body was found. The crime scene. Contains the kitchen, living room, and personal belongings.",
 			"searchable": true,
+			"image": "res://assets/placeholders/placeholder_location_victim_apartment.png",
 			"investigable_objects": [
 				{
 					"id": "obj_kitchen",
@@ -72,6 +73,7 @@
 			"name": "Building Hallway",
 			"description": "The hallway of the apartment building. Security cameras and elevator access logs are available here.",
 			"searchable": true,
+			"image": "res://assets/placeholders/placeholder_location_building_hallway.png",
 			"investigable_objects": [
 				{
 					"id": "obj_hallway_floor",
@@ -129,6 +131,7 @@
 			"name": "Parking Lot",
 			"description": "The parking lot adjacent to the apartment building. A security camera covers the entrance and exit.",
 			"searchable": true,
+			"image": "res://assets/placeholders/placeholder_location_parking_lot.png",
 			"investigable_objects": [
 				{
 					"id": "obj_parking_camera",
@@ -153,6 +156,7 @@
 			"name": "Neighbor's Apartment",
 			"description": "Sarah Klein's apartment, located next door to the victim. Sarah is the victim's neighbor and a potential witness.",
 			"searchable": false,
+			"image": "res://assets/placeholders/placeholder_location_neighbor_apartment.png",
 			"investigable_objects": [
 				{
 					"id": "obj_sarah_interview",
@@ -178,6 +182,7 @@
 			"name": "Victim's Office",
 			"description": "Daniel Ross's office at his financial consulting firm. Contains business records, personal files, and a hidden safe.",
 			"searchable": true,
+			"image": "res://assets/placeholders/placeholder_location_victim_office.png",
 			"investigable_objects": [
 				{
 					"id": "obj_office_desk",

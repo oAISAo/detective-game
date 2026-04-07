@@ -45,6 +45,7 @@ InvestigationTools="*res://scripts/managers/investigation_tools.gd"
 PlayerWorkspace="*res://scripts/managers/player_workspace.gd"
 ConclusionManager="*res://scripts/managers/conclusion_manager.gd"
 AssetFallback="*res://scripts/systems/asset_fallback.gd"
+AudioManager="*res://scripts/managers/audio_manager.gd"
 
 [display]
 

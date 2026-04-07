@@ -58,6 +58,7 @@ func _clear_request_list() -> void:
 
 func _add_request_card(req: Dictionary, is_pending: bool) -> void:
 	var card := PanelContainer.new()
+	UIHelper.apply_surface_style(card)
 	var vbox := VBoxContainer.new()
 	card.add_child(vbox)
 
@@ -76,16 +77,15 @@ func _add_request_card(req: Dictionary, is_pending: bool) -> void:
 		var completion_day: int = req.get("completion_day", 0)
 		if completion_day <= GameManager.current_day:
 			status.text = "Result: Available now"
-			status.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
+			status.add_theme_color_override("font_color", UIColors.STATUS_AVAILABLE)
 		else:
 			status.text = "Result: Day %d morning" % completion_day
-			status.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+			status.add_theme_color_override("font_color", UIColors.STATUS_PENDING)
 	else:
 		status.text = "Completed — Output: %s" % req.get("output_evidence_id", "?")
-		status.add_theme_color_override("font_color", Color(0.5, 0.7, 0.5))
-	status.add_theme_font_size_override("font_size", 14)
+		status.add_theme_color_override("font_color", UIColors.STATUS_COMPLETE)
+	status.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(status)
-
 	# Cancel button for pending
 	if is_pending:
 		var cancel_btn := Button.new()
@@ -109,15 +109,14 @@ func _build_submit_section() -> void:
 		child.queue_free()
 
 	var header := Label.new()
-	header.text = "Submit New Analysis"
-	header.add_theme_font_size_override("font_size", 18)
-	header.add_theme_color_override("font_color", UIColors.HEADER)
+	header.text = "SUBMIT NEW ANALYSIS"
+	header.theme_type_variation = &"SectionHeader"
 	submit_section.add_child(header)
 
 	# Evidence dropdown
 	var ev_label := Label.new()
 	ev_label.text = "Evidence:"
-	ev_label.add_theme_font_size_override("font_size", 14)
+	ev_label.theme_type_variation = &"MetadataLabel"
 	submit_section.add_child(ev_label)
 
 	var evidence_dropdown := OptionButton.new()
@@ -135,7 +134,7 @@ func _build_submit_section() -> void:
 	# Analysis type dropdown
 	var type_label := Label.new()
 	type_label.text = "Analysis Type:"
-	type_label.add_theme_font_size_override("font_size", 14)
+	type_label.theme_type_variation = &"MetadataLabel"
 	submit_section.add_child(type_label)
 
 	var type_dropdown := OptionButton.new()
@@ -182,4 +181,5 @@ func _on_submit_to_lab() -> void:
 
 	GameManager.use_action()
 	NotificationManager.notify("Lab Request Submitted", "%s submitted for %s." % [analysis_type, evidence_id])
+	UIHelper.stamp_flash(submit_section)
 	_refresh()

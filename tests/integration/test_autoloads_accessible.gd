@@ -56,7 +56,7 @@ func test_tool_manager_accessible() -> void:
 	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
 	assert_not_null(tool_mgr, "ToolManager should be accessible")
 	tool_mgr.reset()
-	assert_eq(tool_mgr.get_available_tools().size(), 3)
+	assert_eq(tool_mgr.get_available_tools().size(), 4)
 
 
 func test_location_investigation_manager_accessible() -> void:

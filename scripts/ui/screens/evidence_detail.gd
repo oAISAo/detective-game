@@ -116,7 +116,7 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 func _add_info_row(key: String, value: String) -> void:
 	var key_label: Label = Label.new()
 	key_label.text = key + ":"
-	key_label.add_theme_color_override("font_color", Color(0.6, 0.58, 0.55))
+	key_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info_grid.add_child(key_label)
 
@@ -246,9 +246,8 @@ func _populate_lab_section(ev: EvidenceData) -> void:
 	_lab_section.add_theme_constant_override("separation", 8)
 
 	var header: Label = Label.new()
-	header.text = "Forensic Analysis"
-	header.add_theme_font_size_override("font_size", 20)
-	header.add_theme_color_override("font_color", UIColors.HEADER)
+	header.text = "FORENSIC ANALYSIS"
+	header.theme_type_variation = &"SectionHeader"
 	_lab_section.add_child(header)
 
 	var output_ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
@@ -259,7 +258,7 @@ func _populate_lab_section(ev: EvidenceData) -> void:
 		# Lab analysis complete — show result
 		var status_label: Label = Label.new()
 		status_label.text = "Lab analysis complete."
-		status_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
+		status_label.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
 		_lab_section.add_child(status_label)
 		if output_ev:
 			var result_label: Label = Label.new()
@@ -270,7 +269,7 @@ func _populate_lab_section(ev: EvidenceData) -> void:
 		# Pending lab analysis
 		var status_label: Label = Label.new()
 		status_label.text = "Submitted to Lab — Results pending."
-		status_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+		status_label.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 		_lab_section.add_child(status_label)
 	else:
 		# Can be submitted
@@ -313,6 +312,7 @@ func _on_submit_to_lab() -> void:
 	var ev: EvidenceData = CaseManager.get_evidence(_evidence_id)
 	var ev_name: String = ev.name if ev else _evidence_id
 	NotificationManager.notify_lab_result("%s submitted for %s." % [ev_name, lab_req.analysis_type])
+	UIHelper.confirmation_flash("Submitted to Lab", self)
 	_populate_detail()
 
 
@@ -366,8 +366,9 @@ func _on_back_pressed() -> void:
 ## Sends this evidence to the detective board as a new node.
 func _on_send_to_board_pressed() -> void:
 	BoardManager.send_to_board("evidence", _evidence_id)
-	send_to_board_button.text = "✓ Sent to Board"
+	send_to_board_button.text = "Sent to Board"
 	send_to_board_button.disabled = true
+	UIHelper.confirmation_flash("Added to Board", self, UIColors.ACCENT_EXAMINED)
 
 
 # --- Label Helpers --- #

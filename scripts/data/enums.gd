@@ -90,6 +90,15 @@ enum InvestigationState {
 	FULLY_EXAMINED,
 }
 
+## Derived display status that combines investigation state with lab lifecycle.
+## Used by UI only — not stored or serialized.
+enum ObjectDisplayStatus {
+	NOT_INSPECTED,
+	PARTIALLY_EXAMINED,
+	AWAITING_LAB_RESULTS,
+	FULLY_PROCESSED,
+}
+
 ## The type of action the player can take.
 enum ActionType {
 	INTERROGATION,

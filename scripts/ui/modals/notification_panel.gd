@@ -47,7 +47,7 @@ func _refresh() -> void:
 		# Unread indicator
 		var indicator: Label = Label.new()
 		indicator.text = "●" if not notif.get("read", false) else "○"
-		indicator.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3) if not notif.get("read", false) else Color(0.4, 0.4, 0.4))
+		indicator.add_theme_color_override("font_color", UIColors.ACCENT_CLUE if not notif.get("read", false) else UIColors.TEXT_MUTED)
 		item.add_child(indicator)
 
 		# Text

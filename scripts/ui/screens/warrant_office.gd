@@ -57,6 +57,7 @@ func _clear_warrant_list() -> void:
 
 func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 	var card := PanelContainer.new()
+	UIHelper.apply_surface_style(card)
 	var vbox := VBoxContainer.new()
 	card.add_child(vbox)
 
@@ -71,12 +72,12 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 	var status := Label.new()
 	if is_approved:
 		status.text = "Approved (Day %d)" % w.get("day_requested", 0)
-		status.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
+		status.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
 	else:
 		var feedback: String = w.get("feedback", "Insufficient evidence.")
 		status.text = "Denied — %s" % feedback
-		status.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
-	status.add_theme_font_size_override("font_size", 14)
+		status.add_theme_color_override("font_color", UIColors.ACCENT_CRITICAL)
+	status.theme_type_variation = &"MetadataLabel"
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(status)
 
@@ -89,7 +90,7 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 			cat_names.append(UIHelper.get_legal_category_label(cat))
 		cat_label.text = "Categories: %s" % ", ".join(cat_names)
 		cat_label.add_theme_font_size_override("font_size", 13)
-		cat_label.add_theme_color_override("font_color", Color(0.55, 0.52, 0.48))
+		cat_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 		vbox.add_child(cat_label)
 
 	warrant_list.add_child(card)
@@ -101,9 +102,9 @@ func _update_arrest_section() -> void:
 		return
 
 	var header := Label.new()
-	header.text = "Arrested Suspects"
-	header.add_theme_font_size_override("font_size", 18)
-	header.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+	header.text = "ARRESTED SUSPECTS"
+	header.theme_type_variation = &"SectionHeader"
+	header.add_theme_color_override("font_color", UIColors.ACCENT_CRITICAL)
 	arrest_section.add_child(header)
 
 	for person_id: String in arrested:
@@ -111,7 +112,6 @@ func _update_arrest_section() -> void:
 		var name_text: String = person.name if person else person_id
 		var label := Label.new()
 		label.text = "  %s — In custody" % name_text
-		label.add_theme_font_size_override("font_size", 15)
 		arrest_section.add_child(label)
 
 
@@ -154,7 +154,7 @@ func _on_request_warrant_pressed() -> void:
 	# Warrant type dropdown
 	var type_label := Label.new()
 	type_label.text = "Warrant Type:"
-	type_label.add_theme_font_size_override("font_size", 14)
+	type_label.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(type_label)
 
 	var type_dropdown := OptionButton.new()
@@ -171,7 +171,7 @@ func _on_request_warrant_pressed() -> void:
 	# Target input
 	var target_label := Label.new()
 	target_label.text = "Target (person/location ID):"
-	target_label.add_theme_font_size_override("font_size", 14)
+	target_label.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(target_label)
 
 	var target_edit := LineEdit.new()
@@ -181,7 +181,7 @@ func _on_request_warrant_pressed() -> void:
 	# Evidence checkboxes
 	var ev_label := Label.new()
 	ev_label.text = "Supporting Evidence:"
-	ev_label.add_theme_font_size_override("font_size", 14)
+	ev_label.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(ev_label)
 
 	var ev_scroll := ScrollContainer.new()
@@ -194,7 +194,7 @@ func _on_request_warrant_pressed() -> void:
 	if discovered.is_empty():
 		var none_label := Label.new()
 		none_label.text = "No evidence discovered yet."
-		none_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
+		none_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 		ev_vbox.add_child(none_label)
 	else:
 		for ev: EvidenceData in discovered:
@@ -246,6 +246,8 @@ func _submit_warrant_request(
 	var feedback: String = result.get("feedback", "")
 	if approved:
 		NotificationManager.notify_warrant("Warrant approved! %s" % feedback)
+		UIHelper.confirmation_flash("Warrant Approved", self, UIColors.ACCENT_PROCESSED)
 	else:
 		NotificationManager.notify_warrant("Warrant denied. %s" % feedback)
+		UIHelper.confirmation_flash("Warrant Denied", self, UIColors.ACCENT_CRITICAL)
 	_refresh()

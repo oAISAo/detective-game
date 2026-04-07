@@ -1,9 +1,11 @@
 ## EvidenceArchive.gd
 ## Screen for viewing and managing collected evidence with filtering,
 ## search, pinning, and testimony with contradiction highlighting.
-## Phase 5: Full evidence archive implementation.
+## Phase D6: Uses EvidenceCard grid instead of button rows.
 extends Control
 
+
+const EvidenceCardScene: PackedScene = preload("res://scenes/ui/components/evidence_card.tscn")
 
 @onready var back_button: Button = %BackButton
 @onready var title_label: Label = %TitleLabel
@@ -13,15 +15,11 @@ extends Control
 @onready var tab_testimony_button: Button = %TabTestimonyButton
 @onready var pinned_bar: HBoxContainer = %PinnedBar
 @onready var evidence_content: VBoxContainer = %EvidenceContent
-@onready var evidence_list: VBoxContainer = %EvidenceList
-@onready var preview_panel: PanelContainer = %PreviewPanel
-@onready var preview_label: RichTextLabel = %PreviewLabel
-@onready var view_detail_button: Button = %ViewDetailButton
+@onready var evidence_grid: GridContainer = %EvidenceGrid
 @onready var testimony_content: VBoxContainer = %TestimonyContent
 @onready var testimony_list: VBoxContainer = %TestimonyList
 
 var _current_tab: String = "evidence"
-var _selected_evidence_id: String = ""
 
 # Stored callables for signal disconnection on exit
 var _on_evidence_discovered_cb: Callable
@@ -35,7 +33,6 @@ func _ready() -> void:
 	tab_testimony_button.pressed.connect(_on_tab_testimony)
 	filter_option.item_selected.connect(_on_filter_changed)
 	search_box.text_changed.connect(_on_search_changed)
-	view_detail_button.pressed.connect(_on_view_detail)
 
 	_setup_filter_options()
 	_show_tab("evidence")
@@ -66,13 +63,13 @@ func _exit_tree() -> void:
 func _setup_filter_options() -> void:
 	filter_option.clear()
 	filter_option.add_item("All Types", 0)
-	filter_option.add_item("🔬 Forensic", 1)
-	filter_option.add_item("📄 Document", 2)
-	filter_option.add_item("📷 Photo", 3)
-	filter_option.add_item("🎙️ Recording", 4)
-	filter_option.add_item("💰 Financial", 5)
-	filter_option.add_item("💻 Digital", 6)
-	filter_option.add_item("📦 Object", 7)
+	filter_option.add_item("Forensic", 1)
+	filter_option.add_item("Document", 2)
+	filter_option.add_item("Photo", 3)
+	filter_option.add_item("Recording", 4)
+	filter_option.add_item("Financial", 5)
+	filter_option.add_item("Digital", 6)
+	filter_option.add_item("Object", 7)
 
 
 ## Switches between evidence and testimony tabs.
@@ -86,10 +83,10 @@ func _show_tab(tab: String) -> void:
 		_populate_testimony_list()
 
 
-## Populates the evidence list with filtered/searched items.
+## Populates the evidence grid with card components.
 func _populate_evidence_list() -> void:
-	for child: Node in evidence_list.get_children():
-		evidence_list.remove_child(child)
+	for child: Node in evidence_grid.get_children():
+		evidence_grid.remove_child(child)
 		child.queue_free()
 
 	var items: Array[EvidenceData] = _get_filtered_evidence()
@@ -98,15 +95,14 @@ func _populate_evidence_list() -> void:
 		var empty_label: Label = Label.new()
 		empty_label.text = "No evidence found."
 		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
-		evidence_list.add_child(empty_label)
+		evidence_grid.add_child(empty_label)
 		return
 
 	for ev: EvidenceData in items:
-		var btn: Button = Button.new()
-		btn.text = "%s  %s" % [_get_type_icon(ev.type), ev.name]
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.pressed.connect(_on_evidence_selected.bind(ev.id))
-		evidence_list.add_child(btn)
+		var card: EvidenceCard = EvidenceCardScene.instantiate()
+		evidence_grid.add_child(card)
+		card.setup(ev)
+		card.card_pressed.connect(_on_card_pressed)
 
 
 ## Returns the filtered and searched evidence list.
@@ -132,51 +128,9 @@ func _get_filtered_evidence() -> Array[EvidenceData]:
 	return items
 
 
-## Returns the emoji icon for an evidence type.
-func _get_type_icon(type: Enums.EvidenceType) -> String:
-	match type:
-		Enums.EvidenceType.FORENSIC: return "🔬"
-		Enums.EvidenceType.DOCUMENT: return "📄"
-		Enums.EvidenceType.PHOTO: return "📷"
-		Enums.EvidenceType.RECORDING: return "🎙️"
-		Enums.EvidenceType.FINANCIAL: return "💰"
-		Enums.EvidenceType.DIGITAL: return "💻"
-		Enums.EvidenceType.OBJECT: return "📦"
-	return "❓"
-
-
-## Selects an evidence item and shows its preview.
-func _on_evidence_selected(evidence_id: String) -> void:
-	_selected_evidence_id = evidence_id
-	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
-	if ev == null:
-		preview_label.text = "Evidence not found."
-		return
-
-	preview_panel.visible = true
-	var pin_status: String = " 📌" if EvidenceManager.is_pinned(evidence_id) else ""
-
-	var lab_text: String = ""
-	if ev.requires_lab_analysis:
-		match ev.lab_status:
-			Enums.LabStatus.NOT_SUBMITTED:
-				lab_text = "\n[color=#cc9933]Lab: Not submitted[/color]"
-			Enums.LabStatus.PROCESSING:
-				lab_text = "\n[color=#3399cc]Lab: Processing...[/color]"
-			Enums.LabStatus.COMPLETED:
-				lab_text = "\n[color=#33cc33]Lab: Complete[/color]"
-
-	var type_label: String = UIHelper.get_evidence_type_label(ev.type)
-	var location_text: String = UIHelper.get_location_name(ev.location_found)
-
-	preview_label.text = "[b]%s%s[/b]\n%s\n\n[i]Type: %s[/i]\n[i]Location: %s[/i]%s" % [
-		ev.name, pin_status, ev.description, type_label, location_text, lab_text,
-	]
-
-
 ## Populates the pinned evidence bar.
 func _populate_pinned_bar() -> void:
-	# Clear everything except the first child (the "📌 Pinned:" label)
+	# Clear everything except the first child (the "PINNED" label)
 	while pinned_bar.get_child_count() > 1:
 		var child: Node = pinned_bar.get_child(pinned_bar.get_child_count() - 1)
 		pinned_bar.remove_child(child)
@@ -193,7 +147,7 @@ func _populate_pinned_bar() -> void:
 		var btn: Button = Button.new()
 		btn.text = ev.name
 		btn.flat = true
-		btn.pressed.connect(_on_evidence_selected.bind(eid))
+		btn.pressed.connect(_on_card_pressed.bind(eid))
 		pinned_bar.add_child(btn)
 
 
@@ -216,6 +170,7 @@ func _populate_testimony_list() -> void:
 
 	for stmt: StatementData in testimony:
 		var panel: PanelContainer = PanelContainer.new()
+		UIHelper.apply_surface_style(panel)
 		var vbox: VBoxContainer = VBoxContainer.new()
 		panel.add_child(vbox)
 
@@ -236,8 +191,8 @@ func _populate_testimony_list() -> void:
 		# Contradiction marker
 		if EvidenceManager.has_contradiction(stmt.id):
 			var warning_label: Label = Label.new()
-			warning_label.text = "⚠ Possible contradiction"
-			warning_label.add_theme_color_override("font_color", Color(0.9, 0.6, 0.2))
+			warning_label.text = "Possible contradiction"
+			warning_label.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 			vbox.add_child(warning_label)
 
 		testimony_list.add_child(panel)
@@ -266,10 +221,8 @@ func _on_search_changed(_text: String) -> void:
 	_populate_evidence_list()
 
 
-func _on_view_detail() -> void:
-	if _selected_evidence_id.is_empty():
-		return
-	ScreenManager.navigate_to("evidence_detail", {"evidence_id": _selected_evidence_id})
+func _on_card_pressed(evidence_id: String) -> void:
+	ScreenManager.navigate_to("evidence_detail", {"evidence_id": evidence_id})
 
 
 ## Refreshes the current tab content.
