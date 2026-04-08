@@ -568,10 +568,10 @@ func _style_end_day_button() -> void:
 	hover.corner_radius_top_right = 8
 	hover.corner_radius_bottom_right = 8
 	hover.corner_radius_bottom_left = 8
-	hover.content_margin_left = 16.0
-	hover.content_margin_top = 6.0
-	hover.content_margin_right = 16.0
-	hover.content_margin_bottom = 6.0
+	hover.content_margin_left = 20.0
+	hover.content_margin_top = 8.0
+	hover.content_margin_right = 20.0
+	hover.content_margin_bottom = 8.0
 	end_day_button.add_theme_stylebox_override("hover", hover)
 
 	# Pressed
@@ -586,10 +586,10 @@ func _style_end_day_button() -> void:
 	pressed.corner_radius_top_right = 8
 	pressed.corner_radius_bottom_right = 8
 	pressed.corner_radius_bottom_left = 8
-	pressed.content_margin_left = 16.0
-	pressed.content_margin_top = 6.0
-	pressed.content_margin_right = 16.0
-	pressed.content_margin_bottom = 6.0
+	pressed.content_margin_left = 20.0
+	pressed.content_margin_top = 8.0
+	pressed.content_margin_right = 20.0
+	pressed.content_margin_bottom = 8.0
 	end_day_button.add_theme_stylebox_override("pressed", pressed)
 
 	# Focus

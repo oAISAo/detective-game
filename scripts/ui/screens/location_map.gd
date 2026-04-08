@@ -7,16 +7,10 @@ extends Control
 
 const LocationCardScene: PackedScene = preload("res://scenes/ui/components/location_card.tscn")
 
-@onready var title_label: Label = %TitleLabel
-@onready var subtitle_label: Label = %SubtitleLabel
 @onready var location_list: VBoxContainer = %LocationList
-@onready var back_button: Button = %BackButton
 
 
 func _ready() -> void:
-	title_label.text = "Case Map"
-	subtitle_label.text = "Track leads, revisit scenes, and inspect active investigation sites."
-	back_button.pressed.connect(_on_back_pressed)
 	_populate_locations()
 
 
@@ -76,8 +70,3 @@ func _navigate_to_location(location_id: String, full_investigation: bool) -> voi
 		"location_id": location_id,
 		"full_investigation": full_investigation,
 	})
-
-
-## Navigates back to the previous screen.
-func _on_back_pressed() -> void:
-	ScreenManager.navigate_back()
