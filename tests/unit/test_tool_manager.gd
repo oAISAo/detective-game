@@ -15,8 +15,8 @@ func before_each() -> void:
 
 # --- Tool Registry Tests --- #
 
-func test_all_three_tools_registered() -> void:
-	assert_eq(_tool_mgr.TOOL_REGISTRY.size(), 3, "Should have 3 tools in registry")
+func test_all_tools_registered() -> void:
+	assert_eq(_tool_mgr.TOOL_REGISTRY.size(), 4, "Should have 4 tools in registry")
 
 
 func test_fingerprint_powder_is_valid() -> void:
@@ -39,10 +39,11 @@ func test_unknown_tool_is_not_valid() -> void:
 
 func test_all_tools_available_by_default() -> void:
 	var tools: Array[String] = _tool_mgr.get_available_tools()
-	assert_eq(tools.size(), 3, "Should have 3 available tools")
+	assert_eq(tools.size(), 4, "Should have 4 available tools")
 	assert_has(tools, "fingerprint_powder")
 	assert_has(tools, "uv_light")
 	assert_has(tools, "chemical_test")
+	assert_has(tools, "forensic_kit")
 
 
 func test_has_tool_returns_true_for_available() -> void:
@@ -238,7 +239,7 @@ func test_serialize_captures_state() -> void:
 	var data: Dictionary = _tool_mgr.serialize()
 	assert_true(data.has("available_tools"))
 	assert_true(data.has("tool_usage_log"))
-	assert_eq(data["available_tools"].size(), 3)
+	assert_eq(data["available_tools"].size(), 4)
 	assert_true(data["tool_usage_log"].has("fingerprint_powder:obj_ser"))
 
 
@@ -262,5 +263,5 @@ func test_reset_clears_all_state() -> void:
 	obj.evidence_results = ["ev_r"]
 	_tool_mgr.use_tool("uv_light", obj)
 	_tool_mgr.reset()
-	assert_eq(_tool_mgr.available_tools.size(), 3, "All tools restored after reset")
+	assert_eq(_tool_mgr.available_tools.size(), 4, "All tools restored after reset")
 	assert_false(_tool_mgr.has_used_tool("uv_light", "obj_reset"), "Usage log cleared")

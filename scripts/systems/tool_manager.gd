@@ -20,14 +20,22 @@ const TOOL_REGISTRY: Dictionary = {
 	"fingerprint_powder": {
 		"name": "Fingerprint Powder",
 		"description": "Reveals latent fingerprints on surfaces.",
+		"unavailable_hint": "No suitable surface detected",
 	},
 	"uv_light": {
 		"name": "UV Light",
 		"description": "Reveals hidden biological traces and treated substances.",
+		"unavailable_hint": "No UV-reactive trace identified",
 	},
 	"chemical_test": {
 		"name": "Chemical Residue Test",
 		"description": "Detects chemical residues and cleaning agents.",
+		"unavailable_hint": "No residue target available",
+	},
+	"forensic_kit": {
+		"name": "Forensic Kit",
+		"description": "Collects and preserves trace evidence for lab analysis.",
+		"unavailable_hint": "No collectible trace evidence detected",
 	},
 }
 
@@ -86,6 +94,14 @@ func get_compatible_tools(object_data: InvestigableObjectData) -> Array[String]:
 		if req in available_tools:
 			compatible.append(req)
 	return compatible
+
+
+## Returns the unavailable hint for a tool when it cannot be used on an object.
+## Returns empty string if the tool IS compatible.
+func get_tool_unavailable_hint(tool_id: String) -> String:
+	if tool_id not in TOOL_REGISTRY:
+		return ""
+	return TOOL_REGISTRY[tool_id].get("unavailable_hint", "Not applicable")
 
 
 # --- Tool Usage --- #

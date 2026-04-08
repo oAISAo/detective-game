@@ -61,6 +61,7 @@ func _get_all_operation_ids() -> Array[String]:
 
 func _add_operation_card(op: Dictionary, is_active: bool) -> void:
 	var card := PanelContainer.new()
+	UIHelper.apply_surface_style(card)
 	var vbox := VBoxContainer.new()
 	card.add_child(vbox)
 
@@ -80,11 +81,11 @@ func _add_operation_card(op: Dictionary, is_active: bool) -> void:
 		status.text = "Active until Day %d — %d event(s) configured" % [
 			expires, op.get("result_events", []).size()
 		]
-		status.add_theme_color_override("font_color", Color(0.3, 0.7, 0.9))
+		status.add_theme_color_override("font_color", UIColors.STATUS_PROCESSING)
 	else:
 		status.text = "Status: %s" % op.get("status", "unknown")
-		status.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	status.add_theme_font_size_override("font_size", 14)
+		status.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	status.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(status)
 
 	# Cancel button for active
@@ -139,7 +140,7 @@ func _on_install_surveillance_pressed() -> void:
 	# Surveillance type dropdown
 	var type_label := Label.new()
 	type_label.text = "Surveillance Type:"
-	type_label.add_theme_font_size_override("font_size", 14)
+	type_label.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(type_label)
 
 	var type_dropdown := OptionButton.new()
@@ -154,7 +155,7 @@ func _on_install_surveillance_pressed() -> void:
 	# Target suspect dropdown
 	var target_label := Label.new()
 	target_label.text = "Target Suspect:"
-	target_label.add_theme_font_size_override("font_size", 14)
+	target_label.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(target_label)
 
 	var target_dropdown := OptionButton.new()
@@ -200,4 +201,5 @@ func _submit_surveillance(type_dropdown: OptionButton, target_dropdown: OptionBu
 	GameManager.use_action()
 	var type_name: String = _get_type_name(surv_type)
 	NotificationManager.notify_surveillance("%s installed on %s." % [type_name, target_person])
+	UIHelper.confirmation_flash("Surveillance Installed", self)
 	_refresh()

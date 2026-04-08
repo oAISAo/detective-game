@@ -1,7 +1,7 @@
 ## ScreenManager.gd
 ## Manages screen navigation, transitions, and history for the investigation desk.
 ## Phase 4A: Provides centralized screen loading, back navigation, and modal management.
-## Screens are loaded into the GameRoot's screen_container; modals into modal_layer.
+## Phase D2: Smooth fade transitions on all screen and modal navigation.
 extends BaseSubsystem
 
 
@@ -49,6 +49,12 @@ const MODAL_SCENES: Dictionary = {
 	"notification_panel": "res://scenes/ui/notification_panel.tscn",
 }
 
+## Transition durations (seconds).
+const FADE_OUT_DURATION: float = 0.12
+const FADE_IN_DURATION: float = 0.15
+const MODAL_TRANSITION_DURATION: float = 0.18
+const MODAL_SLIDE_OFFSET: float = 30.0
+
 
 # --- State --- #
 
@@ -69,6 +75,9 @@ var _transitioning: bool = false
 
 ## Data passed to the next screen during navigation.
 var navigation_data: Dictionary = {}
+
+## Reference to the active screen tween (so we can kill it if needed).
+var _active_tween: Tween = null
 
 
 # --- Lifecycle --- #
@@ -115,23 +124,10 @@ func navigate_to(screen_id: String, data: Dictionary = {}) -> bool:
 	navigation_data = data
 	screen_changing.emit(old_screen, screen_id)
 
-	# Clear existing screen
-	var container: Node = game_root.get_node("ScreenContainer")
-	for child: Node in container.get_children():
-		container.remove_child(child)
-		child.queue_free()
+	var container: Control = game_root.get_node("ScreenContainer") as Control
+	await _transition_screens(container, screen_id)
 
-	# Load and instantiate the new screen
-	var scene: PackedScene = _load_scene(screen_id)
-	if scene == null:
-		_transitioning = false
-		push_error("[ScreenManager] Failed to load scene for: %s" % screen_id)
-		return false
-
-	var instance: Node = scene.instantiate()
-	container.add_child(instance)
 	current_screen = screen_id
-
 	_transitioning = false
 	screen_changed.emit(screen_id)
 	return true
@@ -162,20 +158,10 @@ func navigate_back() -> bool:
 	navigation_data = {}
 	screen_changing.emit(old_screen, prev_screen)
 
-	var container: Node = game_root.get_node("ScreenContainer")
-	for child: Node in container.get_children():
-		container.remove_child(child)
-		child.queue_free()
+	var container: Control = game_root.get_node("ScreenContainer") as Control
+	await _transition_screens(container, prev_screen)
 
-	var scene: PackedScene = _load_scene(prev_screen)
-	if scene == null:
-		_transitioning = false
-		return false
-
-	var instance: Node = scene.instantiate()
-	container.add_child(instance)
 	current_screen = prev_screen
-
 	_transitioning = false
 	screen_changed.emit(prev_screen)
 	return true
@@ -194,6 +180,42 @@ func can_go_back() -> bool:
 ## Clears navigation history.
 func clear_history() -> void:
 	_nav_history.clear()
+
+
+# --- Screen Transition Animation --- #
+
+## Fades out old screen, swaps content, fades in new screen.
+func _transition_screens(container: Control, new_screen_id: String) -> void:
+	# Kill any running tween
+	if _active_tween and _active_tween.is_valid():
+		_active_tween.kill()
+
+	# Fade out existing children
+	if container.get_child_count() > 0:
+		_active_tween = create_tween()
+		_active_tween.tween_property(container, "modulate:a", 0.0, FADE_OUT_DURATION)
+		await _active_tween.finished
+
+	# Remove old children
+	for child: Node in container.get_children():
+		container.remove_child(child)
+		child.queue_free()
+
+	# Load and add new screen
+	var scene: PackedScene = _load_scene(new_screen_id)
+	if scene == null:
+		container.modulate.a = 1.0
+		push_error("[ScreenManager] Failed to load scene for: %s" % new_screen_id)
+		return
+
+	var instance: Node = scene.instantiate()
+	container.add_child(instance)
+
+	# Fade in new screen
+	container.modulate.a = 0.0
+	_active_tween = create_tween()
+	_active_tween.tween_property(container, "modulate:a", 1.0, FADE_IN_DURATION)
+	await _active_tween.finished
 
 
 # --- Modal Management --- #
@@ -219,13 +241,20 @@ func open_modal(modal_id: String) -> Node:
 		push_error("[ScreenManager] Failed to load modal scene: %s" % scene_path)
 		return null
 
-	var instance: Node = scene.instantiate()
+	var instance: Control = scene.instantiate() as Control
 	var modal_layer: Node = game_root.get_node("ModalLayer")
 	modal_layer.add_child(instance)
 	_active_modals[modal_id] = instance
 
 	# Connect tree_exiting to auto-clean on queue_free
 	instance.tree_exiting.connect(_on_modal_exiting.bind(modal_id))
+
+	# Animate modal in: slide up from bottom + fade
+	instance.modulate.a = 0.0
+	instance.position.y += MODAL_SLIDE_OFFSET
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(instance, "modulate:a", 1.0, MODAL_TRANSITION_DURATION)
+	tween.tween_property(instance, "position:y", instance.position.y - MODAL_SLIDE_OFFSET, MODAL_TRANSITION_DURATION).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 
 	modal_opened.emit(modal_id)
 	return instance
@@ -236,10 +265,18 @@ func close_modal(modal_id: String) -> void:
 	if modal_id not in _active_modals:
 		return
 
-	var modal_node: Node = _active_modals[modal_id]
+	var modal_node: Control = _active_modals[modal_id] as Control
 	_active_modals.erase(modal_id)
+
 	if is_instance_valid(modal_node):
-		modal_node.queue_free()
+		# Animate modal out: slide down + fade
+		var tween: Tween = create_tween().set_parallel(true)
+		tween.tween_property(modal_node, "modulate:a", 0.0, MODAL_TRANSITION_DURATION)
+		tween.tween_property(modal_node, "position:y", modal_node.position.y + MODAL_SLIDE_OFFSET, MODAL_TRANSITION_DURATION).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		await tween.finished
+		if is_instance_valid(modal_node):
+			modal_node.queue_free()
+
 	modal_closed.emit(modal_id)
 
 
@@ -302,3 +339,6 @@ func reset() -> void:
 	_active_modals.clear()
 	_transitioning = false
 	navigation_data = {}
+	if _active_tween and _active_tween.is_valid():
+		_active_tween.kill()
+	_active_tween = null

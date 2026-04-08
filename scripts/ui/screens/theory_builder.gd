@@ -38,9 +38,9 @@ const STRENGTH_LABELS: Dictionary = {
 ## Strength colors.
 const STRENGTH_COLORS: Dictionary = {
 	Enums.TheoryStrength.NONE: UIColors.MUTED,
-	Enums.TheoryStrength.WEAK: Color(0.7, 0.5, 0.3),
-	Enums.TheoryStrength.MODERATE: Color(0.6, 0.65, 0.35),
-	Enums.TheoryStrength.STRONG: Color(0.35, 0.7, 0.4),
+	Enums.TheoryStrength.WEAK: UIColors.ACCENT_CLUE,
+	Enums.TheoryStrength.MODERATE: UIColors.ACCENT_EXAMINED,
+	Enums.TheoryStrength.STRONG: UIColors.ACCENT_PROCESSED,
 }
 
 
@@ -90,7 +90,7 @@ func _rebuild_theory_list() -> void:
 		btn.custom_minimum_size = Vector2(0, 32)
 		btn.pressed.connect(_on_theory_selected.bind(theory["id"]))
 		if theory["id"] == _selected_theory_id:
-			btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.6))
+			btn.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 		theory_list_container.add_child(btn)
 
 
@@ -131,18 +131,17 @@ func _add_theory_header(theory: Dictionary) -> void:
 
 	var name_label: Label = Label.new()
 	name_label.text = theory["name"]
-	name_label.add_theme_font_size_override("font_size", 20)
+	name_label.theme_type_variation = &"SectionHeader"
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
 	var complete_label: Label = Label.new()
 	if TheoryManager.is_complete(_selected_theory_id):
 		complete_label.text = "✓ Complete"
-		complete_label.add_theme_color_override("font_color", Color(0.35, 0.7, 0.4))
+		complete_label.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
 	else:
 		complete_label.text = "Incomplete"
-		complete_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
-	complete_label.add_theme_font_size_override("font_size", 15)
+		complete_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	hbox.add_child(complete_label)
 
 	var delete_btn: Button = Button.new()
@@ -164,7 +163,7 @@ func _add_step_suspect(theory: Dictionary) -> void:
 	var value_label: Label = Label.new()
 	if suspect_id.is_empty():
 		value_label.text = "No suspect selected"
-		value_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
+		value_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	else:
 		var person: PersonData = CaseManager.get_person(suspect_id)
 		value_label.text = person.name if person else suspect_id
@@ -188,7 +187,7 @@ func _add_step_motive(theory: Dictionary) -> void:
 	var value_label: Label = Label.new()
 	if motive.is_empty():
 		value_label.text = "No motive described"
-		value_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
+		value_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	else:
 		value_label.text = motive
 	vbox.add_child(value_label)
@@ -212,7 +211,7 @@ func _add_step_time(theory: Dictionary) -> void:
 	var value_label: Label = Label.new()
 	if t_min < 0 or t_day < 0:
 		value_label.text = "No time set"
-		value_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
+		value_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	else:
 		value_label.text = "Day %d at %s" % [t_day, TimelineManager.format_time(t_min)]
 	vbox.add_child(value_label)
@@ -235,7 +234,7 @@ func _add_step_method(theory: Dictionary) -> void:
 	var value_label: Label = Label.new()
 	if method.is_empty():
 		value_label.text = "No method described"
-		value_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
+		value_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	else:
 		value_label.text = method
 	vbox.add_child(value_label)
@@ -258,7 +257,7 @@ func _add_step_timeline(theory: Dictionary) -> void:
 	var value_label: Label = Label.new()
 	if entry_ids.is_empty():
 		value_label.text = "No timeline entries linked"
-		value_label.add_theme_color_override("font_color", Color(0.6, 0.55, 0.5))
+		value_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	else:
 		value_label.text = "%d timeline entries linked" % entry_ids.size()
 	vbox.add_child(value_label)
@@ -285,14 +284,14 @@ func _add_inconsistency_section(theory: Dictionary) -> void:
 	var header: Label = Label.new()
 	header.text = "⚠ Inconsistencies Found"
 	header.add_theme_font_size_override("font_size", 16)
-	header.add_theme_color_override("font_color", Color(0.9, 0.55, 0.3))
+	header.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 	detail_panel.add_child(header)
 
 	for incon: Dictionary in inconsistencies:
 		var lbl: Label = Label.new()
 		lbl.text = "• %s" % incon.get("description", "Unknown conflict")
-		lbl.add_theme_font_size_override("font_size", 14)
-		lbl.add_theme_color_override("font_color", Color(0.85, 0.55, 0.35))
+		lbl.theme_type_variation = &"MetadataLabel"
+		lbl.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		detail_panel.add_child(lbl)
 
@@ -335,7 +334,7 @@ func _add_strength_label(parent: VBoxContainer, step: String) -> void:
 	)
 	var lbl: Label = Label.new()
 	lbl.text = STRENGTH_LABELS.get(strength, "—")
-	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.theme_type_variation = &"MetadataLabel"
 	lbl.add_theme_color_override("font_color", STRENGTH_COLORS.get(strength, Color.WHITE))
 	parent.add_child(lbl)
 

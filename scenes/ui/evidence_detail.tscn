@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Evidence Detail"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"ScreenHeader"
 
 [node name="PinButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -89,7 +89,7 @@ layout_mode = 2
 [node name="InfoHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/InfoSection"]
 layout_mode = 2
 text = "Details"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="InfoGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/InfoSection"]
 unique_name_in_owner = true
@@ -104,7 +104,7 @@ layout_mode = 2
 [node name="TagsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/TagsSection"]
 layout_mode = 2
 text = "Tags"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="TagsContainer" type="HFlowContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/TagsSection"]
 unique_name_in_owner = true
@@ -124,6 +124,7 @@ text = "🔍 Compare Evidence"
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="ComparisonScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel"]
 layout_mode = 2
@@ -149,7 +150,7 @@ layout_mode = 2
 [node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
 layout_mode = 2
 text = "Related Persons"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
 unique_name_in_owner = true
@@ -161,7 +162,7 @@ layout_mode = 2
 [node name="StatementsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
 layout_mode = 2
 text = "Referenced Statements"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
 unique_name_in_owner = true
@@ -173,7 +174,7 @@ layout_mode = 2
 [node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
 layout_mode = 2
 text = "Legal Categories"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
 unique_name_in_owner = true

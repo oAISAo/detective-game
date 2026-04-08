@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Evidence Archive"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"ScreenHeader"
 
 [node name="ToolBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -65,12 +65,12 @@ layout_mode = 2
 [node name="TabEvidenceButton" type="Button" parent="MarginContainer/VBoxContainer/ToolBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "📁 Evidence"
+text = "Evidence"
 
 [node name="TabTestimonyButton" type="Button" parent="MarginContainer/VBoxContainer/ToolBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "💬 Testimony"
+text = "Testimony"
 
 [node name="PinnedBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -79,56 +79,25 @@ theme_override_constants/separation = 8
 
 [node name="PinnedLabel" type="Label" parent="MarginContainer/VBoxContainer/PinnedBar"]
 layout_mode = 2
-text = "📌 Pinned:"
-theme_override_font_sizes/font_size = 16
+text = "PINNED"
+theme_type_variation = &"SectionHeader"
 
 [node name="EvidenceContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer/EvidenceContent"]
+[node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent"]
 layout_mode = 2
 size_flags_vertical = 3
-split_offset = 350
 
-[node name="ListPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(300, 0)
-
-[node name="ListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/ListPanel"]
-layout_mode = 2
-
-[node name="EvidenceList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/ListPanel/ListScroll"]
+[node name="EvidenceGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/CardScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
-
-[node name="PreviewPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-visible = false
-
-[node name="PreviewScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel"]
-layout_mode = 2
-
-[node name="PreviewContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel/PreviewScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="PreviewLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel/PreviewScroll/PreviewContent"]
-unique_name_in_owner = true
-layout_mode = 2
-bbcode_enabled = true
-fit_content = true
-text = "Select an evidence item to view details."
-
-[node name="ViewDetailButton" type="Button" parent="MarginContainer/VBoxContainer/EvidenceContent/HSplitContainer/PreviewPanel/PreviewScroll/PreviewContent"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "View Details →"
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="TestimonyContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true

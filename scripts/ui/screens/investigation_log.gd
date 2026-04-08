@@ -54,6 +54,7 @@ func _populate_log() -> void:
 
 	for entry: Dictionary in reversed:
 		var entry_panel: PanelContainer = PanelContainer.new()
+		UIHelper.apply_surface_style(entry_panel)
 		var entry_label: RichTextLabel = RichTextLabel.new()
 		entry_label.bbcode_enabled = true
 		entry_label.fit_content = true

@@ -32,10 +32,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Investigation Desk"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 28
+theme_type_variation = &"ScreenHeader"
 
 [node name="InfoPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="InfoVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/InfoPanel"]
 layout_mode = 2
@@ -45,7 +46,7 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 text = "Day 1 — Morning"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="ActionsInfoLabel" type="Label" parent="MarginContainer/VBoxContainer/InfoPanel/InfoVBox"]
 unique_name_in_owner = true
@@ -54,8 +55,8 @@ text = "Actions Remaining: 2 / 2"
 
 [node name="NavLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Navigate To:"
-theme_override_font_sizes/font_size = 20
+text = "NAVIGATE TO"
+theme_type_variation = &"SectionHeader"
 
 [node name="NavGrid" type="GridContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -101,13 +102,14 @@ text = "📋 Investigation Log"
 
 [node name="NotificationsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Recent Notifications:"
-theme_override_font_sizes/font_size = 20
+text = "RECENT NOTIFICATIONS"
+theme_type_variation = &"SectionHeader"
 
 [node name="NotificationPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 custom_minimum_size = Vector2(0, 120)
+theme_type_variation = &"SurfacePanel"
 
 [node name="NotificationScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/NotificationPanel"]
 layout_mode = 2

@@ -18,14 +18,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Location Investigation"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"ScreenHeader"
 
 [node name="CompletionLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -54,63 +54,85 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Location description."
 autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.6, 0.55, 0.4, 1)
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+[node name="MainColumns" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-split_offset = 400
+theme_override_constants/separation = 16
 
-[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="LeftPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+theme_type_variation = &"SurfacePanel"
 
-[node name="ObjectsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
+[node name="LeftVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel"]
 layout_mode = 2
-text = "Areas & Objects"
-theme_override_font_sizes/font_size = 20
+theme_override_constants/separation = 8
 
-[node name="ObjectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
+[node name="ObjectsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
+layout_mode = 2
+text = "INVESTIGATION TARGETS"
+theme_type_variation = &"SectionHeader"
+
+[node name="ObjectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ObjectList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/ObjectScroll"]
+[node name="ObjectList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/ObjectScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="ToolsHeader" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
-layout_mode = 2
-text = "Investigation Tools"
-theme_override_font_sizes/font_size = 20
-
-[node name="ToolPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="CenterPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+theme_type_variation = &"SurfacePanel"
 
-[node name="DetailPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel"]
+[node name="CenterVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/CenterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SceneImage" type="TextureRect" parent="MarginContainer/VBoxContainer/MainColumns/CenterPanel/CenterVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+expand_mode = 1
+stretch_mode = 6
 
-[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/DetailPanel"]
+[node name="RightPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+theme_type_variation = &"SurfacePanel"
+
+[node name="RightVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DetailPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Select an object"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
-[node name="DetailState" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/DetailPanel"]
+[node name="DetailState" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
+theme_override_font_sizes/font_size = 13
 
-[node name="DetailDescription" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/DetailPanel"]
+[node name="DetailDescription" type="RichTextLabel" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
@@ -118,9 +140,17 @@ bbcode_enabled = true
 fit_content = true
 text = ""
 
-[node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/DetailPanel"]
+[node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
-alignment = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
+
+[node name="ToolsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+layout_mode = 2
+text = "FORENSIC TOOLS"
+theme_type_variation = &"SectionHeader"
+
+[node name="ToolPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4

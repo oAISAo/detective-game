@@ -1,20 +1,26 @@
 ## LocationMap.gd
-## Map of investigation locations — allows the player to select where to go.
-## Phase 6: Full location interaction with visit/completion indicators.
+## Map of investigation locations — uses LocationCard components
+## with thumbnails, status badges, clue counts, and suspect relevance tags.
+## Phase D7: Extracted card-building logic into LocationCard component.
 extends Control
 
 
+const LocationCardScene: PackedScene = preload("res://scenes/ui/components/location_card.tscn")
+
 @onready var title_label: Label = %TitleLabel
+@onready var subtitle_label: Label = %SubtitleLabel
 @onready var location_list: VBoxContainer = %LocationList
 @onready var back_button: Button = %BackButton
 
 
 func _ready() -> void:
+	title_label.text = "Case Map"
+	subtitle_label.text = "Track leads, revisit scenes, and inspect active investigation sites."
 	back_button.pressed.connect(_on_back_pressed)
 	_populate_locations()
 
 
-## Populates location list from CaseManager data.
+## Populates location cards from CaseManager data.
 func _populate_locations() -> void:
 	for child: Node in location_list.get_children():
 		location_list.remove_child(child)
@@ -41,39 +47,14 @@ func _populate_locations() -> void:
 		location_list.add_child(empty_label)
 		return
 
-
-	for loc: Resource in unlocked:
-		var hbox: HBoxContainer = HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 12)
-
-		var btn: Button = Button.new()
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var loc_name: String = loc.get("name") if loc.get("name") else "Unknown Location"
-		var visited: bool = GameManager.has_visited_location(loc.get("id"))
-
-		# Build label with visit status
-		if visited:
-			btn.text = "✓ %s" % loc_name
-		else:
-			btn.text = "  %s" % loc_name
-
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.pressed.connect(_on_location_pressed.bind(loc.get("id")))
-		hbox.add_child(btn)
-
-		# Completion indicator
-		if visited:
-			var completion: Dictionary = LocationInvestigationManager.get_location_completion(loc.get("id"))
-			var comp_label: Label = Label.new()
-			comp_label.text = "(%d/%d clues)" % [completion["found"], completion["total"]]
-			comp_label.add_theme_color_override("font_color", UIColors.SECONDARY)
-			comp_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			hbox.add_child(comp_label)
-
-		location_list.add_child(hbox)
+	for loc: LocationData in unlocked:
+		var card: LocationCard = LocationCardScene.instantiate()
+		location_list.add_child(card)
+		card.setup(loc)
+		card.card_pressed.connect(_on_location_pressed)
 
 
-## Handles a location button press.
+## Handles a location card press.
 func _on_location_pressed(location_id: String) -> void:
 	if not GameManager.has_actions_remaining():
 		NotificationManager.notify(
@@ -82,7 +63,6 @@ func _on_location_pressed(location_id: String) -> void:
 		)
 		return
 
-	# All visits are full investigations — player should always have actions available
 	_navigate_to_location(location_id, true)
 
 

@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Timeline"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"ScreenHeader"
 
 [node name="DaySelector" type="OptionButton" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -58,8 +58,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "0 entries · 0 hypotheses"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
+theme_type_variation = &"MetadataLabel"
 
 [node name="OverlapLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true

@@ -24,10 +24,10 @@ const END_HOUR: int = 23
 
 ## Certainty level visual colors.
 const CERTAINTY_COLORS: Dictionary = {
-	"CONFIRMED": Color(0.35, 0.65, 0.45),
-	"LIKELY": Color(0.45, 0.55, 0.65),
-	"CLAIMED": Color(0.7, 0.6, 0.35),
-	"UNKNOWN": Color(0.5, 0.48, 0.45, 0.6),
+	"CONFIRMED": UIColors.ACCENT_PROCESSED,
+	"LIKELY": UIColors.ACCENT_EXAMINED,
+	"CLAIMED": UIColors.ACCENT_CLUE,
+	"UNKNOWN": UIColors.STATUS_UNKNOWN,
 }
 
 ## Hypothesis card color.
@@ -104,8 +104,8 @@ func _build_hour_markers() -> void:
 	for hour: int in range(START_HOUR, END_HOUR + 1):
 		var marker: Label = Label.new()
 		marker.text = "%02d:00 ────────────────────────────────" % hour
-		marker.add_theme_font_size_override("font_size", 14)
-		marker.add_theme_color_override("font_color", Color(0.55, 0.52, 0.48))
+		marker.theme_type_variation = &"MetadataLabel"
+		marker.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 		timeline_container.add_child(marker)
 
 
@@ -187,21 +187,20 @@ func _create_entry_card(entry: Dictionary) -> PanelContainer:
 		TimelineManager.format_time(entry["time_minutes"]),
 		event.description if event else "Unknown event",
 	]
-	time_label.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(time_label)
 
 	var detail_label: Label = Label.new()
 	var persons_text: String = _get_persons_text(event.involved_persons if event else [])
 	detail_label.text = "Certainty: %s  |  %s" % [certainty_str, persons_text]
-	detail_label.add_theme_font_size_override("font_size", 13)
-	detail_label.add_theme_color_override("font_color", Color(0.65, 0.62, 0.58))
+	detail_label.theme_type_variation = &"MetadataLabel"
+	detail_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	vbox.add_child(detail_label)
 
 	var attached: Array[String] = TimelineManager.get_attached_evidence(entry["id"])
 	if not attached.is_empty():
 		var ev_label: Label = Label.new()
 		ev_label.text = "📎 Evidence: %s" % ", ".join(attached)
-		ev_label.add_theme_font_size_override("font_size", 12)
+		ev_label.theme_type_variation = &"MetadataLabel"
 		vbox.add_child(ev_label)
 
 	var remove_btn: Button = Button.new()
@@ -226,14 +225,13 @@ func _create_hypothesis_card(hyp: Dictionary) -> PanelContainer:
 		TimelineManager.format_time(hyp["time_minutes"]),
 		hyp.get("description", ""),
 	]
-	time_label.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(time_label)
 
 	var persons_text: String = _get_persons_text(hyp.get("involved_persons", []))
 	if not persons_text.is_empty():
 		var detail_label: Label = Label.new()
 		detail_label.text = "Hypothesis  |  %s" % persons_text
-		detail_label.add_theme_font_size_override("font_size", 13)
+		detail_label.theme_type_variation = &"MetadataLabel"
 		detail_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.75))
 		vbox.add_child(detail_label)
 
@@ -264,7 +262,7 @@ func _apply_certainty_style(panel: PanelContainer, certainty: String) -> void:
 		style.border_width_right = 2
 		style.border_width_top = 2
 		style.border_width_bottom = 2
-		style.border_color = Color(0.7, 0.6, 0.35)
+		style.border_color = UIColors.ACCENT_CLUE
 	panel.add_theme_stylebox_override("panel", style)
 
 

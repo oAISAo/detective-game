@@ -67,6 +67,7 @@ theme_override_constants/separation = 32
 [node name="CaseListPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(400, 0)
+theme_type_variation = &"SurfacePanel"
 
 [node name="CaseListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentHBox/CaseListPanel"]
 layout_mode = 2
@@ -80,6 +81,7 @@ theme_override_constants/separation = 8
 [node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"SurfacePanel"
 
 [node name="DetailVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel"]
 layout_mode = 2
@@ -101,7 +103,7 @@ theme_override_constants/separation = 12
 [node name="CaseTitleLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/DetailPanel/DetailVBox/DetailMargin/DetailContent"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_type_variation = &"ScreenHeader"
 text = "Select a case to view details"
 autowrap_mode = 2
 

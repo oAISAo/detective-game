@@ -1,0 +1,60 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/location_card.gd" id="1_script"]
+
+[node name="LocationCard" type="PanelContainer"]
+script = ExtResource("1_script")
+
+[node name="Content" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ImageRect" type="TextureRect" parent="Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(100, 80)
+expand_mode = 3
+stretch_mode = 6
+
+[node name="ImagePlaceholder" type="PanelContainer" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(100, 80)
+
+[node name="PlaceholderInitial" type="Label" parent="Content/ImagePlaceholder"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InfoColumn" type="VBoxContainer" parent="Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="NameRow" type="HBoxContainer" parent="Content/InfoColumn"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="Content/InfoColumn/NameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SectionHeader"
+
+[node name="StatusBadge" type="Label" parent="Content/InfoColumn/NameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MetadataLabel"
+
+[node name="DescriptionLabel" type="Label" parent="Content/InfoColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="MetaRow" type="HBoxContainer" parent="Content/InfoColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12

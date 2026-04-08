@@ -60,32 +60,32 @@ func test_initial_state_after_reset() -> void:
 # --- Navigation (without GameRoot) --- #
 
 func test_navigate_to_unknown_screen_returns_false() -> void:
-	var result: bool = ScreenManager.navigate_to("nonexistent_screen")
+	var result: bool = await ScreenManager.navigate_to("nonexistent_screen")
 	assert_false(result, "Navigating to unknown screen should return false")
 	assert_push_error("[ScreenManager] Unknown screen: nonexistent_screen")
 
 
 func test_navigate_to_unknown_screen_pushes_error() -> void:
-	ScreenManager.navigate_to("nonexistent_screen")
+	await ScreenManager.navigate_to("nonexistent_screen")
 	assert_push_error("[ScreenManager] Unknown screen: nonexistent_screen")
 
 
 func test_navigate_to_same_screen_returns_false() -> void:
 	# Set current_screen manually since we have no GameRoot
 	ScreenManager.current_screen = "desk_hub"
-	var result: bool = ScreenManager.navigate_to("desk_hub")
+	var result: bool = await ScreenManager.navigate_to("desk_hub")
 	assert_false(result, "Navigating to the same screen should return false")
 
 
 func test_navigate_to_valid_screen_without_game_root_returns_false() -> void:
 	# Without GameRoot in the tree, navigation should fail gracefully
-	var result: bool = ScreenManager.navigate_to("evidence_archive")
+	var result: bool = await ScreenManager.navigate_to("evidence_archive")
 	assert_false(result, "Navigation should fail without GameRoot")
 	assert_push_error("[ScreenManager] GameRoot not found.")
 
 
 func test_navigate_to_valid_screen_without_game_root_pushes_error() -> void:
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("evidence_archive")
 	assert_push_error("[ScreenManager] GameRoot not found.")
 
 
@@ -100,7 +100,7 @@ func test_can_go_back_returns_false_with_empty_history() -> void:
 
 
 func test_navigate_back_with_empty_history_returns_false() -> void:
-	var result: bool = ScreenManager.navigate_back()
+	var result: bool = await ScreenManager.navigate_back()
 	assert_false(result, "Back navigation should fail with empty history")
 
 
@@ -172,7 +172,7 @@ func test_close_all_modals_noop_when_none_open() -> void:
 
 func test_transitioning_flag_blocks_navigation() -> void:
 	ScreenManager._transitioning = true
-	var result: bool = ScreenManager.navigate_to("desk_hub")
+	var result: bool = await ScreenManager.navigate_to("desk_hub")
 	assert_false(result, "Navigation should be blocked during transition")
 	assert_push_warning("[ScreenManager] Navigation blocked")
 	ScreenManager._transitioning = false
@@ -181,7 +181,7 @@ func test_transitioning_flag_blocks_navigation() -> void:
 func test_transitioning_flag_blocks_back_navigation() -> void:
 	ScreenManager._nav_history.append("desk_hub")
 	ScreenManager._transitioning = true
-	var result: bool = ScreenManager.navigate_back()
+	var result: bool = await ScreenManager.navigate_back()
 	assert_false(result, "Back navigation should be blocked during transition")
 	ScreenManager._transitioning = false
 
@@ -190,7 +190,7 @@ func test_transitioning_flag_blocks_back_navigation() -> void:
 
 func test_navigate_to_unknown_does_not_emit_signals() -> void:
 	watch_signals(ScreenManager)
-	ScreenManager.navigate_to("nonexistent")
+	await ScreenManager.navigate_to("nonexistent")
 	assert_signal_not_emitted(ScreenManager, "screen_changing")
 	assert_signal_not_emitted(ScreenManager, "screen_changed")
 	assert_push_error("[ScreenManager] Unknown screen: nonexistent")

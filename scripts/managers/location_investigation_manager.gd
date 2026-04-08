@@ -192,6 +192,135 @@ func get_object_state(location_id: String, object_id: String) -> Enums.Investiga
 	return _object_states[location_id].get(object_id, Enums.InvestigationState.NOT_INSPECTED)
 
 
+## Returns the derived display status for an object, combining investigation state with lab lifecycle.
+## This is used by UI to show whether an object still has pending lab work.
+func get_object_display_status(location_id: String, object_id: String) -> Enums.ObjectDisplayStatus:
+	var base_state: Enums.InvestigationState = get_object_state(location_id, object_id)
+
+	if base_state == Enums.InvestigationState.NOT_INSPECTED:
+		return Enums.ObjectDisplayStatus.NOT_INSPECTED
+
+	# Check if any evidence from this object is pending in the lab
+	var object_data: InvestigableObjectData = _get_object(location_id, object_id)
+	if object_data == null:
+		return Enums.ObjectDisplayStatus.NOT_INSPECTED
+
+	var has_pending_lab: bool = false
+	var has_completed_lab: bool = false
+	var has_lab_eligible: bool = false
+
+	for ev_id: String in object_data.evidence_results:
+		var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+		if lab_req == null:
+			continue
+		has_lab_eligible = true
+		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+		if ev == null:
+			continue
+		if ev.lab_status == Enums.LabStatus.PROCESSING:
+			has_pending_lab = true
+		elif ev.lab_status == Enums.LabStatus.COMPLETED:
+			has_completed_lab = true
+
+	if has_pending_lab:
+		return Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS
+
+	if has_lab_eligible and has_completed_lab and base_state == Enums.InvestigationState.FULLY_EXAMINED:
+		return Enums.ObjectDisplayStatus.FULLY_PROCESSED
+
+	if base_state == Enums.InvestigationState.FULLY_EXAMINED:
+		if has_lab_eligible and not has_completed_lab:
+			# Lab eligible but not yet submitted — still partially examined from lab perspective
+			return Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
+		return Enums.ObjectDisplayStatus.FULLY_PROCESSED
+
+	return Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
+
+
+## Returns the derived display status hint text for an object.
+## Provides state-aware investigation messaging for the UI detail panel.
+func get_object_status_hint(location_id: String, object_id: String) -> String:
+	var status: Enums.ObjectDisplayStatus = get_object_display_status(location_id, object_id)
+	match status:
+		Enums.ObjectDisplayStatus.NOT_INSPECTED:
+			return "This area has not been examined yet."
+		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
+			# Check if this object has lab-eligible evidence that hasn't been submitted
+			var object_data: InvestigableObjectData = _get_object(location_id, object_id)
+			if object_data:
+				for ev_id: String in object_data.evidence_results:
+					var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+					if lab_req and GameManager.has_evidence(ev_id):
+						var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+						if ev and ev.lab_status == Enums.LabStatus.NOT_SUBMITTED:
+							return "Evidence recovered. Submit to the forensic lab for further analysis."
+			return "Further examination may reveal more evidence."
+		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
+			return "Forensic analysis is in progress. Results will arrive in a future briefing."
+		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
+			return "No further leads are currently available at this target."
+	return ""
+
+
+## Returns whether any object at a location has evidence pending in the lab.
+func has_pending_lab_at_location(location_id: String) -> bool:
+	var location: LocationData = CaseManager.get_location(location_id)
+	if location == null:
+		return false
+	for obj: InvestigableObjectData in location.investigable_objects:
+		var status: Enums.ObjectDisplayStatus = get_object_display_status(location_id, obj.id)
+		if status == Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
+			return true
+	return false
+
+
+## Returns a location-level status string for the map view.
+func get_location_status(location_id: String) -> String:
+	if not GameManager.has_visited_location(location_id):
+		return "Not Visited"
+	if has_pending_lab_at_location(location_id):
+		return "Lab Pending"
+	var completion: Dictionary = get_location_completion(location_id)
+	if completion["total"] > 0 and completion["found"] == completion["total"]:
+		return "Scene Processed"
+	return "Active Leads"
+
+
+## Returns the names of suspects relevant to discovered evidence at a location.
+func get_suspect_relevance_tags(location_id: String) -> Array[String]:
+	var location: LocationData = CaseManager.get_location(location_id)
+	if location == null:
+		return []
+	var person_ids: Dictionary = {}
+	for ev_id: String in location.evidence_pool:
+		if not GameManager.has_evidence(ev_id):
+			# Check if raw was upgraded
+			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+			if lab_req == null or not GameManager.has_evidence(lab_req.output_evidence_id):
+				continue
+			# Use the output evidence for related persons
+			var ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
+			if ev:
+				for pid: String in ev.related_persons:
+					if pid != "p_victim":
+						person_ids[pid] = true
+		else:
+			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+			if ev:
+				for pid: String in ev.related_persons:
+					if pid != "p_victim":
+						person_ids[pid] = true
+	var names: Array[String] = []
+	for pid: String in person_ids.keys():
+		var person: Resource = CaseManager.get_person(pid)
+		if person:
+			var pname: String = person.get("name") if person.get("name") else pid
+			# Use first name only
+			var parts: PackedStringArray = pname.split(" ")
+			names.append(parts[0])
+	return names
+
+
 ## Returns all actions performed on an object.
 func get_performed_actions(location_id: String, object_id: String) -> Array:
 	var key: String = "%s:%s" % [location_id, object_id]

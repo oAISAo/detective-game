@@ -51,14 +51,15 @@ size_flags_horizontal = 3
 [node name="SuspectSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection"]
 layout_mode = 2
 
 [node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Suspect"
+theme_type_variation = &"SectionHeader"
+text = "SUSPECT"
 
 [node name="SuspectAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/SuspectSection/VBoxContainer"]
 unique_name_in_owner = true
@@ -78,14 +79,15 @@ layout_mode = 2
 [node name="MotiveSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection"]
 layout_mode = 2
 
 [node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Motive"
+theme_type_variation = &"SectionHeader"
+text = "MOTIVE"
 
 [node name="MotiveAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/MotiveSection/VBoxContainer"]
 unique_name_in_owner = true
@@ -105,14 +107,15 @@ layout_mode = 2
 [node name="WeaponSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection"]
 layout_mode = 2
 
 [node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Weapon / Method"
+theme_type_variation = &"SectionHeader"
+text = "WEAPON / METHOD"
 
 [node name="WeaponAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/WeaponSection/VBoxContainer"]
 unique_name_in_owner = true
@@ -132,14 +135,15 @@ layout_mode = 2
 [node name="TimeSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection"]
 layout_mode = 2
 
 [node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Time of Crime"
+theme_type_variation = &"SectionHeader"
+text = "TIME OF CRIME"
 
 [node name="TimeAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/TimeSection/VBoxContainer"]
 unique_name_in_owner = true
@@ -159,14 +163,15 @@ layout_mode = 2
 [node name="AccessSection" type="PanelContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"SurfacePanel"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection"]
 layout_mode = 2
 
 [node name="SectionTitle" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Access / Opportunity"
+theme_type_variation = &"SectionHeader"
+text = "ACCESS / OPPORTUNITY"
 
 [node name="AccessAnswer" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ScrollContainer/ReportContent/AccessSection/VBoxContainer"]
 unique_name_in_owner = true

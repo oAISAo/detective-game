@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Suspect Name"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"ScreenHeader"
 
 [node name="PhaseLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -73,7 +73,7 @@ size_flags_stretch_ratio = 1.2
 [node name="DialogueSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/DialogueSection"]
 layout_mode = 2
 text = "Dialogue"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="DialogueLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/DialogueSection"]
 unique_name_in_owner = true
@@ -89,7 +89,7 @@ size_flags_vertical = 3
 [node name="TopicSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection"]
 layout_mode = 2
 text = "Topics"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="TopicScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel/TopicSection"]
 layout_mode = 2
@@ -114,7 +114,7 @@ size_flags_stretch_ratio = 1.2
 [node name="StatementSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
 layout_mode = 2
 text = "Statements"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="CurrentFocusLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
 unique_name_in_owner = true
@@ -138,7 +138,7 @@ size_flags_vertical = 3
 [node name="EvidenceSectionLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection"]
 layout_mode = 2
 text = "Evidence Inventory"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"SectionHeader"
 
 [node name="EvidenceScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/EvidenceSection"]
 layout_mode = 2

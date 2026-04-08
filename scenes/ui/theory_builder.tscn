@@ -41,15 +41,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Theory Builder"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"ScreenHeader"
 
 [node name="TheoryCountLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "0 theories"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
+theme_type_variation = &"MetadataLabel"
 
 [node name="NewTheoryButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -67,8 +66,8 @@ custom_minimum_size = Vector2(180, 0)
 
 [node name="ListLabel" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2
-text = "Theories"
-theme_override_font_sizes/font_size = 16
+text = "THEORIES"
+theme_type_variation = &"SectionHeader"
 
 [node name="TheoryListScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/LeftPanel"]
 layout_mode = 2

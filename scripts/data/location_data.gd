@@ -16,6 +16,9 @@ extends Resource
 ## Whether this location can be searched for evidence.
 @export var searchable: bool = true
 
+## Optional image path for this location (e.g., scene thumbnail).
+@export var image: String = ""
+
 ## Objects at this location that can be investigated.
 var investigable_objects: Array[InvestigableObjectData] = []
 
@@ -30,6 +33,7 @@ static func from_dict(data: Dictionary) -> LocationData:
 	res.name = data.get("name", "")
 	res.description = data.get("description", "")
 	res.searchable = data.get("searchable", true)
+	res.image = data.get("image", "")
 	# Parse investigable objects
 	res.investigable_objects = []
 	for obj_dict: Dictionary in data.get("investigable_objects", []):
@@ -61,6 +65,7 @@ func to_dict() -> Dictionary:
 		"name": name,
 		"description": description,
 		"searchable": searchable,
+		"image": image,
 		"investigable_objects": obj_dicts,
 		"evidence_pool": evidence_pool.duplicate(),
 	}

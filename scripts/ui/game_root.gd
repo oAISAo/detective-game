@@ -3,12 +3,50 @@
 ## global command bar with navigation, screen container, modal layer, and BGM.
 ## Phase 4A: Integrated with ScreenManager for all navigation.
 ## Phase 18: Title screen and case selection flow added.
+## Phase 19: Redesigned premium command bar with icon-above-label nav items.
 extends Control
 
 
 ## Scene paths for menu screens.
 const TITLE_SCREEN_SCENE: String = "res://scenes/ui/title_screen.tscn"
 const CASE_SELECTION_SCENE: String = "res://scenes/ui/case_selection_screen.tscn"
+
+## Nav item definitions: [screen_id, icon_char, label_text]
+const NAV_ITEMS: Array = [
+	["desk_hub", "monitor", "Desk"],
+	["evidence_archive", "mystery", "Evidence"],
+	["detective_board", "pinboard", "Board"],
+	["timeline_board", "calendar_clock", "Timeline"],
+	["location_map", "map_search", "Map"],
+	["suspect_list", "person_search", "Suspects"],
+	["investigation_log", "docs", "Log"],
+]
+
+## Colors for the nav bar styling.
+const NAV_HOVER_BG: Color = Color(0.50, 0.48, 0.44, 0.04)
+const NAV_ACTIVE_BG: Color = Color(0.52, 0.49, 0.42, 0.07)
+const NAV_ACTIVE_BORDER: Color = Color(0.82, 0.74, 0.58, 0.14)
+
+const NAV_ICON_INACTIVE: Color = Color(0.46, 0.46, 0.50)
+const NAV_ICON_ACTIVE: Color = Color(0.91, 0.88, 0.82)
+const NAV_ICON_HOVER: Color = Color(0.67, 0.66, 0.63)
+const NAV_ICON_GLOW: Color = Color(0.88, 0.85, 0.76, 0.18)
+
+const NAV_LABEL_INACTIVE: Color = Color(0.40, 0.40, 0.44)
+const NAV_LABEL_ACTIVE: Color = Color(0.82, 0.80, 0.75)
+const NAV_LABEL_HOVER: Color = Color(0.58, 0.57, 0.55)
+const NAV_LABEL_GLOW: Color = Color(0.82, 0.80, 0.72, 0.10)
+
+const ACTIVE_GLOW_COLOR: Color = Color(0.80, 0.68, 0.36, 0.16)
+const GREEN_GLOW_COLOR: Color = Color(0.63, 0.67, 0.48, 0.22)
+const NAV_UNDERLINE_COLOR: Color = Color(0.86, 0.82, 0.72)
+const NAV_UNDERLINE_GLOW: Color = Color(0.68, 0.72, 0.50, 0.18)
+const BADGE_COLOR: Color = Color(0.18, 0.19, 0.22, 0.94)
+
+const END_DAY_BG: Color = Color(0.18, 0.19, 0.22, 0.94)
+const END_DAY_BORDER: Color = Color(0.42, 0.40, 0.36, 0.36)
+const END_DAY_HOVER_BG: Color = Color(0.24, 0.25, 0.29, 0.98)
+const END_DAY_TEXT: Color = Color(0.84, 0.82, 0.78)
 
 
 ## Reference to the screen container where gameplay screens are loaded.
@@ -17,29 +55,38 @@ const CASE_SELECTION_SCENE: String = "res://scenes/ui/case_selection_screen.tscn
 ## Reference to the modal layer for overlays (interrogation, briefings).
 @onready var modal_layer: CanvasLayer = $ModalLayer
 
+## Reference to the toast container for slide-in notifications.
+@onready var toast_container: VBoxContainer = $ToastLayer/ToastAnchor/ToastContainer
+
 ## Reference to the global command bar at the top.
-@onready var command_bar: PanelContainer = $CommandBar
+@onready var command_bar: PanelContainer = %CommandBar
 
 ## Day display label.
-@onready var day_label: Label = $CommandBar/HBoxContainer/DayLabel
+@onready var day_label: Label = %DayLabel
+
+## Progress bar for case actions.
+@onready var progress_bar: ColorRect = %ProgressBar
 
 ## Actions remaining display label.
-@onready var actions_label: Label = $CommandBar/HBoxContainer/ActionsLabel
+@onready var actions_label: Label = %ActionsLabel
 
-## Navigation buttons.
-@onready var nav_desk_button: Button = $CommandBar/HBoxContainer/NavDeskButton
-@onready var nav_evidence_button: Button = $CommandBar/HBoxContainer/NavEvidenceButton
-@onready var nav_board_button: Button = $CommandBar/HBoxContainer/NavBoardButton
-@onready var nav_timeline_button: Button = $CommandBar/HBoxContainer/NavTimelineButton
-@onready var nav_map_button: Button = $CommandBar/HBoxContainer/NavMapButton
-@onready var nav_suspects_button: Button = $CommandBar/HBoxContainer/NavSuspectsButton
-@onready var nav_log_button: Button = $CommandBar/HBoxContainer/NavLogButton
+## Center zone container for nav items.
+@onready var center_zone: HBoxContainer = $CommandBar/MainHBox/CenterZone
 
 ## Notification button (opens notification panel modal).
-@onready var notification_button: Button = $CommandBar/HBoxContainer/NotificationButton
+@onready var notification_button: Button = %NotificationButton
 
 ## End Day button (triggers night processing).
-@onready var end_day_button: Button = $CommandBar/HBoxContainer/EndDayButton
+@onready var end_day_button: Button = %EndDayButton
+
+## Phase icon label (sun/moon).
+@onready var phase_icon: Label = $CommandBar/MainHBox/LeftZone/DaySection/PhaseIcon
+
+## Tracks built nav item containers keyed by screen_id.
+var _nav_items: Dictionary = {}
+
+## Material Symbols font with ligatures — shared across all functions.
+var icon_font: FontVariation
 
 
 func _ready() -> void:
@@ -54,17 +101,18 @@ func _ready() -> void:
 	NotificationManager.notification_dismissed.connect(_on_notification_dismissed)
 	NotificationManager.notifications_cleared.connect(_on_notifications_cleared)
 
-	# Connect navigation buttons
-	nav_desk_button.pressed.connect(func() -> void: ScreenManager.navigate_to("desk_hub"))
-	nav_evidence_button.pressed.connect(func() -> void: ScreenManager.navigate_to("evidence_archive"))
-	nav_board_button.pressed.connect(func() -> void: ScreenManager.navigate_to("detective_board"))
-	nav_timeline_button.pressed.connect(func() -> void: ScreenManager.navigate_to("timeline_board"))
-	nav_map_button.pressed.connect(func() -> void: ScreenManager.navigate_to("location_map"))
-	nav_suspects_button.pressed.connect(func() -> void: ScreenManager.navigate_to("suspect_list"))
-	nav_log_button.pressed.connect(func() -> void: ScreenManager.navigate_to("investigation_log"))
+	# Build nav items programmatically
+	var base_font := load("res://assets/fonts/MaterialSymbolsOutlined.ttf") as FontFile
+	icon_font = FontVariation.new()
+	icon_font.base_font = base_font
+	icon_font.opentype_features = {"liga": 1, "calt": 1}
+	_build_nav_items()
 
 	# Notification button opens the notification panel modal
 	notification_button.pressed.connect(_on_notification_button_pressed)
+
+	# Style the End Day button
+	_style_end_day_button()
 
 	# End Day button
 	end_day_button.pressed.connect(_on_end_day_pressed)
@@ -75,48 +123,623 @@ func _ready() -> void:
 	# Connect to ScreenManager for nav button highlighting
 	ScreenManager.screen_changed.connect(_on_screen_changed)
 
+	# Style the command bar
+	_style_command_bar()
+
+	# Style the notification button
+	_style_notification_button()
+
+	# Style the left zone labels
+	_style_left_zone()
+
 	# Start at the title screen — hide command bar until investigation begins
 	_show_title_screen()
 
-	print("[GameRoot] Ready — Phase 18: Title screen.")
+	print("[GameRoot] Ready — Phase 19: Redesigned command bar.")
+
+
+## Builds all navigation item containers in the center zone.
+func _build_nav_items() -> void:
+	center_zone.set("theme_override_constants/separation", 6)
+
+	for item_def: Array in NAV_ITEMS:
+		var screen_id: String = item_def[0]
+		var icon_char: String = item_def[1]
+		var label_text: String = item_def[2]
+
+		# -----------------------------
+		# Button root
+		# -----------------------------
+		var btn := Button.new()
+		btn.flat = true
+		btn.custom_minimum_size = Vector2(88, 84)
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+		# -----------------------------
+		# Button styles
+		# -----------------------------
+		var normal_style := StyleBoxFlat.new()
+		normal_style.bg_color = Color(0, 0, 0, 0)
+		normal_style.corner_radius_top_left = 10
+		normal_style.corner_radius_top_right = 10
+		normal_style.corner_radius_bottom_left = 10
+		normal_style.corner_radius_bottom_right = 10
+		normal_style.content_margin_left = 8.0
+		normal_style.content_margin_right = 8.0
+		normal_style.content_margin_top = 8.0
+		normal_style.content_margin_bottom = 0.0
+		btn.add_theme_stylebox_override("normal", normal_style)
+		btn.add_theme_stylebox_override("pressed", normal_style)
+		btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+		var hover_style := StyleBoxFlat.new()
+		hover_style.bg_color = NAV_HOVER_BG
+		hover_style.corner_radius_top_left = 10
+		hover_style.corner_radius_top_right = 10
+		hover_style.corner_radius_bottom_left = 10
+		hover_style.corner_radius_bottom_right = 10
+		hover_style.content_margin_left = 8.0
+		hover_style.content_margin_right = 8.0
+		hover_style.content_margin_top = 8.0
+		hover_style.content_margin_bottom = 0.0
+		btn.add_theme_stylebox_override("hover", hover_style)
+
+		var active_style := StyleBoxFlat.new()
+		active_style.bg_color = NAV_ACTIVE_BG
+		active_style.corner_radius_top_left = 10
+		active_style.corner_radius_top_right = 10
+		active_style.corner_radius_bottom_left = 10
+		active_style.corner_radius_bottom_right = 10
+		active_style.content_margin_left = 8.0
+		active_style.content_margin_right = 8.0
+		active_style.content_margin_top = 8.0
+		active_style.content_margin_bottom = 0.0
+		active_style.border_width_left = 1
+		active_style.border_width_top = 1
+		active_style.border_width_right = 1
+		active_style.border_width_bottom = 1
+		active_style.border_color = NAV_ACTIVE_BORDER
+		btn.add_theme_stylebox_override("disabled", active_style)
+
+		# -----------------------------
+		# Content layer
+		# -----------------------------
+		var content_center := CenterContainer.new()
+		content_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		content_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(content_center)
+
+		var content_vbox := VBoxContainer.new()
+		content_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		content_vbox.set("theme_override_constants/separation", 2)
+		content_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content_center.add_child(content_vbox)
+
+		# -----------------------------
+		# Icon stack
+		# -----------------------------
+		var icon_stack := Control.new()
+		icon_stack.custom_minimum_size = Vector2(58, 44)
+		icon_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content_vbox.add_child(icon_stack)
+
+		var icon_glow := Label.new()
+		icon_glow.text = icon_char
+		icon_glow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		icon_glow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		icon_glow.add_theme_font_override("font", icon_font)
+		icon_glow.add_theme_font_size_override("font_size", 38)
+		icon_glow.add_theme_color_override("font_color", Color(
+			NAV_ICON_GLOW.r,
+			NAV_ICON_GLOW.g,
+			NAV_ICON_GLOW.b,
+			0.0
+		))
+		icon_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon_glow.offset_top = 1
+		icon_glow.offset_bottom = 1
+		icon_stack.add_child(icon_glow)
+
+		var icon_label := Label.new()
+		icon_label.text = icon_char
+		icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		icon_label.add_theme_font_override("font", icon_font)
+		icon_label.add_theme_font_size_override("font_size", 36)
+		icon_label.add_theme_color_override("font_color", NAV_ICON_INACTIVE)
+		icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon_stack.add_child(icon_label)
+
+		# -----------------------------
+		# Label stack
+		# -----------------------------
+		var text_stack := Control.new()
+		text_stack.custom_minimum_size = Vector2(76, 18)
+		text_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content_vbox.add_child(text_stack)
+
+		var text_glow := Label.new()
+		text_glow.text = label_text
+		text_glow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		text_glow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		text_glow.add_theme_font_size_override("font_size", 15)
+		text_glow.add_theme_color_override("font_color", Color(
+			NAV_LABEL_GLOW.r,
+			NAV_LABEL_GLOW.g,
+			NAV_LABEL_GLOW.b,
+			0.0
+		))
+		text_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		text_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		text_glow.offset_top = 1
+		text_glow.offset_bottom = 1
+		text_stack.add_child(text_glow)
+
+		var text_label := Label.new()
+		text_label.text = label_text
+		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		text_label.add_theme_font_size_override("font_size", 14)
+		text_label.add_theme_color_override("font_color", NAV_LABEL_INACTIVE)
+		text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		text_stack.add_child(text_label)
+
+		# -----------------------------
+		# Underline layer
+		# -----------------------------
+		var underline_holder := Control.new()
+		underline_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		underline_holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		btn.add_child(underline_holder)
+
+		var underline_glow := Panel.new()
+		underline_glow.visible = false
+		underline_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		underline_glow.custom_minimum_size = Vector2(60, 4)
+
+		var glow_style := StyleBoxFlat.new()
+		glow_style.bg_color = NAV_UNDERLINE_GLOW
+		glow_style.corner_radius_top_left = 1
+		glow_style.corner_radius_top_right = 1
+		glow_style.corner_radius_bottom_left = 0
+		glow_style.corner_radius_bottom_right = 0
+		underline_glow.add_theme_stylebox_override("panel", glow_style)
+		underline_holder.add_child(underline_glow)
+
+		var underline_panel := Panel.new()
+		underline_panel.visible = false
+		underline_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		underline_panel.custom_minimum_size = Vector2(56, 2)
+
+		var underline_style := StyleBoxFlat.new()
+		underline_style.bg_color = NAV_UNDERLINE_COLOR
+		underline_style.corner_radius_top_left = 1
+		underline_style.corner_radius_top_right = 1
+		underline_style.corner_radius_bottom_left = 1
+		underline_style.corner_radius_bottom_right = 1
+		underline_panel.add_theme_stylebox_override("panel", underline_style)
+		underline_holder.add_child(underline_panel)
+
+		btn.resized.connect(func() -> void:
+			underline_glow.position = Vector2(
+				(btn.size.x - underline_glow.custom_minimum_size.x) * 0.5,
+				btn.size.y - underline_glow.custom_minimum_size.y + 4
+			)
+
+			underline_panel.position = Vector2(
+				(btn.size.x - underline_panel.custom_minimum_size.x) * 0.5,
+				btn.size.y - underline_panel.custom_minimum_size.y + 4
+			)
+		)
+		btn.resized.emit()
+
+		# -----------------------------
+		# Signals
+		# -----------------------------
+		btn.pressed.connect(func() -> void:
+			ScreenManager.navigate_to(screen_id)
+		)
+
+		btn.mouse_entered.connect(func() -> void:
+			_on_nav_hover(screen_id, true)
+		)
+
+		btn.mouse_exited.connect(func() -> void:
+			_on_nav_hover(screen_id, false)
+		)
+
+		center_zone.add_child(btn)
+
+		# -----------------------------
+		# Store refs
+		# -----------------------------
+		_nav_items[screen_id] = {
+			"button": btn,
+			"icon": icon_label,
+			"icon_glow": icon_glow,
+			"icon_stack": icon_stack,
+			"label": text_label,
+			"label_glow": text_glow,
+			"text_stack": text_stack,
+			"underline": underline_panel,
+			"underline_glow": underline_glow,
+			"_icon_color": NAV_ICON_INACTIVE,
+			"_label_color": NAV_LABEL_INACTIVE,
+			"_hovered": false,
+			"_tween": null,
+		}
+
+	if not _nav_items.is_empty():
+		_refresh_nav_items()
+
+
+## Handles nav item hover state.
+func _on_nav_hover(screen_id: String, hovered: bool) -> void:
+	if not _nav_items.has(screen_id):
+		return
+
+	var item: Dictionary = _nav_items[screen_id]
+	var is_active := ScreenManager.current_screen == screen_id
+
+	# Active item should not track hover state
+	item["_hovered"] = hovered and not is_active
+
+	_apply_nav_item_state(screen_id, item["_hovered"], is_active)
+
+
+## Applies full visual state to a nav item with tweened transitions.
+func _apply_nav_item_state(screen_id: String, hovered: bool, active: bool) -> void:
+	if not _nav_items.has(screen_id):
+		return
+
+	var item: Dictionary = _nav_items[screen_id]
+
+	var icon_lbl: Label = item["icon"]
+	var icon_glow: Label = item["icon_glow"]
+	var icon_stack: Control = item["icon_stack"]
+	var text_stack: Control = item["text_stack"]
+	var text_lbl: Label = item["label"]
+	var text_glow: Label = item["label_glow"]
+	var underline: Control = item["underline"]
+	var underline_glow: Control = item["underline_glow"]
+
+	if item.get("_tween") is Tween and item["_tween"].is_valid():
+		item["_tween"].kill()
+
+	var target_icon_color := NAV_ICON_INACTIVE
+	var target_label_color := NAV_LABEL_INACTIVE
+	var target_icon_glow_alpha := 0.0
+	var target_label_glow_alpha := 0.0
+	var target_icon_scale := Vector2.ONE
+	var target_text_scale := Vector2.ONE
+
+	if active:
+		target_icon_color = NAV_ICON_ACTIVE
+		target_label_color = NAV_LABEL_ACTIVE
+		target_icon_glow_alpha = 0.14
+		target_label_glow_alpha = 0.08
+		target_icon_scale = Vector2(1.025, 1.025)
+		target_text_scale = Vector2(1.01, 1.01)
+	elif hovered:
+		target_icon_color = NAV_ICON_HOVER
+		target_label_color = NAV_LABEL_HOVER
+		target_icon_glow_alpha = 0.10
+		target_label_glow_alpha = 0.04
+		target_icon_scale = Vector2(1.01, 1.01)
+		target_text_scale = Vector2(1.005, 1.005)
+
+	underline.visible = active
+	underline_glow.visible = active
+
+	var from_icon: Color = item.get("_icon_color", NAV_ICON_INACTIVE)
+	var from_label: Color = item.get("_label_color", NAV_LABEL_INACTIVE)
+	var from_icon_glow: Color = icon_glow.get_theme_color("font_color")
+	var from_label_glow: Color = text_glow.get_theme_color("font_color")
+
+	var to_icon_glow := Color(
+		NAV_ICON_GLOW.r,
+		NAV_ICON_GLOW.g,
+		NAV_ICON_GLOW.b,
+		target_icon_glow_alpha
+	)
+
+	var to_label_glow := Color(
+		NAV_LABEL_GLOW.r,
+		NAV_LABEL_GLOW.g,
+		NAV_LABEL_GLOW.b,
+		target_label_glow_alpha
+	)
+
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.set_ease(Tween.EASE_OUT)
+	tw.set_trans(Tween.TRANS_CUBIC)
+
+	tw.tween_method(
+		func(c: Color) -> void:
+			icon_lbl.add_theme_color_override("font_color", c),
+		from_icon,
+		target_icon_color,
+		0.18
+	)
+
+	tw.tween_method(
+		func(c: Color) -> void:
+			text_lbl.add_theme_color_override("font_color", c),
+		from_label,
+		target_label_color,
+		0.18
+	)
+
+	tw.tween_method(
+		func(c: Color) -> void:
+			icon_glow.add_theme_color_override("font_color", c),
+		from_icon_glow,
+		to_icon_glow,
+		0.18
+	)
+
+	tw.tween_method(
+		func(c: Color) -> void:
+			text_glow.add_theme_color_override("font_color", c),
+		from_label_glow,
+		to_label_glow,
+		0.18
+	)
+
+	tw.tween_property(icon_stack, "scale", target_icon_scale, 0.18)
+	tw.tween_property(text_stack, "scale", target_text_scale, 0.18)
+
+	item["_icon_color"] = target_icon_color
+	item["_label_color"] = target_label_color
+	item["_tween"] = tw
+
+
+## Refreshes all nav item visual states.
+func _refresh_nav_items() -> void:
+	for screen_id: String in _nav_items.keys():
+		var item: Dictionary = _nav_items[screen_id]
+		var hovered: bool = item.get("_hovered", false)
+		var active := ScreenManager.current_screen == screen_id
+		_apply_nav_item_state(screen_id, hovered, active)
+
+
+## Styles the command bar panel — premium dark command strip with depth.
+func _style_command_bar() -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.11, 0.11, 0.14, 0.97)
+	# Subtle top highlight for surface sheen
+	style.border_width_top = 1
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.28, 0.26, 0.24, 0.30)
+	# Slightly brighter top edge for depth
+	style.corner_radius_top_left = 14
+	style.corner_radius_top_right = 14
+	style.corner_radius_bottom_right = 14
+	style.corner_radius_bottom_left = 14
+	style.content_margin_left = 20.0
+	style.content_margin_top = 6.0
+	style.content_margin_right = 16.0
+	style.content_margin_bottom = 4.0
+	style.shadow_color = Color(0, 0, 0, 0.35)
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(0, 3)
+	# Anti-aliased corners
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 1.0
+	command_bar.add_theme_stylebox_override("panel", style)
+
+
+## Styles the End Day button with a premium dark look.
+func _style_end_day_button() -> void:
+	# Normal
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = END_DAY_BG
+	normal.border_width_left = 1
+	normal.border_width_top = 1
+	normal.border_width_right = 1
+	normal.border_width_bottom = 1
+	normal.border_color = END_DAY_BORDER
+	normal.corner_radius_top_left = 8
+	normal.corner_radius_top_right = 8
+	normal.corner_radius_bottom_right = 8
+	normal.corner_radius_bottom_left = 8
+	normal.content_margin_left = 20.0
+	normal.content_margin_top = 8.0
+	normal.content_margin_right = 20.0
+	normal.content_margin_bottom = 8.0
+	end_day_button.add_theme_stylebox_override("normal", normal)
+
+	# Hover
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = END_DAY_HOVER_BG
+	hover.border_width_left = 1
+	hover.border_width_top = 1
+	hover.border_width_right = 1
+	hover.border_width_bottom = 1
+	hover.border_color = Color(0.5, 0.48, 0.42, 0.6)
+	hover.corner_radius_top_left = 8
+	hover.corner_radius_top_right = 8
+	hover.corner_radius_bottom_right = 8
+	hover.corner_radius_bottom_left = 8
+	hover.content_margin_left = 16.0
+	hover.content_margin_top = 6.0
+	hover.content_margin_right = 16.0
+	hover.content_margin_bottom = 6.0
+	end_day_button.add_theme_stylebox_override("hover", hover)
+
+	# Pressed
+	var pressed := StyleBoxFlat.new()
+	pressed.bg_color = Color(0.18, 0.18, 0.21, 0.95)
+	pressed.border_width_left = 1
+	pressed.border_width_top = 1
+	pressed.border_width_right = 1
+	pressed.border_width_bottom = 1
+	pressed.border_color = Color(0.9, 0.7, 0.2, 0.5)
+	pressed.corner_radius_top_left = 8
+	pressed.corner_radius_top_right = 8
+	pressed.corner_radius_bottom_right = 8
+	pressed.corner_radius_bottom_left = 8
+	pressed.content_margin_left = 16.0
+	pressed.content_margin_top = 6.0
+	pressed.content_margin_right = 16.0
+	pressed.content_margin_bottom = 6.0
+	end_day_button.add_theme_stylebox_override("pressed", pressed)
+
+	# Focus
+	end_day_button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+	# Font
+	end_day_button.add_theme_color_override("font_color", END_DAY_TEXT)
+	end_day_button.add_theme_color_override("font_hover_color", Color(1, 0.95, 0.88))
+	end_day_button.add_theme_color_override("font_pressed_color", Color(0.7, 0.65, 0.6))
+	end_day_button.add_theme_font_size_override("font_size", 18)
+	end_day_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+
+## Styles the notification button to be minimal and flat.
+func _style_notification_button() -> void:
+	var empty := StyleBoxFlat.new()
+	empty.bg_color = Color(0, 0, 0, 0)
+	empty.set_content_margin_all(0)
+	notification_button.add_theme_stylebox_override("normal", empty)
+	notification_button.add_theme_stylebox_override("pressed", empty)
+	notification_button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = Color(0.25, 0.24, 0.28, 0.3)
+	hover.corner_radius_top_left = 6
+	hover.corner_radius_top_right = 6
+	hover.corner_radius_bottom_right = 6
+	hover.corner_radius_bottom_left = 6
+	hover.set_content_margin_all(0)
+
+	notification_button.add_theme_stylebox_override("hover", hover)
+	notification_button.add_theme_font_override("font", icon_font)
+	notification_button.add_theme_font_size_override("font_size", 38)
+	notification_button.add_theme_color_override("font_color", Color(0.60, 0.58, 0.56))
+	notification_button.add_theme_color_override("font_hover_color", Color(0.72, 0.69, 0.65))
+	notification_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	notification_button.clip_contents = false
+
+	# Badge label for unread count — circle/pill anchored to button's top-right
+	var badge := Label.new()
+	badge.name = "NotifBadge"
+	badge.visible = false
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	badge.custom_minimum_size = Vector2(16, 16)
+	badge.add_theme_font_size_override("font_size", 14)
+	badge.add_theme_color_override("font_color", END_DAY_TEXT)
+	var badge_box := StyleBoxFlat.new()
+	badge_box.bg_color = BADGE_COLOR
+	badge_box.corner_radius_top_left = 12
+	badge_box.corner_radius_top_right = 12
+	badge_box.corner_radius_bottom_left = 12
+	badge_box.corner_radius_bottom_right = 12
+	badge_box.content_margin_left = 10.0
+	badge_box.content_margin_right = 10.0
+	badge_box.content_margin_top = 4.0
+	badge_box.content_margin_bottom = 4.0
+
+	badge_box.border_width_left = 4
+	badge_box.border_width_top = 4
+	badge_box.border_width_right = 4
+	badge_box.border_width_bottom = 4
+	badge_box.border_color = Color(0.11, 0.11, 0.14, 0.97)
+
+	badge.add_theme_stylebox_override("normal", badge_box)
+	notification_button.add_child(badge)
+	# Set anchors directly to avoid PRESET_MODE_KEEP_SIZE stretching the badge
+	badge.anchor_left = 1.0
+	badge.anchor_top = 0.0
+	badge.anchor_right = 1.0
+	badge.anchor_bottom = 0.0
+	badge.offset_left = 0.0
+	badge.offset_top = -4.0
+	badge.offset_right = 4.0
+	badge.offset_bottom = 0.0
+	badge.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	badge.grow_vertical = Control.GROW_DIRECTION_END
+
+
+## Styles the left zone labels with appropriate sizes and colors.
+func _style_left_zone() -> void:
+	day_label.add_theme_font_size_override("font_size", 18)
+	day_label.add_theme_color_override("font_color", Color(0.72, 0.69, 0.65))
+
+	actions_label.add_theme_font_size_override("font_size", 20)
+	actions_label.add_theme_color_override("font_color", Color(0.72, 0.69, 0.65))
+
+	phase_icon.add_theme_font_override("font", icon_font)
+	phase_icon.add_theme_font_size_override("font_size", 38)
+	phase_icon.add_theme_color_override("font_color", Color(0.78, 0.62, 0.22, 0.75))
 
 
 ## Updates all command bar labels with current state.
 func _update_command_bar() -> void:
-	day_label.text = "Day %d — %s" % [
+	day_label.text = "Day %d – %s" % [
 		GameManager.current_day,
 		GameManager.get_phase_display()
 	]
+
+	# Update phase icon
+	if GameManager.is_daytime():
+		phase_icon.text = "wb_sunny"
+	else:
+		phase_icon.text = "bedtime"
+
 	# Show actions only during Daytime
 	if GameManager.is_daytime():
 		actions_label.text = "Actions: %d / %d" % [GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY]
 		actions_label.visible = true
+		# Update progress bar width proportionally
+		var ratio: float = float(GameManager.actions_remaining) / float(GameManager.ACTIONS_PER_DAY) if GameManager.ACTIONS_PER_DAY > 0 else 0.0
+		progress_bar.custom_minimum_size.x = 120.0 * ratio
+		progress_bar.visible = true
 	else:
 		actions_label.visible = false
+		progress_bar.visible = false
+
 	# End Day button only visible during Daytime
 	end_day_button.visible = GameManager.is_daytime()
 	_update_notification_button()
 
 
-## Updates the notification button text with unread count.
+## Updates the notification button icon and badge count.
 func _update_notification_button() -> void:
+	notification_button.text = "notifications"
 	var count: int = NotificationManager.get_unread_count()
-	if count == 0:
-		notification_button.text = "🔔"
-	else:
-		notification_button.text = "🔔 %d" % count
+	var badge: Label = notification_button.get_node_or_null("NotifBadge")
+	if badge:
+		badge.visible = count > 0
+		if count > 0:
+			badge.text = str(min(count, 99))
 
 
 ## Highlights the active nav button based on current screen.
 func _update_nav_highlight() -> void:
 	var current: String = ScreenManager.current_screen
-	nav_desk_button.disabled = (current == "desk_hub")
-	nav_evidence_button.disabled = (current == "evidence_archive")
-	nav_board_button.disabled = (current == "detective_board")
-	nav_timeline_button.disabled = (current == "timeline_board")
-	nav_map_button.disabled = (current == "location_map")
-	nav_suspects_button.disabled = (current == "suspect_list")
-	nav_log_button.disabled = (current == "investigation_log")
+
+	for screen_id: String in _nav_items.keys():
+		var item: Dictionary = _nav_items[screen_id]
+		var is_active: bool = (screen_id == current)
+		var btn: Button = item["button"]
+
+		# Disable active tab so it behaves like a selected nav item
+		btn.disabled = is_active
+		btn.mouse_default_cursor_shape = Control.CURSOR_ARROW if is_active else Control.CURSOR_POINTING_HAND
+
+		# Active item should never retain hover state
+		if is_active:
+			item["_hovered"] = false
 
 
 # --- Signal Handlers --- #
@@ -269,8 +892,9 @@ func _on_case_selection_back() -> void:
 	_show_title_screen()
 
 
-func _on_notification_added(_notification: Dictionary) -> void:
+func _on_notification_added(notification: Dictionary) -> void:
 	_update_notification_button()
+	_spawn_toast(notification)
 
 
 func _on_notification_dismissed(_notification_id: String) -> void:
@@ -283,6 +907,7 @@ func _on_notifications_cleared() -> void:
 
 func _on_screen_changed(_screen_id: String) -> void:
 	_update_nav_highlight()
+	_refresh_nav_items()
 
 
 func _on_end_day_pressed() -> void:
@@ -309,6 +934,17 @@ func _on_notification_button_pressed() -> void:
 		ScreenManager.close_modal("notification_panel")
 	else:
 		ScreenManager.open_modal("notification_panel")
+
+
+## Spawns a slide-in toast for a notification dictionary.
+func _spawn_toast(notification: Dictionary) -> void:
+	var toast: NotificationToast = NotificationToast.new()
+	toast_container.add_child(toast)
+	toast.setup(
+		notification.get("title", ""),
+		notification.get("message", ""),
+		notification.get("type", NotificationManager.NotificationType.SYSTEM),
+	)
 
 
 # --- Legacy Screen Management (kept for backward compatibility) --- #
