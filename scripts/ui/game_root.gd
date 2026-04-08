@@ -41,7 +41,7 @@ const ACTIVE_GLOW_COLOR: Color = Color(0.80, 0.68, 0.36, 0.16)
 const GREEN_GLOW_COLOR: Color = Color(0.63, 0.67, 0.48, 0.22)
 const NAV_UNDERLINE_COLOR: Color = Color(0.86, 0.82, 0.72)
 const NAV_UNDERLINE_GLOW: Color = Color(0.68, 0.72, 0.50, 0.18)
-const BADGE_COLOR: Color = Color(0.88, 0.56, 0.20)
+const BADGE_COLOR: Color = Color(0.18, 0.19, 0.22, 0.94)
 
 const END_DAY_BG: Color = Color(0.18, 0.19, 0.22, 0.94)
 const END_DAY_BORDER: Color = Color(0.42, 0.40, 0.36, 0.36)
@@ -299,12 +299,12 @@ func _build_nav_items() -> void:
 		var underline_glow := Panel.new()
 		underline_glow.visible = false
 		underline_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		underline_glow.custom_minimum_size = Vector2(64, 7)
+		underline_glow.custom_minimum_size = Vector2(60, 4)
 
 		var glow_style := StyleBoxFlat.new()
 		glow_style.bg_color = NAV_UNDERLINE_GLOW
-		glow_style.corner_radius_top_left = 4
-		glow_style.corner_radius_top_right = 4
+		glow_style.corner_radius_top_left = 1
+		glow_style.corner_radius_top_right = 1
 		glow_style.corner_radius_bottom_left = 0
 		glow_style.corner_radius_bottom_right = 0
 		underline_glow.add_theme_stylebox_override("panel", glow_style)
@@ -550,10 +550,10 @@ func _style_end_day_button() -> void:
 	normal.corner_radius_top_right = 8
 	normal.corner_radius_bottom_right = 8
 	normal.corner_radius_bottom_left = 8
-	normal.content_margin_left = 16.0
-	normal.content_margin_top = 6.0
-	normal.content_margin_right = 16.0
-	normal.content_margin_bottom = 6.0
+	normal.content_margin_left = 20.0
+	normal.content_margin_top = 8.0
+	normal.content_margin_right = 20.0
+	normal.content_margin_bottom = 8.0
 	end_day_button.add_theme_stylebox_override("normal", normal)
 
 	# Hover
@@ -599,7 +599,8 @@ func _style_end_day_button() -> void:
 	end_day_button.add_theme_color_override("font_color", END_DAY_TEXT)
 	end_day_button.add_theme_color_override("font_hover_color", Color(1, 0.95, 0.88))
 	end_day_button.add_theme_color_override("font_pressed_color", Color(0.7, 0.65, 0.6))
-	end_day_button.add_theme_font_size_override("font_size", 14)
+	end_day_button.add_theme_font_size_override("font_size", 18)
+	end_day_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
 ## Styles the notification button to be minimal and flat.
@@ -618,11 +619,55 @@ func _style_notification_button() -> void:
 	hover.corner_radius_bottom_right = 6
 	hover.corner_radius_bottom_left = 6
 	hover.set_content_margin_all(0)
-	notification_button.add_theme_stylebox_override("hover", hover)
 
-	notification_button.add_theme_font_size_override("font_size", 16)
-	notification_button.add_theme_color_override("font_color", Color(0.42, 0.40, 0.42))
-	notification_button.add_theme_color_override("font_hover_color", Color(0.60, 0.58, 0.56))
+	notification_button.add_theme_stylebox_override("hover", hover)
+	notification_button.add_theme_font_override("font", icon_font)
+	notification_button.add_theme_font_size_override("font_size", 38)
+	notification_button.add_theme_color_override("font_color", Color(0.60, 0.58, 0.56))
+	notification_button.add_theme_color_override("font_hover_color", Color(0.72, 0.69, 0.65))
+	notification_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	notification_button.clip_contents = false
+
+	# Badge label for unread count — circle/pill anchored to button's top-right
+	var badge := Label.new()
+	badge.name = "NotifBadge"
+	badge.visible = false
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	badge.custom_minimum_size = Vector2(16, 16)
+	badge.add_theme_font_size_override("font_size", 14)
+	badge.add_theme_color_override("font_color", END_DAY_TEXT)
+	var badge_box := StyleBoxFlat.new()
+	badge_box.bg_color = BADGE_COLOR
+	badge_box.corner_radius_top_left = 12
+	badge_box.corner_radius_top_right = 12
+	badge_box.corner_radius_bottom_left = 12
+	badge_box.corner_radius_bottom_right = 12
+	badge_box.content_margin_left = 10.0
+	badge_box.content_margin_right = 10.0
+	badge_box.content_margin_top = 4.0
+	badge_box.content_margin_bottom = 4.0
+
+	badge_box.border_width_left = 4
+	badge_box.border_width_top = 4
+	badge_box.border_width_right = 4
+	badge_box.border_width_bottom = 4
+	badge_box.border_color = Color(0.11, 0.11, 0.14, 0.97)
+
+	badge.add_theme_stylebox_override("normal", badge_box)
+	notification_button.add_child(badge)
+	# Set anchors directly to avoid PRESET_MODE_KEEP_SIZE stretching the badge
+	badge.anchor_left = 1.0
+	badge.anchor_top = 0.0
+	badge.anchor_right = 1.0
+	badge.anchor_bottom = 0.0
+	badge.offset_left = 0.0
+	badge.offset_top = -4.0
+	badge.offset_right = 4.0
+	badge.offset_bottom = 0.0
+	badge.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	badge.grow_vertical = Control.GROW_DIRECTION_END
 
 
 ## Styles the left zone labels with appropriate sizes and colors.
@@ -630,8 +675,8 @@ func _style_left_zone() -> void:
 	day_label.add_theme_font_size_override("font_size", 18)
 	day_label.add_theme_color_override("font_color", Color(0.72, 0.69, 0.65))
 
-	actions_label.add_theme_font_size_override("font_size", 18)
-	actions_label.add_theme_color_override("font_color", Color(0.50, 0.48, 0.45))
+	actions_label.add_theme_font_size_override("font_size", 20)
+	actions_label.add_theme_color_override("font_color", Color(0.72, 0.69, 0.65))
 
 	phase_icon.add_theme_font_override("font", icon_font)
 	phase_icon.add_theme_font_size_override("font_size", 38)
@@ -668,13 +713,15 @@ func _update_command_bar() -> void:
 	_update_notification_button()
 
 
-## Updates the notification button text with unread count.
+## Updates the notification button icon and badge count.
 func _update_notification_button() -> void:
+	notification_button.text = "notifications"
 	var count: int = NotificationManager.get_unread_count()
-	if count == 0:
-		notification_button.text = "notifications"
-	else:
-		notification_button.text = "notifications %d" % count
+	var badge: Label = notification_button.get_node_or_null("NotifBadge")
+	if badge:
+		badge.visible = count > 0
+		if count > 0:
+			badge.text = str(min(count, 99))
 
 
 ## Highlights the active nav button based on current screen.

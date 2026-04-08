@@ -53,38 +53,38 @@ func after_each() -> void:
 # --- Screen Navigation --- #
 
 func test_navigate_to_desk_hub_loads_screen() -> void:
-	var result: bool = ScreenManager.navigate_to("desk_hub")
+	var result: bool = await ScreenManager.navigate_to("desk_hub")
 	assert_true(result, "Should navigate to desk_hub successfully")
 	assert_eq(ScreenManager.current_screen, "desk_hub")
 	assert_eq(_screen_container.get_child_count(), 1, "Screen container should have one child")
 
 
 func test_navigate_to_evidence_archive_loads_screen() -> void:
-	var result: bool = ScreenManager.navigate_to("evidence_archive")
+	var result: bool = await ScreenManager.navigate_to("evidence_archive")
 	assert_true(result, "Should navigate to evidence_archive successfully")
 	assert_eq(ScreenManager.current_screen, "evidence_archive")
 
 
 func test_navigate_to_detective_board_loads_screen() -> void:
-	var result: bool = ScreenManager.navigate_to("detective_board")
+	var result: bool = await ScreenManager.navigate_to("detective_board")
 	assert_true(result, "Should navigate to detective_board successfully")
 	assert_eq(ScreenManager.current_screen, "detective_board")
 
 
 func test_navigate_to_timeline_board_loads_screen() -> void:
-	var result: bool = ScreenManager.navigate_to("timeline_board")
+	var result: bool = await ScreenManager.navigate_to("timeline_board")
 	assert_true(result, "Should navigate to timeline_board successfully")
 	assert_eq(ScreenManager.current_screen, "timeline_board")
 
 
 func test_navigate_to_location_map_loads_screen() -> void:
-	var result: bool = ScreenManager.navigate_to("location_map")
+	var result: bool = await ScreenManager.navigate_to("location_map")
 	assert_true(result, "Should navigate to location_map successfully")
 	assert_eq(ScreenManager.current_screen, "location_map")
 
 
 func test_navigate_to_investigation_log_loads_screen() -> void:
-	var result: bool = ScreenManager.navigate_to("investigation_log")
+	var result: bool = await ScreenManager.navigate_to("investigation_log")
 	assert_true(result, "Should navigate to investigation_log successfully")
 	assert_eq(ScreenManager.current_screen, "investigation_log")
 
@@ -92,9 +92,9 @@ func test_navigate_to_investigation_log_loads_screen() -> void:
 # --- Navigation History --- #
 
 func test_navigation_builds_history() -> void:
-	ScreenManager.navigate_to("desk_hub")
-	ScreenManager.navigate_to("evidence_archive")
-	ScreenManager.navigate_to("detective_board")
+	await ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("detective_board")
 
 	var history: Array[String] = ScreenManager.get_nav_history()
 	assert_eq(history.size(), 2, "History should have 2 entries (desk_hub, evidence_archive)")
@@ -103,32 +103,32 @@ func test_navigation_builds_history() -> void:
 
 
 func test_navigate_back_returns_to_previous() -> void:
-	ScreenManager.navigate_to("desk_hub")
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("evidence_archive")
 
-	var result: bool = ScreenManager.navigate_back()
+	var result: bool = await ScreenManager.navigate_back()
 	assert_true(result, "Should navigate back successfully")
 	assert_eq(ScreenManager.current_screen, "desk_hub", "Should return to desk_hub")
 	assert_eq(ScreenManager.get_nav_history().size(), 0, "History should be empty after going back")
 
 
 func test_navigate_back_chain() -> void:
-	ScreenManager.navigate_to("desk_hub")
-	ScreenManager.navigate_to("evidence_archive")
-	ScreenManager.navigate_to("detective_board")
+	await ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("detective_board")
 
-	ScreenManager.navigate_back()
+	await ScreenManager.navigate_back()
 	assert_eq(ScreenManager.current_screen, "evidence_archive")
-	ScreenManager.navigate_back()
+	await ScreenManager.navigate_back()
 	assert_eq(ScreenManager.current_screen, "desk_hub")
-	assert_false(ScreenManager.navigate_back(), "Cannot go back further")
+	assert_false(await ScreenManager.navigate_back(), "Cannot go back further")
 
 
 func test_navigation_replaces_screen_content() -> void:
-	ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("desk_hub")
 	assert_eq(_screen_container.get_child_count(), 1)
 
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("evidence_archive")
 	# Previous child gets queue_freed — we need to wait for it to process
 	# But the new child should be added immediately
 	assert_true(_screen_container.get_child_count() >= 1, "Should have at least the new screen")
@@ -138,26 +138,26 @@ func test_navigation_replaces_screen_content() -> void:
 
 func test_navigate_emits_screen_changing_signal() -> void:
 	watch_signals(ScreenManager)
-	ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("desk_hub")
 	assert_signal_emitted(ScreenManager, "screen_changing")
 
 
 func test_navigate_emits_screen_changed_signal() -> void:
 	watch_signals(ScreenManager)
-	ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("desk_hub")
 	assert_signal_emitted(ScreenManager, "screen_changed")
 
 
 func test_navigate_screen_changed_has_correct_id() -> void:
 	watch_signals(ScreenManager)
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("evidence_archive")
 	assert_signal_emitted_with_parameters(ScreenManager, "screen_changed", ["evidence_archive"])
 
 
 func test_navigate_screen_changing_has_correct_ids() -> void:
-	ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("desk_hub")
 	watch_signals(ScreenManager)
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("evidence_archive")
 	assert_signal_emitted_with_parameters(ScreenManager, "screen_changing", ["desk_hub", "evidence_archive"])
 
 
@@ -214,7 +214,7 @@ func test_close_all_modals() -> void:
 
 
 func test_modal_renders_above_screen() -> void:
-	ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("desk_hub")
 	ScreenManager.open_modal("morning_briefing")
 
 	# Screen is in screen_container, modal is in modal_layer (CanvasLayer layer=10)
@@ -225,18 +225,18 @@ func test_modal_renders_above_screen() -> void:
 # --- Multiple Screens with Modals --- #
 
 func test_modal_persists_across_screen_navigation() -> void:
-	ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("desk_hub")
 	ScreenManager.open_modal("morning_briefing")
 
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("evidence_archive")
 	assert_true(ScreenManager.is_modal_open("morning_briefing"), "Modal should persist across navigation")
 
 
 # --- Game Reset Integration --- #
 
 func test_game_reset_clears_screen_manager() -> void:
-	ScreenManager.navigate_to("desk_hub")
-	ScreenManager.navigate_to("evidence_archive")
+	await ScreenManager.navigate_to("desk_hub")
+	await ScreenManager.navigate_to("evidence_archive")
 	ScreenManager._nav_history.append("desk_hub")
 
 	# Calling reset directly (GameManager.new_game -> ScreenManager.reset)
