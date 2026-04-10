@@ -1,13 +1,12 @@
 ## LocationMap.gd
 ## Map of investigation locations — uses LocationCard components
-## with thumbnails, status badges, clue counts, and suspect relevance tags.
-## Phase D7: Extracted card-building logic into LocationCard component.
+## with cinematic photo-card tiles in a flow grid layout.
 extends Control
 
 
 const LocationCardScene: PackedScene = preload("res://scenes/ui/components/location_card.tscn")
 
-@onready var location_list: VBoxContainer = %LocationList
+@onready var location_grid: HFlowContainer = %LocationGrid
 
 
 func _ready() -> void:
@@ -16,8 +15,8 @@ func _ready() -> void:
 
 ## Populates location cards from CaseManager data.
 func _populate_locations() -> void:
-	for child: Node in location_list.get_children():
-		location_list.remove_child(child)
+	for child: Node in location_grid.get_children():
+		location_grid.remove_child(child)
 		child.queue_free()
 
 	var locations: Array[LocationData] = CaseManager.get_all_locations()
@@ -25,7 +24,7 @@ func _populate_locations() -> void:
 		var empty_label: Label = Label.new()
 		empty_label.text = "No locations available."
 		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
-		location_list.add_child(empty_label)
+		location_grid.add_child(empty_label)
 		return
 
 	# Filter to only show unlocked locations
@@ -38,12 +37,12 @@ func _populate_locations() -> void:
 		var empty_label: Label = Label.new()
 		empty_label.text = "No locations available yet."
 		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
-		location_list.add_child(empty_label)
+		location_grid.add_child(empty_label)
 		return
 
 	for loc: LocationData in unlocked:
 		var card: LocationCard = LocationCardScene.instantiate()
-		location_list.add_child(card)
+		location_grid.add_child(card)
 		card.setup(loc)
 		card.card_pressed.connect(_on_location_pressed)
 

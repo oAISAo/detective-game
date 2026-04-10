@@ -4,57 +4,115 @@
 
 [node name="LocationCard" type="PanelContainer"]
 script = ExtResource("1_script")
+custom_minimum_size = Vector2(380, 440)
 
-[node name="Content" type="HBoxContainer" parent="."]
+[node name="ClipContainer" type="Control" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 16
+clip_children = 2
 
-[node name="ImageRect" type="TextureRect" parent="Content"]
+[node name="GradientOverlay" type="ColorRect" parent="ClipContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="ClipContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="ImageArea" type="Control" parent="ClipContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="ImageRect" type="TextureRect" parent="ClipContainer/VBox/ImageArea"]
 unique_name_in_owner = true
 visible = false
-layout_mode = 2
-custom_minimum_size = Vector2(100, 80)
-expand_mode = 3
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
 stretch_mode = 6
 
-[node name="ImagePlaceholder" type="PanelContainer" parent="Content"]
+[node name="ImagePlaceholder" type="PanelContainer" parent="ClipContainer/VBox/ImageArea"]
 unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(100, 80)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="PlaceholderInitial" type="Label" parent="Content/ImagePlaceholder"]
+[node name="PlaceholderInitial" type="Label" parent="ClipContainer/VBox/ImageArea/ImagePlaceholder"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InfoColumn" type="VBoxContainer" parent="Content"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
+[node name="StatusBadge" type="PanelContainer" parent="ClipContainer/VBox/ImageArea"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_top = 14.0
+offset_right = -14.0
+grow_horizontal = 0
+grow_vertical = 1
 
-[node name="NameRow" type="HBoxContainer" parent="Content/InfoColumn"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="NameLabel" type="Label" parent="Content/InfoColumn/NameRow"]
+[node name="StatusLabel" type="Label" parent="ClipContainer/VBox/ImageArea/StatusBadge"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"SectionHeader"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="StatusBadge" type="Label" parent="Content/InfoColumn/NameRow"]
+[node name="Footer" type="VBoxContainer" parent="ClipContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
-theme_type_variation = &"MetadataLabel"
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+theme_override_constants/separation = 4
 
-[node name="DescriptionLabel" type="Label" parent="Content/InfoColumn"]
+[node name="NameLabel" type="Label" parent="ClipContainer/VBox/Footer"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="ClipContainer/VBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
 autowrap_mode = 2
 
-[node name="MetaRow" type="HBoxContainer" parent="Content/InfoColumn"]
+[node name="EvidenceRow" type="HBoxContainer" parent="ClipContainer/VBox/Footer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 12
+
+[node name="EvidenceLabel" type="Label" parent="ClipContainer/VBox/Footer/EvidenceRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="InspectButton" type="Button" parent="ClipContainer/VBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Visit · 1 Action"

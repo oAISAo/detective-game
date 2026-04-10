@@ -307,7 +307,7 @@ func test_location_card_shows_placeholder_when_no_image() -> void:
 	assert_false(image_rect.visible, "ImageRect should be hidden when no image")
 	assert_true(placeholder.visible, "Placeholder should be visible when no image")
 	var initial: Label = card.get_node("%PlaceholderInitial")
-	assert_eq(initial.text, "R", "Placeholder should show first letter of location name")
+	assert_eq(initial.text, "RIVERSIDE APARTMENT", "Placeholder should show full location name in uppercase")
 
 
 func test_location_card_displays_status_badge() -> void:
@@ -315,8 +315,8 @@ func test_location_card_displays_status_badge() -> void:
 	add_child_autofree(card)
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
 	card.setup(loc)
-	var badge: Label = card.get_node("%StatusBadge")
-	assert_eq(badge.text, "Not Visited", "Unvisited location should show 'Not Visited'")
+	var badge_label: Label = card.get_node("%StatusLabel")
+	assert_eq(badge_label.text, "NEW", "Unvisited location should show 'NEW'")
 
 
 func test_location_card_displays_description() -> void:
