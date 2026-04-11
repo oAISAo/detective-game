@@ -25,7 +25,7 @@ func after_each() -> void:
 # =========================================================================
 
 func test_initial_display_status_not_inspected() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
 		"loc_hallway", "obj_hallway_floor"
@@ -39,7 +39,7 @@ func test_initial_display_status_not_inspected() -> void:
 # =========================================================================
 
 func test_status_partially_examined_after_raw_discovery() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	# Hallway floor has tool_requirements so inspection leaves it partially examined
@@ -56,7 +56,7 @@ func test_status_partially_examined_after_raw_discovery() -> void:
 # =========================================================================
 
 func test_hint_prompts_lab_submission_after_raw_discovery() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	var hint: String = LocationInvestigationManager.get_object_status_hint(
@@ -71,7 +71,7 @@ func test_hint_prompts_lab_submission_after_raw_discovery() -> void:
 # =========================================================================
 
 func test_status_awaiting_lab_after_submission() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	# Submit raw shoe print to lab
@@ -96,7 +96,7 @@ func test_status_awaiting_lab_after_submission() -> void:
 # =========================================================================
 
 func test_hint_changes_to_analysis_in_progress() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
@@ -119,7 +119,7 @@ func test_hint_changes_to_analysis_in_progress() -> void:
 # =========================================================================
 
 func test_status_fully_processed_after_lab_result() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 	LocationInvestigationManager.leave_location()
 
@@ -150,7 +150,7 @@ func test_status_fully_processed_after_lab_result() -> void:
 # =========================================================================
 
 func test_no_lab_hint_after_processing() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 	LocationInvestigationManager.leave_location()
 
@@ -177,7 +177,7 @@ func test_no_lab_hint_after_processing() -> void:
 # =========================================================================
 
 func test_clue_count_correct_before_lab() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Discover all evidence at hallway
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
@@ -190,7 +190,7 @@ func test_clue_count_correct_before_lab() -> void:
 
 
 func test_clue_count_correct_after_lab_submission() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -213,7 +213,7 @@ func test_clue_count_correct_after_lab_submission() -> void:
 
 
 func test_clue_count_correct_after_lab_completion() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -243,7 +243,7 @@ func test_clue_count_correct_after_lab_completion() -> void:
 # =========================================================================
 
 func test_location_shows_lab_pending_after_submission() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 	LocationInvestigationManager.leave_location()
 
@@ -262,7 +262,7 @@ func test_location_shows_lab_pending_after_submission() -> void:
 
 
 func test_location_no_lab_pending_after_completion() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 	LocationInvestigationManager.leave_location()
 
@@ -288,7 +288,7 @@ func test_location_no_lab_pending_after_completion() -> void:
 # =========================================================================
 
 func test_object_without_lab_fully_processed() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Security system has no tool_requirements and no lab-eligible evidence
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
@@ -301,7 +301,7 @@ func test_object_without_lab_fully_processed() -> void:
 
 
 func test_object_without_lab_no_hint() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 
 	var hint: String = LocationInvestigationManager.get_object_status_hint(

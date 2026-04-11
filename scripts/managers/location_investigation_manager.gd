@@ -5,6 +5,30 @@
 extends BaseSubsystem
 
 
+# --- Constants --- #
+
+## Structured error codes for investigation start attempts.
+const START_ERROR_NONE: String = ""
+const START_ERROR_UNKNOWN_LOCATION: String = "unknown_location"
+const START_ERROR_NO_ACTIONS: String = "no_actions"
+
+## User-facing fallback messages for investigation start failures.
+const START_ERROR_MESSAGE_UNKNOWN_LOCATION: String = "This location is unavailable right now."
+const START_ERROR_MESSAGE_NO_ACTIONS: String = "You have no actions remaining today. Use 'End Day' to proceed."
+
+## Location-level status values for map-facing UI and logs.
+const LOCATION_STATUS_NEW: String = "new"
+const LOCATION_STATUS_OPEN: String = "open"
+const LOCATION_STATUS_EXHAUSTED: String = "exhausted"
+
+## Typed status buckets for map cards.
+enum MapCardStatus {
+	NEW,
+	OPEN,
+	EXHAUSTED,
+}
+
+
 # --- Signals --- #
 
 ## Emitted when an object's investigation state changes.
@@ -32,6 +56,9 @@ var _performed_actions: Dictionary = {}
 ## Whether the player is currently at a location.
 var current_location_id: String = ""
 
+## Last structured result from start_investigation_with_result.
+var _last_start_investigation_result: Dictionary = {}
+
 
 # --- Lifecycle --- #
 
@@ -44,43 +71,79 @@ func reset() -> void:
 	_object_states.clear()
 	_performed_actions.clear()
 	current_location_id = ""
+	_last_start_investigation_result.clear()
 
 
 # --- Location Visit --- #
 
-## Starts investigation at a location. Handles first visit vs return.
-## For first visits, costs 1 action. For returns, the caller decides full vs quick.
+## Starts investigation at a location.
+## Every visit costs 1 action.
 ## Returns true if investigation started successfully.
-func start_investigation(location_id: String, full_investigation: bool = true) -> bool:
+func start_investigation(location_id: String) -> bool:
+	var result: Dictionary = start_investigation_with_result(location_id)
+	return result.get("success", false)
+
+
+## Starts an investigation and returns a structured result.
+## Result fields:
+## - success: bool
+## - error_code: String
+## - error_message: String
+## - location_id: String
+## - is_first_visit: bool
+## - action_cost: int
+func start_investigation_with_result(location_id: String) -> Dictionary:
 	var location: LocationData = CaseManager.get_location(location_id)
 	if location == null:
 		push_error("[LocationInvestigationManager] Unknown location: %s" % location_id)
-		return false
+		return _record_start_result(_build_start_result(
+			false,
+			START_ERROR_UNKNOWN_LOCATION,
+			START_ERROR_MESSAGE_UNKNOWN_LOCATION,
+			location_id,
+			false,
+			0
+		))
 
 	var is_first_visit: bool = not GameManager.has_visited_location(location_id)
+	var action_cost: int = _get_visit_action_cost()
+	if action_cost > 0 and not GameManager.has_actions_remaining():
+		push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
+		return _record_start_result(_build_start_result(
+			false,
+			START_ERROR_NO_ACTIONS,
+			START_ERROR_MESSAGE_NO_ACTIONS,
+			location_id,
+			is_first_visit,
+			action_cost
+		))
 
-	if is_first_visit:
-		# First visit always costs an action
-		if not GameManager.has_actions_remaining():
-			push_warning("[LocationInvestigationManager] No actions remaining for first visit.")
-			return false
-		GameManager.use_action()
-		GameManager.visit_location(location_id)
-	elif full_investigation:
-		# Return visit with full investigation costs an action
-		if not GameManager.has_actions_remaining():
-			push_warning("[LocationInvestigationManager] No actions remaining for full investigation.")
-			return false
-		GameManager.use_action()
-
-	# Quick return visits (full_investigation=false) are free
+	_apply_visit_cost(location_id, is_first_visit, action_cost)
 
 	# Initialize object states if not yet tracked
 	_ensure_location_initialized(location_id)
 
 	current_location_id = location_id
 	investigation_started.emit(location_id, is_first_visit)
-	return true
+	return _record_start_result(_build_start_result(
+		true,
+		START_ERROR_NONE,
+		"",
+		location_id,
+		is_first_visit,
+		action_cost
+	))
+
+
+## Starts investigation using the map policy.
+## This keeps map action-cost rules owned by the manager.
+func start_map_investigation(location_id: String) -> Dictionary:
+	return start_investigation_with_result(location_id)
+
+
+## Returns the last structured start result.
+func get_last_start_investigation_result() -> Dictionary:
+	return _last_start_investigation_result.duplicate(true)
 
 
 ## Leaves the current location.
@@ -276,14 +339,27 @@ func has_pending_lab_at_location(location_id: String) -> bool:
 
 ## Returns a location-level status string for the map view.
 func get_location_status(location_id: String) -> String:
+	match get_location_card_status(location_id):
+		MapCardStatus.NEW:
+			return LOCATION_STATUS_NEW
+		MapCardStatus.OPEN:
+			return LOCATION_STATUS_OPEN
+		MapCardStatus.EXHAUSTED:
+			return LOCATION_STATUS_EXHAUSTED
+		_:
+			return LOCATION_STATUS_NEW
+
+
+## Returns a typed status bucket for map cards.
+func get_location_card_status(location_id: String) -> MapCardStatus:
 	if not GameManager.has_visited_location(location_id):
-		return "Not Visited"
+		return MapCardStatus.NEW
 	if has_pending_lab_at_location(location_id):
-		return "Lab Pending"
+		return MapCardStatus.OPEN
 	var completion: Dictionary = get_location_completion(location_id)
 	if completion["total"] > 0 and completion["found"] == completion["total"]:
-		return "Scene Processed"
-	return "Active Leads"
+		return MapCardStatus.EXHAUSTED
+	return MapCardStatus.OPEN
 
 
 ## Returns the names of suspects relevant to discovered evidence at a location.
@@ -471,6 +547,44 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 	if new_state == Enums.InvestigationState.FULLY_EXAMINED:
 		if is_location_complete(location_id):
 			location_completed.emit(location_id)
+
+
+## Calculates the action cost for a visit based on current visit context.
+func _get_visit_action_cost() -> int:
+	return 1
+
+
+## Applies visit-side effects for action spending and first-visit markers.
+func _apply_visit_cost(location_id: String, is_first_visit: bool, action_cost: int) -> void:
+	if action_cost > 0:
+		GameManager.use_action()
+	if is_first_visit:
+		GameManager.visit_location(location_id)
+
+
+## Builds a structured start result dictionary.
+func _build_start_result(
+	success: bool,
+	error_code: String,
+	error_message: String,
+	location_id: String,
+	is_first_visit: bool,
+	action_cost: int
+) -> Dictionary:
+	return {
+		"success": success,
+		"error_code": error_code,
+		"error_message": error_message,
+		"location_id": location_id,
+		"is_first_visit": is_first_visit,
+		"action_cost": action_cost,
+	}
+
+
+## Persists the last structured result and returns a copy.
+func _record_start_result(result: Dictionary) -> Dictionary:
+	_last_start_investigation_result = result.duplicate(true)
+	return _last_start_investigation_result.duplicate(true)
 
 
 # --- Serialization --- #

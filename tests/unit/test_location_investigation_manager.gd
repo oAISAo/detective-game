@@ -189,7 +189,7 @@ func test_first_visit_no_actions_fails() -> void:
 	GameManager.actions_remaining = 0
 	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
 	assert_false(result, "Should fail with no actions remaining")
-	assert_push_warning("[LocationInvestigationManager] No actions remaining for first visit.")
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
 
 
 func test_first_visit_second_location_no_actions_fails() -> void:
@@ -198,31 +198,80 @@ func test_first_visit_second_location_no_actions_fails() -> void:
 	GameManager.actions_remaining = 0
 	var result: bool = _loc_inv_mgr.start_investigation("loc_hallway")
 	assert_false(result, "Should fail visiting new location with no actions")
-	assert_push_warning("[LocationInvestigationManager] No actions remaining for first visit.")
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
 
 
-func test_return_visit_full_costs_action() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt", true)
+func test_return_visit_costs_action() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt", true)
+	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
 	assert_true(result)
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "Return full investigation costs action")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "Return visit should cost 1 action")
 
 
-func test_return_visit_quick_is_free() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt", true)
+func test_return_visit_no_actions_fails() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt", false)
-	assert_true(result)
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Quick visit should be free")
+	GameManager.actions_remaining = 0
+	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_false(result)
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
 
 
 func test_invalid_location_fails() -> void:
 	var result: bool = _loc_inv_mgr.start_investigation("loc_nonexistent")
 	assert_false(result)
 	assert_push_error("Unknown location: loc_nonexistent")
+
+
+func test_start_investigation_with_result_returns_error_context_for_no_actions() -> void:
+	GameManager.actions_remaining = 0
+	var result: Dictionary = _loc_inv_mgr.start_investigation_with_result("loc_apt")
+	assert_false(result.get("success", true))
+	assert_eq(
+		result.get("error_code", ""),
+		LocationInvestigationManager.START_ERROR_NO_ACTIONS
+	)
+	assert_eq(
+		result.get("error_message", ""),
+		LocationInvestigationManager.START_ERROR_MESSAGE_NO_ACTIONS
+	)
+	assert_eq(result.get("action_cost", -1), 1)
+	assert_false(result.has("visit_mode"))
+	assert_false(result.has("full_investigation"))
+
+
+func test_start_investigation_with_result_invalid_location_has_structured_error() -> void:
+	var result: Dictionary = _loc_inv_mgr.start_investigation_with_result("loc_nonexistent")
+	assert_push_error("Unknown location: loc_nonexistent")
+	assert_false(result.get("success", true))
+	assert_eq(
+		result.get("error_code", ""),
+		LocationInvestigationManager.START_ERROR_UNKNOWN_LOCATION
+	)
+	assert_eq(
+		result.get("error_message", ""),
+		LocationInvestigationManager.START_ERROR_MESSAGE_UNKNOWN_LOCATION
+	)
+	var last: Dictionary = _loc_inv_mgr.get_last_start_investigation_result()
+	assert_eq(
+		last.get("error_code", ""),
+		LocationInvestigationManager.START_ERROR_UNKNOWN_LOCATION
+	)
+
+
+func test_start_map_investigation_uses_manager_policy() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
+	_loc_inv_mgr.leave_location()
+	GameManager.actions_remaining = 1
+
+	var result: Dictionary = _loc_inv_mgr.start_map_investigation("loc_apt")
+	assert_true(result.get("success", false), "Map policy visit should succeed with one action")
+	assert_eq(result.get("action_cost", -1), 1)
+	assert_false(result.has("visit_mode"))
+	assert_false(result.has("full_investigation"))
+	assert_eq(GameManager.actions_remaining, 0, "Map policy full visit should spend one action")
 
 
 func test_investigation_started_signal() -> void:
@@ -237,7 +286,7 @@ func test_return_visit_signal_shows_not_first() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	watch_signals(_loc_inv_mgr)
-	_loc_inv_mgr.start_investigation("loc_apt", false)
+	_loc_inv_mgr.start_investigation("loc_apt")
 	assert_signal_emitted_with_parameters(
 		_loc_inv_mgr, "investigation_started", ["loc_apt", false]
 	)
@@ -432,6 +481,39 @@ func test_completion_invalid_location() -> void:
 	var completion: Dictionary = _loc_inv_mgr.get_location_completion("nonexistent")
 	assert_eq(completion["found"], 0)
 	assert_eq(completion["total"], 0)
+
+
+func test_location_card_status_not_visited_is_new() -> void:
+	var status: int = _loc_inv_mgr.get_location_card_status("loc_apt")
+	assert_eq(status, LocationInvestigationManager.MapCardStatus.NEW)
+	assert_eq(
+		_loc_inv_mgr.get_location_status("loc_apt"),
+		LocationInvestigationManager.LOCATION_STATUS_NEW
+	)
+
+
+func test_location_card_status_active_visit_is_open() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
+	_loc_inv_mgr.leave_location()
+	var status: int = _loc_inv_mgr.get_location_card_status("loc_apt")
+	assert_eq(status, LocationInvestigationManager.MapCardStatus.OPEN)
+	assert_eq(
+		_loc_inv_mgr.get_location_status("loc_apt"),
+		LocationInvestigationManager.LOCATION_STATUS_OPEN
+	)
+
+
+func test_location_card_status_when_complete_is_exhausted() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
+	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
+	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
+	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_counter", "chemical_test")
+	var status: int = _loc_inv_mgr.get_location_card_status("loc_apt")
+	assert_eq(status, LocationInvestigationManager.MapCardStatus.EXHAUSTED)
+	assert_eq(
+		_loc_inv_mgr.get_location_status("loc_apt"),
+		LocationInvestigationManager.LOCATION_STATUS_EXHAUSTED
+	)
 
 
 func test_examined_object_count() -> void:

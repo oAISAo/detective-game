@@ -27,7 +27,7 @@ func test_first_visit_starts_full_investigation() -> void:
 	assert_false(GameManager.has_visited_location("loc_hallway"),
 		"Hallway should not be visited initially")
 
-	var success: bool = LocationInvestigationManager.start_investigation("loc_hallway", true)
+	var success: bool = LocationInvestigationManager.start_investigation("loc_hallway")
 	assert_true(success, "Should be able to start investigation on first visit")
 
 	assert_true(GameManager.has_visited_location("loc_hallway"),
@@ -39,7 +39,7 @@ func test_first_visit_starts_full_investigation() -> void:
 # =========================================================================
 
 func test_hallway_floor_has_visual_inspection_action() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var location: LocationData = CaseManager.get_location("loc_hallway")
 	assert_not_null(location, "Hallway location should exist")
@@ -60,7 +60,7 @@ func test_hallway_floor_has_visual_inspection_action() -> void:
 # =========================================================================
 
 func test_hallway_floor_inspection_discovers_shoe_print_raw() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_hallway_floor"
@@ -79,7 +79,7 @@ func test_hallway_floor_inspection_discovers_shoe_print_raw() -> void:
 # =========================================================================
 
 func test_hallway_floor_inspection_not_dead_end() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_hallway_floor"
@@ -95,7 +95,7 @@ func test_hallway_floor_inspection_not_dead_end() -> void:
 # =========================================================================
 
 func test_hallway_floor_state_transitions() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Before inspection
 	var state_before: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
@@ -119,7 +119,7 @@ func test_hallway_floor_state_transitions() -> void:
 # =========================================================================
 
 func test_security_system_examination_discovers_camera() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_security_system"
@@ -138,7 +138,7 @@ func test_security_system_examination_discovers_camera() -> void:
 # =========================================================================
 
 func test_security_system_examination_discovers_elevator_logs() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_security_system"
@@ -155,7 +155,7 @@ func test_security_system_examination_discovers_elevator_logs() -> void:
 # =========================================================================
 
 func test_security_system_state_updates_after_examination() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var state_before: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
 		"loc_hallway", "obj_security_system"
@@ -178,7 +178,7 @@ func test_security_system_state_updates_after_examination() -> void:
 # =========================================================================
 
 func test_maintenance_office_inspection_discovers_work_log() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_maintenance_office"
@@ -195,7 +195,7 @@ func test_maintenance_office_inspection_discovers_work_log() -> void:
 # =========================================================================
 
 func test_maintenance_office_state_fully_examined() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_maintenance_office")
 
@@ -211,7 +211,7 @@ func test_maintenance_office_state_fully_examined() -> void:
 # =========================================================================
 
 func test_all_hallway_objects_start_not_inspected() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	for obj_id: String in ["obj_hallway_floor", "obj_security_system", "obj_maintenance_office"]:
 		var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
@@ -226,7 +226,7 @@ func test_all_hallway_objects_start_not_inspected() -> void:
 # =========================================================================
 
 func test_completion_counts_update_after_inspections() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var before: Dictionary = LocationInvestigationManager.get_location_completion("loc_hallway")
 	assert_eq(before["found"], 0, "No evidence found initially")
@@ -245,7 +245,7 @@ func test_completion_counts_update_after_inspections() -> void:
 # =========================================================================
 
 func test_repeated_inspection_no_re_discovery() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var first: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_hallway_floor"
@@ -263,7 +263,7 @@ func test_repeated_inspection_no_re_discovery() -> void:
 # =========================================================================
 
 func test_object_states_persist_after_revisit() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 
 	var state_before_leave: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
@@ -272,7 +272,7 @@ func test_object_states_persist_after_revisit() -> void:
 
 	# Leave and return
 	LocationInvestigationManager.leave_location()
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var state_after_return: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
 		"loc_hallway", "obj_security_system"
@@ -286,7 +286,7 @@ func test_object_states_persist_after_revisit() -> void:
 # =========================================================================
 
 func test_full_hallway_evidence_chain() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Step 1: Inspect security system → camera + elevator logs
 	var sec_discovered: Array[String] = LocationInvestigationManager.inspect_object(

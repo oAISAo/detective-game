@@ -24,16 +24,12 @@ var _location: LocationData = null
 ## The currently selected object ID.
 var _selected_object_id: String = ""
 
-## Whether this is a full investigation (can perform actions) or quick visit.
-var _full_investigation: bool = true
-
 
 func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 
 	var nav_data: Dictionary = ScreenManager.navigation_data
 	var location_id: String = nav_data.get("location_id", "")
-	_full_investigation = nav_data.get("full_investigation", true)
 
 	if location_id.is_empty():
 		push_error("[LocationInvestigation] No location_id in navigation data.")
@@ -184,9 +180,7 @@ func _populate_tools() -> void:
 		var is_relevant: bool = false
 		var reason: String = ""
 
-		if not _full_investigation:
-			reason = "View only"
-		elif obj and tool_id in obj.tool_requirements:
+		if obj and tool_id in obj.tool_requirements:
 			is_relevant = true
 			# Check if already used
 			var actions: Array = LocationInvestigationManager.get_performed_actions(
@@ -282,13 +276,6 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 	for child: Node in detail_actions.get_children():
 		detail_actions.remove_child(child)
 		child.queue_free()
-
-	if not _full_investigation:
-		var label: Label = Label.new()
-		label.text = "Quick visit — view only."
-		label.add_theme_color_override("font_color", UIColors.MUTED)
-		detail_actions.add_child(label)
-		return
 
 	# Visual inspection / Examine button
 	var has_visual: bool = "visual_inspection" in obj.available_actions

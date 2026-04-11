@@ -628,15 +628,15 @@ func test_visit_costs_action_economy() -> void:
 	assert_false(result, "Should fail — no actions")
 
 
-func test_quick_revisit_is_free() -> void:
+func test_revisit_costs_action() -> void:
 	_loc_inv_mgr.start_investigation("loc_apartment")
 	_loc_inv_mgr.leave_location()
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
 
-	# Quick revisit should be free
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment", false)
-	assert_true(result, "Quick revisit should succeed")
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Quick revisit should be free")
+	# Revisit should consume one additional action
+	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment")
+	assert_true(result, "Revisit should succeed")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "Revisit should cost one action")
 
 
 func test_multi_location_state_persistence() -> void:

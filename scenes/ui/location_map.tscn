@@ -18,10 +18,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 48
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 48
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -34,7 +34,16 @@ layout_mode = 2
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LocationGrid" type="HFlowContainer" parent="MarginContainer/VBoxContainer/LocationScroll"]
+[node name="ScrollContentMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/LocationScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="LocationGrid" type="HFlowContainer" parent="MarginContainer/VBoxContainer/LocationScroll/ScrollContentMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
