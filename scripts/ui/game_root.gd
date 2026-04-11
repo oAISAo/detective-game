@@ -52,6 +52,9 @@ const END_DAY_TEXT: Color = Color(0.84, 0.82, 0.78)
 ## Reference to the screen container where gameplay screens are loaded.
 @onready var screen_container: Control = $ScreenContainer
 
+## Radial gradient background ColorRect.
+@onready var _background: ColorRect = $Background
+
 ## Reference to the modal layer for overlays (interrogation, briefings).
 @onready var modal_layer: CanvasLayer = $ModalLayer
 
@@ -90,6 +93,8 @@ var icon_font: FontVariation
 
 
 func _ready() -> void:
+	_setup_background()
+
 	# Connect to GameManager signals for UI updates
 	GameManager.day_changed.connect(_on_day_changed)
 	GameManager.phase_changed.connect(_on_phase_changed)
@@ -506,6 +511,51 @@ func _refresh_nav_items() -> void:
 		var hovered: bool = item.get("_hovered", false)
 		var active := ScreenManager.current_screen == screen_id
 		_apply_nav_item_state(screen_id, hovered, active)
+
+
+## Builds a radial gradient background — lighter at the top-center, darker at edges/bottom.
+## Center: #1A1C23, Edges: #0F1014
+func _setup_background() -> void:
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+void fragment() {
+	// Slightly above center to emphasize top UI
+	// vec2 center = vec2(0.5, 0.28);
+	vec2 center = vec2(0.5, 0.32);
+
+	// Mild aspect correction (prevents horizontal stretching)
+	vec2 diff = (UV - center) * vec2(1.4, 1.0);
+	float dist = length(diff);
+
+	// Gradient falloff (compressed for stronger contrast)
+	float t = clamp(dist / 0.65, 0.0, 1.0);
+
+	// Sharper curve for better visual separation
+	t = pow(t, 1.8);
+
+	// Base colors (slightly exaggerated for visibility)
+	vec3 center_color = vec3(0.13, 0.14, 0.18);
+	vec3 edge_color   = vec3(0.04, 0.045, 0.055);
+
+	vec3 color = mix(center_color, edge_color, t);
+
+	// --- Subtle highlight boost ---
+	// Creates a soft "light spot" around the center
+	// float glow = 1.0 - smoothstep(0.0, 0.45, dist);
+	// float glow = 1.0 - smoothstep(0.0, 0.6, dist);
+	float glow = 1.0 - smoothstep(0.0, 0.8, dist);
+
+	// Keep this LOW — it's easy to overdo
+	color += glow * 0.035;
+
+	COLOR = vec4(color, 1.0);
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	_background.material = mat
 
 
 ## Styles the command bar panel — premium dark command strip with depth.

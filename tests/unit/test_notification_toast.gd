@@ -74,7 +74,7 @@ func test_toast_has_panel_style() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
 	toast.setup("Title", "Body", NotificationManager.NotificationType.EVIDENCE)
-	var style: StyleBox = toast.get_theme_stylebox_override("panel")
+	var style: StyleBox = toast.get_theme_stylebox("panel")
 	assert_not_null(style, "Toast should have a panel StyleBox override")
 
 

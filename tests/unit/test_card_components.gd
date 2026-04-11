@@ -295,6 +295,8 @@ func test_location_card_setup_populates_name() -> void:
 	assert_eq(card.get_location_id(), "loc_apartment", "Card should store location ID")
 	var name_label: Label = card.get_node("%NameLabel")
 	assert_eq(name_label.text, "Riverside Apartment", "Card should display location name")
+	assert_eq(name_label.theme_type_variation, &"SectionHeader",
+		"Location name should use the bold SectionHeader variation")
 
 
 func test_location_card_shows_placeholder_when_no_image() -> void:
@@ -307,7 +309,246 @@ func test_location_card_shows_placeholder_when_no_image() -> void:
 	assert_false(image_rect.visible, "ImageRect should be hidden when no image")
 	assert_true(placeholder.visible, "Placeholder should be visible when no image")
 	var initial: Label = card.get_node("%PlaceholderInitial")
-	assert_eq(initial.text, "R", "Placeholder should show first letter of location name")
+	assert_eq(initial.text, "RIVERSIDE APARTMENT", "Placeholder should show full location name in uppercase")
+
+
+func test_location_card_setup_rejects_null_location_data() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	card.setup(null)
+	assert_push_error("[LocationCard] setup rejected: null location data")
+	assert_eq(card.get_location_id(), "", "Invalid setup should not set a location id")
+	var inspect_button: Button = card.get_node("%InspectButton")
+	assert_true(inspect_button.disabled, "Invalid setup should disable the inspect button")
+
+
+func test_location_card_setup_rejects_missing_location_id_and_blocks_press_signal() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = LocationData.new()
+	loc.name = "Nameless Reference"
+	loc.description = "Missing id should be rejected."
+	card.setup(loc)
+	assert_push_error("[LocationCard] setup rejected: missing location id")
+	assert_eq(card.get_location_id(), "")
+	watch_signals(card)
+	card._on_pressed()
+	assert_signal_not_emitted(card, "card_pressed")
+
+
+func test_location_card_invalid_image_path_uses_placeholder() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = LocationData.new()
+	loc.id = "loc_bad_image"
+	loc.name = "Broken Image"
+	loc.description = "Invalid image path should safely fallback."
+	loc.image = "res://assets/placeholders/does_not_exist.png"
+	card.setup(loc)
+	assert_push_warning(
+		"[LocationCard] Image path not found for location 'loc_bad_image': res://assets/placeholders/does_not_exist.png"
+	)
+	var image_rect: TextureRect = card.get_node("%ImageRect")
+	var placeholder: PanelContainer = card.get_node("%ImagePlaceholder")
+	assert_false(image_rect.visible)
+	assert_true(placeholder.visible)
+
+
+func test_location_card_non_texture_resource_image_uses_placeholder() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = LocationData.new()
+	loc.id = "loc_script_image"
+	loc.name = "Script Image"
+	loc.description = "Non-texture resources should be rejected as images."
+	loc.image = "res://scripts/ui/components/location_card.gd"
+	card.setup(loc)
+	assert_push_warning(
+		"[LocationCard] Image resource is not a Texture2D for location 'loc_script_image': res://scripts/ui/components/location_card.gd"
+	)
+	var image_rect: TextureRect = card.get_node("%ImageRect")
+	var placeholder: PanelContainer = card.get_node("%ImagePlaceholder")
+	assert_false(image_rect.visible)
+	assert_true(placeholder.visible)
+
+
+func test_location_card_splits_evidence_prefix_from_value() -> void:
+	var card: Node = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+	var prefix_label: Label = card.get_node("%EvidencePrefixLabel")
+	var value_label: Label = card.get_node("%EvidenceLabel")
+	assert_eq(prefix_label.text, "Evidence:", "Evidence row should keep a separate bold prefix")
+	assert_eq(prefix_label.theme_type_variation, &"SectionHeader",
+		"Evidence prefix should use the bold SectionHeader variation")
+	assert_eq(value_label.text, "?", "Evidence value should remain separate from the prefix")
+
+
+func test_location_card_has_no_gradient_overlay() -> void:
+	var card: Node = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	assert_eq(card.get_node_or_null("%GradientOverlay"), null,
+		"Location card should not create a gradient overlay anymore")
+
+
+func test_location_card_image_uses_rounded_mask_material() -> void:
+	var card: Node = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	await get_tree().process_frame
+	var image_rect: TextureRect = card.get_node("%ImageRect")
+	assert_true(image_rect.material is ShaderMaterial,
+		"Location image should use a shader material so its corners render rounded")
+	var image_material: ShaderMaterial = image_rect.material as ShaderMaterial
+	assert_almost_eq(image_material.get_shader_parameter("rect_size").x, image_rect.size.x, 0.01,
+		"Image mask shader should track the actual image width")
+	assert_almost_eq(image_material.get_shader_parameter("rect_size").y, image_rect.size.y, 0.01,
+		"Image mask shader should track the actual image height")
+
+
+func test_location_card_status_badge_stays_compact_in_top_right() -> void:
+	var card: Node = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+	await get_tree().process_frame
+	var media_frame: Control = card.get_node("%MediaFrame")
+	var status_badge: Control = card.get_node("%StatusBadge")
+	assert_true(status_badge.size.x < media_frame.size.x * 0.5,
+		"Status badge should size to its text instead of stretching across the media frame")
+	assert_true(status_badge.size.y < media_frame.size.y * 0.25,
+		"Status badge should remain pill-height instead of stretching down the media frame")
+	assert_gt(status_badge.global_position.x, media_frame.global_position.x + media_frame.size.x * 0.5,
+		"Status badge should stay in the top-right area of the media frame")
+
+
+func test_location_card_hover_state_tracks_card_mouse_events() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	card._on_mouse_entered()
+	assert_true(card._is_hovered,
+		"Hover state should activate on card mouse enter")
+	card._on_mouse_exited()
+	assert_false(card._is_hovered,
+		"Hover state should clear on card mouse exit")
+
+
+func test_location_card_hover_includes_image_and_button_regions() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+
+	var image_area: Control = card.get_node("VBox/ImageArea")
+	var media_frame: PanelContainer = card.get_node("%MediaFrame")
+	var image_rect: TextureRect = card.get_node("%ImageRect")
+	var image_placeholder: PanelContainer = card.get_node("%ImagePlaceholder")
+	var overlay_margin: MarginContainer = card.get_node("VBox/ImageArea/MediaFrame/OverlayMargin")
+	var badge_row: HBoxContainer = card.get_node("VBox/ImageArea/MediaFrame/OverlayMargin/BadgeRow")
+	var status_badge: PanelContainer = card.get_node("%StatusBadge")
+	var status_label: Label = card.get_node("%StatusLabel")
+	var inspect_button: Button = card.get_node("%InspectButton")
+
+	assert_eq(image_area.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Image area wrapper should ignore mouse so card hover and cursor styling remain active")
+	assert_eq(media_frame.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Media frame should ignore mouse so image-area hover uses card-level hover state")
+	assert_eq(image_rect.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Image rect should ignore mouse so image-area hover keeps card highlight active")
+	assert_eq(image_placeholder.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Image placeholder should ignore mouse so empty-image hover keeps card highlight active")
+	assert_eq(overlay_margin.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Overlay margin should ignore mouse so its full-rect bounds do not suppress card hover/cursor")
+	assert_eq(badge_row.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Badge row should ignore mouse to keep image-region hover behavior consistent")
+	assert_eq(status_badge.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Status badge should ignore mouse so badge hover does not drop card highlight")
+	assert_eq(status_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Status label should ignore mouse so badge text does not suppress card hover/cursor")
+
+	card._set_hovered_state(false)
+	inspect_button.mouse_entered.emit()
+	assert_true(card._is_hovered,
+		"Visit button hover should activate the same card-level hover style")
+
+
+func test_location_card_hover_clears_after_fast_exit_from_image_region() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+
+	# Place card away from the default pointer origin so bounds checks resolve to outside.
+	card.position = Vector2(900.0, 900.0)
+	card._set_hovered_state(true)
+	card._on_hover_source_exited()
+	await get_tree().process_frame
+
+	assert_false(card._is_hovered,
+		"Hover state should clear after quick exits when pointer is outside card bounds")
+
+
+func test_location_card_button_click_emits_single_press_event() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+
+	var pressed_event: Dictionary = {
+		"count": 0,
+		"id": "",
+	}
+	card.card_pressed.connect(func(location_id: String) -> void:
+		pressed_event["count"] = int(pressed_event["count"]) + 1
+		pressed_event["id"] = location_id
+	)
+
+	var inspect_button: Button = card.get_node("%InspectButton")
+	inspect_button.pressed.emit()
+
+	assert_eq(pressed_event["count"], 1, "One button click should emit exactly one card_pressed event")
+	assert_eq(pressed_event["id"], "loc_apartment", "Button click should emit the card's location id")
+
+
+func test_location_card_keyboard_focus_activation_matches_pointer_route() -> void:
+	var card: LocationCard = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+
+	var pressed_event: Dictionary = {
+		"count": 0,
+	}
+	card.card_pressed.connect(func(_location_id: String) -> void:
+		pressed_event["count"] = int(pressed_event["count"]) + 1
+	)
+
+	var inspect_button: Button = card.get_node("%InspectButton")
+	assert_eq(inspect_button.focus_mode, Control.FOCUS_ALL,
+		"Inspect button should explicitly support keyboard focus")
+	inspect_button.grab_focus()
+	assert_true(inspect_button.has_focus(),
+		"Inspect button should be focusable for keyboard activation")
+	inspect_button.pressed.emit()
+
+	assert_eq(pressed_event["count"], 1,
+		"Focused button activation should use the same single-event route as pointer activation")
+
+
+func test_location_card_media_and_text_use_same_left_padding() -> void:
+	var card: Node = _location_card_scene.instantiate()
+	add_child_autofree(card)
+	var loc: LocationData = CaseManager.get_location("loc_apartment")
+	card.setup(loc)
+	await get_tree().process_frame
+	var media_frame: Control = card.get_node("%MediaFrame")
+	var footer: Control = card.get_node("%Footer")
+	var name_label: Label = card.get_node("%NameLabel")
+	var footer_gap: float = footer.global_position.y - (media_frame.global_position.y + media_frame.size.y)
+	assert_almost_eq(name_label.global_position.x, media_frame.global_position.x, 0.01,
+		"Location title should align with the left edge of the media frame")
+	assert_true(footer_gap >= 12.0 and footer_gap < 15.0,
+		"Footer content should stay close to a 12px gap below the media frame")
 
 
 func test_location_card_displays_status_badge() -> void:
@@ -315,8 +556,8 @@ func test_location_card_displays_status_badge() -> void:
 	add_child_autofree(card)
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
 	card.setup(loc)
-	var badge: Label = card.get_node("%StatusBadge")
-	assert_eq(badge.text, "Not Visited", "Unvisited location should show 'Not Visited'")
+	var badge_label: Label = card.get_node("%StatusLabel")
+	assert_eq(badge_label.text, "NEW", "Unvisited location should show 'NEW'")
 
 
 func test_location_card_displays_description() -> void:
@@ -335,5 +576,6 @@ func test_location_card_emits_signal() -> void:
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
 	card.setup(loc)
 	watch_signals(card)
-	card.card_pressed.emit("loc_apartment")
+	var inspect_button: Button = card.get_node("%InspectButton")
+	inspect_button.pressed.emit()
 	assert_signal_emitted_with_parameters(card, "card_pressed", ["loc_apartment"])

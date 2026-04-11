@@ -267,6 +267,7 @@ func close_modal(modal_id: String) -> void:
 
 	var modal_node: Control = _active_modals[modal_id] as Control
 	_active_modals.erase(modal_id)
+	modal_closed.emit(modal_id)
 
 	if is_instance_valid(modal_node):
 		# Animate modal out: slide down + fade
@@ -276,8 +277,6 @@ func close_modal(modal_id: String) -> void:
 		await tween.finished
 		if is_instance_valid(modal_node):
 			modal_node.queue_free()
-
-	modal_closed.emit(modal_id)
 
 
 ## Closes all open modals.

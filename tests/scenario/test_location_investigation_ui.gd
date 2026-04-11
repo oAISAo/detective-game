@@ -30,7 +30,7 @@ func after_each() -> void:
 
 # Test: Visual inspection triggers and discovers expected clues
 func test_visual_inspection_triggers_and_discovers_clues() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_hallway_floor"
@@ -44,7 +44,7 @@ func test_visual_inspection_triggers_and_discovers_clues() -> void:
 
 # Test: Visual inspection uses the correct target object
 func test_visual_inspection_uses_correct_target() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Inspect security system (examine_device)
 	var sec_discovered: Array[String] = LocationInvestigationManager.inspect_object(
@@ -65,7 +65,7 @@ func test_visual_inspection_uses_correct_target() -> void:
 
 # Test: Repeated inspection does not duplicate discoveries
 func test_repeated_inspection_no_duplicates() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var first: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_hallway_floor"
@@ -81,7 +81,7 @@ func test_repeated_inspection_no_duplicates() -> void:
 
 # Test: Inspection for already-completed targets does nothing invalid
 func test_inspection_on_completed_target_returns_empty() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Inspect maintenance office (no tool requirements, goes to FULLY_EXAMINED)
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_maintenance_office")
@@ -102,7 +102,7 @@ func test_inspection_on_completed_target_returns_empty() -> void:
 
 # Test: Target selection remains stable after inspection
 func test_target_selection_stable_after_inspection() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Inspect first object
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -124,7 +124,7 @@ func test_target_selection_stable_after_inspection() -> void:
 
 # Test: Examine device action works same as visual inspection
 func test_examine_device_works_correctly() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(
 		"loc_hallway", "obj_security_system"
@@ -138,7 +138,7 @@ func test_examine_device_works_correctly() -> void:
 
 # Test: Evidence signals are emitted during inspection
 func test_evidence_signals_emitted_during_inspection() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	watch_signals(LocationInvestigationManager)
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -156,7 +156,7 @@ func test_evidence_signals_emitted_during_inspection() -> void:
 
 # Test: New object defaults to unexamined (NOT_INSPECTED)
 func test_new_object_defaults_to_unexamined() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
 		"loc_hallway", "obj_hallway_floor"
@@ -167,7 +167,7 @@ func test_new_object_defaults_to_unexamined() -> void:
 
 # Test: Discovered raw clue changes object to partially_examined
 func test_raw_clue_changes_to_partially_examined() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
@@ -179,7 +179,7 @@ func test_raw_clue_changes_to_partially_examined() -> void:
 
 # Test: Submitted raw clue changes object to AWAITING_LAB if no scene-side actions remain
 func test_submitted_clue_changes_to_awaiting_lab() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 	LocationInvestigationManager.leave_location()
 
@@ -202,7 +202,7 @@ func test_submitted_clue_changes_to_awaiting_lab() -> void:
 
 # Test: Analyzed result changes object to fully_processed (when all actions done)
 func test_analyzed_result_completes_object() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Object without tool requirements goes straight to FULLY_PROCESSED
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
@@ -216,7 +216,7 @@ func test_analyzed_result_completes_object() -> void:
 
 # Test: UI-facing status text maps correctly from derived state
 func test_status_hint_text_maps_correctly() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# NOT_INSPECTED → non-empty hint
 	var hint_before: String = LocationInvestigationManager.get_object_status_hint(
@@ -251,7 +251,7 @@ func test_status_hint_text_maps_correctly() -> void:
 
 # Test: Empty clue list shows correct empty state text
 func test_empty_clue_state_before_inspection() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Before any inspection, no clues should be found from any object
 	var count: int = 0
@@ -267,7 +267,7 @@ func test_empty_clue_state_before_inspection() -> void:
 
 # Test: Discovered clues show correctly after inspection
 func test_discovered_clues_available_after_inspection() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	assert_true(GameManager.has_evidence("ev_shoe_print_raw"),
@@ -276,7 +276,7 @@ func test_discovered_clues_available_after_inspection() -> void:
 
 # Test: State-aware investigation messaging changes after actions
 func test_investigation_messaging_changes_with_status() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Before inspection
 	var hint_before: String = LocationInvestigationManager.get_object_status_hint(
@@ -319,7 +319,7 @@ func test_tool_unavailable_hints_available() -> void:
 
 # Test: Target list renders correct state for each object
 func test_target_status_reflects_state() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# All start NOT_INSPECTED
 	for obj_id: String in ["obj_hallway_floor", "obj_security_system", "obj_maintenance_office"]:
@@ -332,7 +332,7 @@ func test_target_status_reflects_state() -> void:
 
 # Test: Badges/status indicators update after clue discovery
 func test_badges_update_after_discovery() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Before inspection
 	var before: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
@@ -351,7 +351,7 @@ func test_badges_update_after_discovery() -> void:
 
 # Test: Partially examined object gets correct status
 func test_partial_badge_for_object_with_tools() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
@@ -364,11 +364,11 @@ func test_partial_badge_for_object_with_tools() -> void:
 
 # Test: Objects across different locations maintain independent states
 func test_cross_location_state_independence() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 	LocationInvestigationManager.leave_location()
 
-	LocationInvestigationManager.start_investigation("loc_victim_apartment", true)
+	LocationInvestigationManager.start_investigation("loc_victim_apartment")
 
 	# Apartment objects should still be NOT_INSPECTED
 	var apt_status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
@@ -402,12 +402,12 @@ func test_location_data_has_image_field() -> void:
 # Test: Multiple locations can be loaded and investigated independently
 func test_multiple_locations_support() -> void:
 	# Hallway
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 	LocationInvestigationManager.leave_location()
 
 	# Apartment
-	LocationInvestigationManager.start_investigation("loc_victim_apartment", true)
+	LocationInvestigationManager.start_investigation("loc_victim_apartment")
 	LocationInvestigationManager.inspect_object("loc_victim_apartment", "obj_kitchen")
 	LocationInvestigationManager.leave_location()
 
@@ -425,7 +425,7 @@ func test_multiple_locations_support() -> void:
 
 # Test: Full investigation flow from start to evidence collection
 func test_full_investigation_flow() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Step 1: All objects start uninspected
 	var completion_before: Dictionary = LocationInvestigationManager.get_location_completion("loc_hallway")
@@ -471,7 +471,7 @@ func test_full_investigation_flow() -> void:
 # Test: _refresh_ui sets detail content AFTER rebuilding sibling containers
 # This verifies the correct call order that prevents layout invalidation.
 func test_refresh_ui_populates_detail_last() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Select an object — the investigation screen would call _refresh_ui
 	# which calls _update_completion, _populate_objects, _populate_tools,
@@ -499,7 +499,7 @@ func test_refresh_ui_populates_detail_last() -> void:
 # This verifies Examine button works — previously it did nothing because
 # _show_object_detail was called before sibling containers were rebuilt.
 func test_examine_completes_object_without_tools() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Security system uses examine_device, has no tool_requirements
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
@@ -531,7 +531,7 @@ func test_examine_completes_object_without_tools() -> void:
 # Simulates the user clicking different objects in the list, verifying
 # that each selection does not corrupt the state of previously selected objects.
 func test_sequential_object_selection_preserves_state() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Inspect object A
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -563,7 +563,7 @@ func test_sequential_object_selection_preserves_state() -> void:
 # (which triggered _refresh_ui and fixed the layout). Now both should work
 # in any order.
 func test_tool_use_after_inspection_works() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Step 1: Inspect hallway floor (visual_inspection)
 	var visual_discovered: Array[String] = LocationInvestigationManager.inspect_object(
@@ -573,7 +573,7 @@ func test_tool_use_after_inspection_works() -> void:
 		"Visual inspection should discover evidence")
 
 	# Step 2: Use forensic kit on same object
-	var tool_discovered: Array[String] = LocationInvestigationManager.use_tool_on_object(
+	var _tool_discovered: Array[String] = LocationInvestigationManager.use_tool_on_object(
 		"loc_hallway", "obj_hallway_floor", "forensic_kit"
 	)
 

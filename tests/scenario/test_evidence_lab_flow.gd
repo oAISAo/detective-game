@@ -189,7 +189,7 @@ func test_evidence_lab_status_completed_after_result() -> void:
 
 func test_full_hallway_to_lab_to_interrogation() -> void:
 	# --- Step 1: Investigate hallway ---
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Inspect security system → camera + elevator logs
 	var sec_discovered: Array[String] = LocationInvestigationManager.inspect_object(
@@ -300,7 +300,7 @@ func test_multiple_lab_requests_concurrent() -> void:
 # =========================================================================
 
 func test_hallway_floor_partially_examined_with_unfulfilled_tool() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
@@ -319,7 +319,7 @@ func test_hallway_floor_partially_examined_with_unfulfilled_tool() -> void:
 # =========================================================================
 
 func test_hallway_completion_persists_after_revisit() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -329,7 +329,7 @@ func test_hallway_completion_persists_after_revisit() -> void:
 	assert_eq(before["found"], 4)
 
 	LocationInvestigationManager.leave_location()
-	LocationInvestigationManager.start_investigation("loc_hallway", true)
+	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	var after: Dictionary = LocationInvestigationManager.get_location_completion("loc_hallway")
 	assert_eq(after["found"], 4,
