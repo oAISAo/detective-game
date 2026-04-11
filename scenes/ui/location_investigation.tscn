@@ -46,7 +46,7 @@ theme_type_variation = &"ScreenHeader"
 [node name="CompletionLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "0/0 clues found"
+text = "Evidence: 0 / 0"
 horizontal_alignment = 2
 
 [node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
@@ -144,13 +144,3 @@ text = ""
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
-
-[node name="ToolsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
-layout_mode = 2
-text = "FORENSIC TOOLS"
-theme_type_variation = &"SectionHeader"
-
-[node name="ToolPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 4

@@ -1,6 +1,6 @@
 ## LocationInvestigation.gd
 ## Screen for investigating a specific location.
-## 3-column layout: left (objects), center (scene image), right (detail + tools).
+## 3-column layout: left (objects), center (scene image), right (detail).
 ## Receives location_id via ScreenManager.navigation_data.
 extends Control
 
@@ -10,7 +10,6 @@ extends Control
 @onready var completion_label: Label = %CompletionLabel
 @onready var object_list: VBoxContainer = %ObjectList
 @onready var scene_image: TextureRect = %SceneImage
-@onready var tool_panel: VBoxContainer = %ToolPanel
 @onready var detail_panel: VBoxContainer = %DetailPanel
 @onready var detail_title: Label = %DetailTitle
 @onready var detail_description: RichTextLabel = %DetailDescription
@@ -23,6 +22,8 @@ var _location: LocationData = null
 
 ## The currently selected object ID.
 var _selected_object_id: String = ""
+
+const ACTION_BUTTON_COST_SUFFIX: String = " · 1 Action"
 
 
 func _ready() -> void:
@@ -50,7 +51,6 @@ func _show_error_state(message: String) -> void:
 	description_label.text = message
 	completion_label.text = ""
 	object_list.visible = false
-	tool_panel.visible = false
 	detail_panel.visible = false
 
 
@@ -69,14 +69,13 @@ func _setup_ui() -> void:
 
 	_update_completion()
 	_populate_objects()
-	_populate_tools()
 	_clear_detail()
 
 
 ## Updates the completion indicator.
 func _update_completion() -> void:
 	var completion: Dictionary = LocationInvestigationManager.get_location_completion(_location.id)
-	completion_label.text = "%d/%d clues found" % [completion["found"], completion["total"]]
+	completion_label.text = "Evidence: %d / %d" % [completion["found"], completion["total"]]
 
 
 ## Populates the object list with status indicators, names, clue counts, and status badges.
@@ -100,125 +99,15 @@ func _populate_objects() -> void:
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.pressed.connect(_on_object_selected.bind(obj.id))
 
-		# Build button text: [StateMarker] [Name] [(ClueCount)] [Badge]
+		# Build button text: [StateMarker] [Name]
 		var state_marker: String = _get_state_marker(obj.id)
-		var parts: PackedStringArray = PackedStringArray()
-		parts.append(state_marker)
-		parts.append(obj.name)
-
-		var clue_count: int = _get_discovered_clue_count(obj)
-		if clue_count > 0:
-			parts.append("(%d)" % clue_count)
-
-		var badge_text: String = _get_object_badge(obj)
-		if not badge_text.is_empty():
-			parts.append("· %s" % badge_text)
-
-		btn.text = " ".join(parts)
+		btn.text = "%s %s" % [state_marker, obj.name]
 
 		# Highlight selected object
 		if obj.id == _selected_object_id:
 			btn.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 
 		object_list.add_child(btn)
-
-
-## Returns the badge text for an object based on its derived display status.
-func _get_object_badge(obj: InvestigableObjectData) -> String:
-	var display_status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
-		_location.id, obj.id
-	)
-	match display_status:
-		Enums.ObjectDisplayStatus.NOT_INSPECTED:
-			if not obj.evidence_results.is_empty():
-				return "new"
-		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
-			return "partial"
-		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
-			return "pending"
-		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
-			return "done"
-	return ""
-
-
-## Returns how many clues have been discovered from an object.
-func _get_discovered_clue_count(obj: InvestigableObjectData) -> int:
-	var count: int = 0
-	for ev_id: String in obj.evidence_results:
-		if GameManager.has_evidence(ev_id):
-			count += 1
-		else:
-			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-			if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
-				count += 1
-	return count
-
-
-## Populates the tool panel — shows tools with contextual availability info.
-## Compatible tools get action buttons; incompatible ones show explanatory text.
-func _populate_tools() -> void:
-	for child: Node in tool_panel.get_children():
-		if child is Button or child is HBoxContainer or child is Label:
-			tool_panel.remove_child(child)
-			child.queue_free()
-
-	var tools: Array[String] = ToolManager.get_available_tools()
-
-	if _selected_object_id.is_empty():
-		var hint: Label = Label.new()
-		hint.text = "Select a target to see available tools."
-		hint.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
-		hint.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		tool_panel.add_child(hint)
-		return
-
-	var obj: InvestigableObjectData = _find_object(_selected_object_id)
-
-	for tool_id: String in tools:
-		var tool_name: String = ToolManager.get_tool_name(tool_id)
-		var is_relevant: bool = false
-		var reason: String = ""
-
-		if obj and tool_id in obj.tool_requirements:
-			is_relevant = true
-			# Check if already used
-			var actions: Array = LocationInvestigationManager.get_performed_actions(
-				_location.id, _selected_object_id
-			)
-			if "tool:%s" % tool_id in actions:
-				reason = "Already used"
-				is_relevant = false
-		else:
-			reason = ToolManager.get_tool_unavailable_hint(tool_id)
-
-		if is_relevant:
-			# Usable tool — show action button
-			var btn: Button = Button.new()
-			btn.text = "🔧 %s" % tool_name
-			btn.pressed.connect(_on_tool_selected.bind(tool_id))
-			tool_panel.add_child(btn)
-		else:
-			# Unavailable tool — show name + reason as text
-			var row: HBoxContainer = HBoxContainer.new()
-			row.add_theme_constant_override("separation", 6)
-
-			var name_label: Label = Label.new()
-			name_label.text = "🔧 %s" % tool_name
-			name_label.add_theme_color_override("font_color", UIColors.TEXT_DISABLED)
-			name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-			row.add_child(name_label)
-
-			var reason_label: Label = Label.new()
-			reason_label.text = "— %s" % reason
-			reason_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
-			reason_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-			reason_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			reason_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			row.add_child(reason_label)
-
-			tool_panel.add_child(row)
-
 
 ## Gets the state marker symbol for an object using derived display status.
 func _get_state_marker(object_id: String) -> String:
@@ -282,7 +171,8 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 	var has_examine: bool = "examine_device" in obj.available_actions
 	if has_visual or has_examine:
 		var inspect_btn: Button = Button.new()
-		inspect_btn.text = "🔍 Examine" if has_examine else "👁 Visual Inspection"
+		var base_text: String = "🔍 Examine" if has_examine else "👁 Visual Inspection"
+		inspect_btn.text = "%s%s" % [base_text, ACTION_BUTTON_COST_SUFFIX]
 
 		var already_done: bool = false
 		var actions: Array = LocationInvestigationManager.get_performed_actions(_location.id, obj.id)
@@ -291,25 +181,19 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 		if already_done:
 			inspect_btn.text += " (done)"
 			inspect_btn.disabled = true
+		elif not GameManager.has_actions_remaining():
+			inspect_btn.disabled = true
+			inspect_btn.tooltip_text = "No actions remaining today. End the day to continue."
 		inspect_btn.pressed.connect(_on_inspect_pressed.bind(obj.id))
 		detail_actions.add_child(inspect_btn)
 
 
 ## Handles visual inspection action.
 func _on_inspect_pressed(object_id: String) -> void:
+	var actions_before: int = GameManager.actions_remaining
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(_location.id, object_id)
-	_show_discovery_feedback(discovered)
-	_refresh_ui()
-
-
-## Handles tool use on selected object.
-func _on_tool_selected(tool_id: String) -> void:
-	if _selected_object_id.is_empty():
-		return
-
-	var discovered: Array[String] = LocationInvestigationManager.use_tool_on_object(
-		_location.id, _selected_object_id, tool_id
-	)
+	if discovered.is_empty() and actions_before == GameManager.actions_remaining and not GameManager.has_actions_remaining():
+		NotificationManager.notify("No Actions", LocationInvestigationManager.INVESTIGATION_ERROR_MESSAGE_NO_ACTIONS)
 	_show_discovery_feedback(discovered)
 	_refresh_ui()
 
@@ -329,7 +213,6 @@ func _show_discovery_feedback(evidence_ids: Array[String]) -> void:
 func _refresh_ui() -> void:
 	_update_completion()
 	_populate_objects()
-	_populate_tools()
 	if not _selected_object_id.is_empty():
 		_show_object_detail(_selected_object_id)
 
@@ -440,16 +323,6 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 			hint_color = UIColors.STATUS_PROCESSING
 		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
 			hint_color = UIColors.ACCENT_PROCESSED
-
-	# Also show tool hint if tools are applicable and not yet done
-	if not obj.tool_requirements.is_empty():
-		var base_state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
-			_location.id, obj.id
-		)
-		if base_state == Enums.InvestigationState.PARTIALLY_EXAMINED:
-			if hint_text.is_empty() or not hint_text.contains("lab"):
-				hint_text = "Forensic tools may reveal additional evidence."
-				hint_color = UIColors.SECONDARY
 
 	if not hint_text.is_empty():
 		var hint_label: Label = Label.new()

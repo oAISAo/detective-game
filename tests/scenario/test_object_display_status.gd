@@ -62,7 +62,11 @@ func test_hint_prompts_lab_submission_after_raw_discovery() -> void:
 	var hint: String = LocationInvestigationManager.get_object_status_hint(
 		"loc_hallway", "obj_hallway_floor"
 	)
-	assert_true(hint.contains("lab") or hint.contains("Submit"),
+	var normalized_hint: String = hint.to_lower()
+	assert_true(
+		normalized_hint.contains("lab")
+		or normalized_hint.contains("submit")
+		or normalized_hint.contains("evidence tab"),
 		"Hint should prompt lab submission. Got: %s" % hint)
 
 

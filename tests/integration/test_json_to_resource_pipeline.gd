@@ -113,7 +113,7 @@ var _full_case_data: Dictionary = {
 			"id": "act_visit_apartment",
 			"name": "Visit Apartment",
 			"type": "VISIT_LOCATION",
-			"time_cost": 1,
+			"time_cost": 0,
 			"target": "loc_apartment",
 			"requirements": [],
 			"results": ["evidence:ev_knife"],
@@ -280,7 +280,7 @@ func test_pipeline_actions_typed() -> void:
 	assert_not_null(action)
 	assert_true(action is ActionData)
 	assert_eq(action.type, Enums.ActionType.VISIT_LOCATION)
-	assert_eq(action.time_cost, 1)
+	assert_eq(action.time_cost, 0)
 
 
 func test_pipeline_insights_typed() -> void:

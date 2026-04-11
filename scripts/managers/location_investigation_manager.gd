@@ -10,11 +10,10 @@ extends BaseSubsystem
 ## Structured error codes for investigation start attempts.
 const START_ERROR_NONE: String = ""
 const START_ERROR_UNKNOWN_LOCATION: String = "unknown_location"
-const START_ERROR_NO_ACTIONS: String = "no_actions"
 
 ## User-facing fallback messages for investigation start failures.
 const START_ERROR_MESSAGE_UNKNOWN_LOCATION: String = "This location is unavailable right now."
-const START_ERROR_MESSAGE_NO_ACTIONS: String = "You have no actions remaining today. Use 'End Day' to proceed."
+const INVESTIGATION_ERROR_MESSAGE_NO_ACTIONS: String = "You have no actions remaining today. Use 'End Day' to proceed."
 
 ## Location-level status values for map-facing UI and logs.
 const LOCATION_STATUS_NEW: String = "new"
@@ -77,7 +76,7 @@ func reset() -> void:
 # --- Location Visit --- #
 
 ## Starts investigation at a location.
-## Every visit costs 1 action.
+## Location entry is free; investigation actions spend slots on the detail screen.
 ## Returns true if investigation started successfully.
 func start_investigation(location_id: String) -> bool:
 	var result: Dictionary = start_investigation_with_result(location_id)
@@ -107,16 +106,6 @@ func start_investigation_with_result(location_id: String) -> Dictionary:
 
 	var is_first_visit: bool = not GameManager.has_visited_location(location_id)
 	var action_cost: int = _get_visit_action_cost()
-	if action_cost > 0 and not GameManager.has_actions_remaining():
-		push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
-		return _record_start_result(_build_start_result(
-			false,
-			START_ERROR_NO_ACTIONS,
-			START_ERROR_MESSAGE_NO_ACTIONS,
-			location_id,
-			is_first_visit,
-			action_cost
-		))
 
 	_apply_visit_cost(location_id, is_first_visit, action_cost)
 
@@ -169,6 +158,19 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 	if "visual_inspection" in _performed_actions.get(action_key, []):
 		return []
 
+	var inspectable_actions: Array[String] = ["visual_inspection", "examine_device"]
+	var has_inspection: bool = false
+	for action: String in object_data.available_actions:
+		if action in inspectable_actions:
+			has_inspection = true
+			break
+
+	if not has_inspection:
+		return []
+
+	if not _consume_investigation_action("inspection"):
+		return []
+
 	# Record the action — also record any examine_device action so the state
 	# machine counts it as completed.
 	if action_key not in _performed_actions:
@@ -179,24 +181,16 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 
 	# Discover evidence via inspection (visual_inspection or examine_device)
 	var discovered: Array[String] = []
-	var inspectable_actions: Array[String] = ["visual_inspection", "examine_device"]
-	var has_inspection: bool = false
-	for action: String in object_data.available_actions:
-		if action in inspectable_actions:
-			has_inspection = true
-			break
-
-	if has_inspection:
-		for ev_id: String in object_data.evidence_results:
-			# Only discover evidence matching visual/comparison methods
-			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-			if ev and ev.discovery_method not in [
-				Enums.DiscoveryMethod.VISUAL, Enums.DiscoveryMethod.COMPARISON
-			]:
-				continue
-			if GameManager.discover_evidence(ev_id):
-				discovered.append(ev_id)
-				evidence_found.emit(ev_id, object_id, "visual_inspection")
+	for ev_id: String in object_data.evidence_results:
+		# Only discover evidence matching visual/comparison methods
+		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+		if ev and ev.discovery_method not in [
+			Enums.DiscoveryMethod.VISUAL, Enums.DiscoveryMethod.COMPARISON
+		]:
+			continue
+		if GameManager.discover_evidence(ev_id):
+			discovered.append(ev_id)
+			evidence_found.emit(ev_id, object_id, "visual_inspection")
 
 	# Update investigation state
 	_update_object_state(location_id, object_id, object_data)
@@ -223,6 +217,9 @@ func use_tool_on_object(location_id: String, object_id: String, tool_id: String)
 	var error: String = tool_mgr.validate_tool_use(tool_id, object_data)
 	if not error.is_empty():
 		push_warning("[LocationInvestigationManager] %s" % error)
+		return []
+
+	if not _consume_investigation_action("tool use"):
 		return []
 
 	# Record the action
@@ -316,8 +313,8 @@ func get_object_status_hint(location_id: String, object_id: String) -> String:
 					if lab_req and GameManager.has_evidence(ev_id):
 						var ev: EvidenceData = CaseManager.get_evidence(ev_id)
 						if ev and ev.lab_status == Enums.LabStatus.NOT_SUBMITTED:
-							return "Evidence recovered. Submit to the forensic lab for further analysis."
-			return "Further examination may reveal more evidence."
+							return "Evidence recovered. Review it in the Evidence tab and submit it for forensic analysis."
+			return "Review related items in the Evidence tab for additional analysis."
 		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
 			return "Forensic analysis is in progress. Results will arrive in a future briefing."
 		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
@@ -551,7 +548,7 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 
 ## Calculates the action cost for a visit based on current visit context.
 func _get_visit_action_cost() -> int:
-	return 1
+	return 0
 
 
 ## Applies visit-side effects for action spending and first-visit markers.
@@ -560,6 +557,14 @@ func _apply_visit_cost(location_id: String, is_first_visit: bool, action_cost: i
 		GameManager.use_action()
 	if is_first_visit:
 		GameManager.visit_location(location_id)
+
+
+## Spends one investigation action slot. Returns true when spending succeeded.
+func _consume_investigation_action(action_name: String) -> bool:
+	if not GameManager.has_actions_remaining():
+		push_warning("[LocationInvestigationManager] No actions remaining for %s." % action_name)
+		return false
+	return GameManager.use_action()
 
 
 ## Builds a structured start result dictionary.

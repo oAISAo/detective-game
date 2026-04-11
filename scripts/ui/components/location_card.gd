@@ -1,6 +1,6 @@
 ## LocationCard.gd
 ## Cinematic photo-card for investigation locations.
-## Image with status overlay, title/description footer, evidence count, and visit button.
+## Image with status overlay, title/description footer, and evidence count.
 class_name LocationCard
 extends Panel
 
@@ -52,34 +52,27 @@ const MEDIA_MASK_SHADER: Shader = preload("res://assets/shaders/rounded_media_ma
 @onready var _image_rect: TextureRect = %ImageRect
 @onready var _image_placeholder: PanelContainer = %ImagePlaceholder
 @onready var _placeholder_initial: Label = %PlaceholderInitial
-@onready var _image_area: Control = $"VBox/ImageArea"
-@onready var _overlay_margin: MarginContainer = $"VBox/ImageArea/MediaFrame/OverlayMargin"
-@onready var _badge_row: HBoxContainer = $"VBox/ImageArea/MediaFrame/OverlayMargin/BadgeRow"
 @onready var _name_label: Label = %NameLabel
 @onready var _description_label: Label = %DescriptionLabel
 @onready var _evidence_prefix_label: Label = %EvidencePrefixLabel
 @onready var _evidence_label: Label = %EvidenceLabel
 @onready var _status_badge: PanelContainer = %StatusBadge
 @onready var _status_label: Label = %StatusLabel
-@onready var _inspect_button: Button = %InspectButton
 @onready var _footer: VBoxContainer = %Footer
 
 
 func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	mouse_filter = Control.MOUSE_FILTER_PASS
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_apply_card_style()
 	_apply_media_frame_style()
 	_apply_image_mask()
 	_apply_footer_style()
-	_apply_inspect_button_style()
 	_apply_placeholder_style()
 
-	# Canonical activation path: inspect button press only.
-	_inspect_button.pressed.connect(_on_pressed)
-	_inspect_button.focus_mode = Control.FOCUS_ALL
-	_inspect_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	# Canonical activation path: full-card mouse click.
+	gui_input.connect(_on_card_gui_input)
 	_configure_hover_event_routing()
 
 	mouse_entered.connect(_on_mouse_entered)
@@ -94,20 +87,10 @@ func _ready() -> void:
 
 ## Ensures all interactive regions participate in one card-level hover state.
 func _configure_hover_event_routing() -> void:
-	# Non-interactive visual controls should not consume hover hit-testing.
-	_image_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_media_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_image_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_image_placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_placeholder_initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_overlay_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_status_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# The inspect button is interactive, so bridge its hover lifecycle to the card.
-	_inspect_button.mouse_entered.connect(_on_hover_source_entered)
-	_inspect_button.mouse_exited.connect(_on_hover_source_exited)
+	# Child controls are display-only; route hover and click handling through the card.
+	var content_root: Node = get_node_or_null("VBox")
+	if content_root:
+		_set_control_tree_mouse_filter(content_root)
 
 
 ## Populates the card with location data. Call after adding to the scene tree.
@@ -122,7 +105,6 @@ func setup(location: LocationData) -> void:
 		return
 
 	_location_id = normalized_location_id
-	_inspect_button.disabled = false
 
 	var display_name: String = location.name.strip_edges()
 	if display_name.is_empty():
@@ -212,7 +194,6 @@ func _show_image_placeholder(location_name: String) -> void:
 func _apply_invalid_setup_state(reason: String) -> void:
 	push_error("[LocationCard] setup rejected: %s" % reason)
 	_location_id = ""
-	_inspect_button.disabled = true
 
 	_name_label.text = "UNKNOWN LOCATION"
 	_name_label.uppercase = true
@@ -307,35 +288,6 @@ func _apply_footer_style() -> void:
 	_footer.add_theme_constant_override("separation", 6)
 
 
-func _apply_inspect_button_style() -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = UIColors.LOCATION_CARD_BUTTON_BG
-	normal.border_color = UIColors.LOCATION_CARD_BUTTON_BORDER
-	normal.set_border_width_all(0)
-	normal.corner_radius_top_left = 20
-	normal.corner_radius_top_right = 20
-	normal.corner_radius_bottom_left = 20
-	normal.corner_radius_bottom_right = 20
-	normal.content_margin_left = 12
-	normal.content_margin_right = 12
-	normal.content_margin_top = 10
-	normal.content_margin_bottom = 10
-	_inspect_button.add_theme_stylebox_override("normal", normal)
-
-	var hover := normal.duplicate()
-	hover.bg_color = UIColors.LOCATION_CARD_BUTTON_BG_HOVER
-	_inspect_button.add_theme_stylebox_override("hover", hover)
-
-	var pressed := normal.duplicate()
-	pressed.bg_color = UIColors.LOCATION_CARD_BUTTON_BG_PRESSED
-	_inspect_button.add_theme_stylebox_override("pressed", pressed)
-
-	_inspect_button.add_theme_color_override("font_color", UIColors.LOCATION_CARD_BUTTON_TEXT)
-	_inspect_button.add_theme_color_override("font_hover_color", UIColors.LOCATION_CARD_BUTTON_TEXT_HOVER)
-	_inspect_button.add_theme_color_override("font_pressed_color", UIColors.LOCATION_CARD_BUTTON_TEXT_PRESSED)
-	_inspect_button.add_theme_font_size_override("font_size", FONT_SIZE_TITLE)
-
-
 func _apply_placeholder_style() -> void:
 	var ph_style := StyleBoxFlat.new()
 	ph_style.bg_color = UIColors.LOCATION_CARD_PLACEHOLDER_BG
@@ -370,12 +322,22 @@ func _apply_badge_style(status_color: Color) -> void:
 # --- Mouse / Hover ---
 
 
+func _on_card_gui_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+	if mouse_event.button_index != MOUSE_BUTTON_LEFT or not mouse_event.pressed:
+		return
+	_on_pressed()
+	accept_event()
+
+
 func _on_mouse_entered() -> void:
 	_on_hover_source_entered()
 
 
 func _on_mouse_exited() -> void:
-	_on_hover_source_exited()
+	_set_hovered_state(false)
 
 
 func _on_hover_source_entered() -> void:
@@ -441,3 +403,10 @@ func _on_pressed() -> void:
 	if _location_id.is_empty():
 		return
 	card_pressed.emit(_location_id)
+
+
+func _set_control_tree_mouse_filter(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child: Node in node.get_children():
+		_set_control_tree_mouse_filter(child)

@@ -69,7 +69,7 @@ var _test_case_data: Dictionary = {
 			"id": "act_visit_scene",
 			"name": "Visit Crime Scene",
 			"type": "VISIT_LOCATION",
-			"time_cost": 1,
+			"time_cost": 0,
 			"target": "loc_scene",
 			"requirements": [],
 			"results": ["location:loc_scene"],
@@ -105,7 +105,7 @@ var _test_case_data: Dictionary = {
 			"id": "act_requires_action",
 			"name": "Follow Up",
 			"type": "VISIT_LOCATION",
-			"time_cost": 1,
+			"time_cost": 0,
 			"target": "loc_office",
 			"requirements": ["action_completed:act_visit_scene"],
 			"results": [],
@@ -114,7 +114,7 @@ var _test_case_data: Dictionary = {
 			"id": "act_requires_day",
 			"name": "Day 2 Only",
 			"type": "VISIT_LOCATION",
-			"time_cost": 1,
+			"time_cost": 0,
 			"target": "loc_office",
 			"requirements": ["day:2"],
 			"results": [],
@@ -243,19 +243,19 @@ func test_available_action_with_warrant_met() -> void:
 
 func test_unavailable_during_morning() -> void:
 	GameManager.current_phase = Enums.DayPhase.MORNING
-	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
+	var reasons: Array[String] = ActionSystem.check_availability("act_multi_result")
 	assert_true(reasons.size() > 0, "Major action should be unavailable during MORNING")
 
 
 func test_unavailable_during_night() -> void:
 	GameManager.current_phase = Enums.DayPhase.NIGHT
-	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
+	var reasons: Array[String] = ActionSystem.check_availability("act_multi_result")
 	assert_true(reasons.size() > 0, "Major action should be unavailable during NIGHT")
 
 
 func test_available_during_daytime() -> void:
 	GameManager.current_phase = Enums.DayPhase.DAYTIME
-	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
+	var reasons: Array[String] = ActionSystem.check_availability("act_multi_result")
 	assert_eq(reasons.size(), 0, "Major action should be available during DAYTIME")
 
 
@@ -267,7 +267,7 @@ func test_passive_action_no_slot_check() -> void:
 
 func test_unavailable_when_no_actions_remaining() -> void:
 	GameManager.actions_remaining = 0
-	var reasons: Array[String] = ActionSystem.check_availability("act_visit_scene")
+	var reasons: Array[String] = ActionSystem.check_availability("act_multi_result")
 	assert_true(reasons.size() > 0, "Should fail when no action slots remain")
 
 
@@ -326,14 +326,20 @@ func test_get_available_actions_filters_correctly() -> void:
 
 func test_get_passive_actions() -> void:
 	var passive: Array[ActionData] = ActionSystem.get_passive_actions()
-	assert_eq(passive.size(), 1, "Should have 1 passive action")
-	assert_eq(passive[0].id, "act_passive_review", "Should be the review action")
+	assert_eq(passive.size(), 4, "Fixture should expose four zero-cost actions")
+	var passive_ids: Array[String] = []
+	for action: ActionData in passive:
+		passive_ids.append(action.id)
+	assert_has(passive_ids, "act_passive_review")
+	assert_has(passive_ids, "act_visit_scene")
+	assert_has(passive_ids, "act_requires_action")
+	assert_has(passive_ids, "act_requires_day")
 
 
 # --- Action Execution --- #
 
 func test_execute_major_action_succeeds() -> void:
-	var result: bool = ActionSystem.execute_action("act_visit_scene")
+	var result: bool = ActionSystem.execute_action("act_multi_result")
 	assert_true(result, "Should execute successfully")
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Should consume action slot")
 
@@ -364,14 +370,14 @@ func test_execute_passive_action_no_slot_cost() -> void:
 
 
 func test_execute_major_action_already_completed() -> void:
-	ActionSystem.execute_action("act_visit_scene")
-	var result: bool = ActionSystem.execute_action("act_visit_scene")
+	ActionSystem.execute_action("act_multi_result")
+	var result: bool = ActionSystem.execute_action("act_multi_result")
 	assert_false(result, "Should not allow re-executing major action")
 
 
 func test_execute_action_does_not_change_phase() -> void:
 	GameManager.current_phase = Enums.DayPhase.DAYTIME
-	ActionSystem.execute_action("act_visit_scene")
+	ActionSystem.execute_action("act_multi_result")
 	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME, "Action should not change phase")
 
 
