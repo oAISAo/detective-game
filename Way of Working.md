@@ -253,6 +253,22 @@ test_regression_day_advance_skips_mandatory_check.gd
 
 UI elements are tested manually because Godot's UI testing is limited. Logic behind UI is unit tested.
 
+### 2.5 — UI Theme Token Workflow
+
+To keep UI colors and font sizes unified and maintainable:
+
+- `scripts/ui/ui_colors.gd` and `scripts/ui/ui_fonts.gd` are the source of truth.
+- `resources/themes/main_theme.tres` remains a serialized Godot resource with concrete values.
+- Never write `UIColors.*` or `UIFonts.*` references directly in `.tres` files.
+
+After updating tokens, sync the theme with:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path "/Users/aisa/DetectiveGame/detective-game" -s tools/run_theme_token_sync.gd
+```
+
+Then run the related unit test(s) before integrating changes.
+
 ---
 
 ## 3. Git Workflow

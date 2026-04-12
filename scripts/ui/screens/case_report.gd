@@ -25,6 +25,7 @@ extends Control
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: ScreenManager.navigate_back())
 	submit_button.pressed.connect(_on_submit_pressed)
 	_refresh()

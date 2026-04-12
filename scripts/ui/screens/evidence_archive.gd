@@ -28,6 +28,7 @@ var _on_evidence_unpinned_cb: Callable
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	tab_evidence_button.pressed.connect(_on_tab_evidence)
 	tab_testimony_button.pressed.connect(_on_tab_testimony)
@@ -94,7 +95,7 @@ func _populate_evidence_list() -> void:
 	if items.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No evidence found."
-		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		evidence_grid.add_child(empty_label)
 		return
 
@@ -164,7 +165,7 @@ func _populate_testimony_list() -> void:
 	if testimony.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No testimony recorded yet."
-		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		testimony_list.add_child(empty_label)
 		return
 
@@ -179,7 +180,7 @@ func _populate_testimony_list() -> void:
 
 		var header_label: Label = Label.new()
 		header_label.text = "%s — Day %d" % [person_name, stmt.day_given]
-		header_label.add_theme_font_size_override("font_size", 16)
+		header_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 		vbox.add_child(header_label)
 
 		var text_label: RichTextLabel = RichTextLabel.new()
@@ -192,7 +193,7 @@ func _populate_testimony_list() -> void:
 		if EvidenceManager.has_contradiction(stmt.id):
 			var warning_label: Label = Label.new()
 			warning_label.text = "Possible contradiction"
-			warning_label.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+			warning_label.add_theme_color_override("font_color", UIColors.AMBER)
 			vbox.add_child(warning_label)
 
 		testimony_list.add_child(panel)

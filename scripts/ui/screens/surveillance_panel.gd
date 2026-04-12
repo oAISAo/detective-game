@@ -12,6 +12,7 @@ extends Control
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: ScreenManager.navigate_back())
 	_refresh()
 
@@ -69,7 +70,7 @@ func _add_operation_card(op: Dictionary, is_active: bool) -> void:
 	var header := Label.new()
 	var type_name: String = _get_type_name(op.get("type", 0))
 	header.text = "%s — %s" % [type_name, op.get("target_person", "?")]
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	vbox.add_child(header)
 
 	# Status line
@@ -81,10 +82,10 @@ func _add_operation_card(op: Dictionary, is_active: bool) -> void:
 		status.text = "Active until Day %d — %d event(s) configured" % [
 			expires, op.get("result_events", []).size()
 		]
-		status.add_theme_color_override("font_color", UIColors.STATUS_PROCESSING)
+		status.add_theme_color_override("font_color", UIColors.BLUE)
 	else:
 		status.text = "Status: %s" % op.get("status", "unknown")
-		status.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+		status.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	status.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(status)
 

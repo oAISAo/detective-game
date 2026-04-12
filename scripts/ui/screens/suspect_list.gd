@@ -12,6 +12,7 @@ const SuspectCardScene: PackedScene = preload("res://scenes/ui/components/suspec
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	_populate_suspects()
 
@@ -26,7 +27,7 @@ func _populate_suspects() -> void:
 	if unlocked_ids.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No suspects available for questioning yet."
-		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		suspect_grid.add_child(empty_label)
 		return
 

@@ -26,6 +26,7 @@ var _selected_case: String = ""
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: back_requested.emit())
 	start_case_button.pressed.connect(_on_start_case_pressed)
 	start_case_button.disabled = true
@@ -101,6 +102,7 @@ func _build_case_list() -> void:
 		btn.text = case_info.get("title", "Unknown")
 		btn.custom_minimum_size = Vector2(0, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UIHelper.apply_list_button_style(btn, false, HORIZONTAL_ALIGNMENT_LEFT)
 		var folder: String = case_info.get("folder", "")
 		btn.set_meta("case_folder", folder)
 		btn.pressed.connect(func() -> void: _on_case_button_pressed(folder))
@@ -131,7 +133,8 @@ func _select_case(folder: String) -> void:
 	# Highlight the selected button
 	for child: Node in case_list_container.get_children():
 		if child is Button:
-			child.disabled = (child.get_meta("case_folder", "") == folder)
+			var is_selected: bool = child.get_meta("case_folder", "") == folder
+			UIHelper.set_list_button_selected(child as Button, is_selected)
 
 
 func _on_start_case_pressed() -> void:

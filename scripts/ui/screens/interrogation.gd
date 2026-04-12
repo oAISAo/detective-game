@@ -8,23 +8,10 @@ extends Control
 
 ## Noir accent color for focused elements.
 const FOCUS_ACCENT_COLOR := Color(1.0, 0.78, 0.35, 1.0)
-## Focused button background.
-const FOCUS_BG_COLOR := Color(0.28, 0.24, 0.14, 0.95)
-## Focused button border.
-const FOCUS_BORDER_COLOR := Color(1.0, 0.78, 0.35, 1.0)
-## Selected evidence highlight.
-const EVIDENCE_SELECTED_BG := Color(0.18, 0.22, 0.28, 0.95)
-const EVIDENCE_SELECTED_BORDER := Color(0.45, 0.7, 1.0, 1.0)
-const EVIDENCE_SELECTED_TEXT := Color(0.55, 0.8, 1.0, 1.0)
-## Newly-unlocked topic highlight.
-const NEW_TOPIC_BG_COLOR := Color(0.18, 0.25, 0.16, 0.95)
-const NEW_TOPIC_BORDER_COLOR := Color(0.45, 0.85, 0.35, 1.0)
+## Newly-unlocked topic text cue.
 const NEW_TOPIC_TEXT_COLOR := Color(0.55, 0.9, 0.45, 1.0)
-## Contradicted statement style.
-const CONTRADICTED_BG_COLOR := Color(0.28, 0.14, 0.1, 0.95)
-const CONTRADICTED_BORDER_COLOR := Color(0.9, 0.35, 0.25, 0.8)
-## Inline feedback color appended to dialogue.
-const INLINE_INFO_COLOR := Color(0.85, 0.65, 0.3, 1.0)
+## Contradicted statement text cue.
+const CONTRADICTED_TEXT_COLOR := Color(0.95, 0.62, 0.48, 1.0)
 
 
 @onready var suspect_name_label: Label = %SuspectNameLabel
@@ -47,6 +34,7 @@ var _newly_unlocked_topic_ids: Array[String] = []
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	present_button.pressed.connect(_on_present_pressed)
 	apply_pressure_button.pressed.connect(_on_apply_pressure_pressed)
@@ -171,7 +159,7 @@ func _update_focus_display() -> void:
 	var focus: Dictionary = InterrogationManager.get_current_focus()
 	if focus.is_empty():
 		current_focus_label.text = "No target selected \u2014 select a statement or topic to challenge"
-		current_focus_label.add_theme_color_override("font_color", UIColors.MUTED)
+		current_focus_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		return
 
 	current_focus_label.add_theme_color_override("font_color", FOCUS_ACCENT_COLOR)
@@ -185,7 +173,7 @@ func _update_focus_display() -> void:
 		current_focus_label.text = "Current Target Topic: %s" % (topic.topic_name if topic else focus_id)
 	else:
 		current_focus_label.text = "No target selected \u2014 select a statement or topic to challenge"
-		current_focus_label.add_theme_color_override("font_color", UIColors.MUTED)
+		current_focus_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 
 
 func _show_dialogue(text: String) -> void:
@@ -199,47 +187,16 @@ func _append_dialogue(text: String) -> void:
 
 ## Applies a strong visual style to a focused button (accent border + warm background).
 func _apply_focus_style(btn: Button) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = FOCUS_BG_COLOR
-	style.border_color = FOCUS_BORDER_COLOR
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(4)
-	style.set_content_margin_all(8)
-	btn.add_theme_stylebox_override("normal", style)
-	btn.add_theme_stylebox_override("pressed", style)
-	btn.add_theme_stylebox_override("hover", style)
-	btn.add_theme_color_override("font_color", FOCUS_ACCENT_COLOR)
-	btn.add_theme_color_override("font_pressed_color", FOCUS_ACCENT_COLOR)
-	btn.add_theme_color_override("font_hover_color", FOCUS_ACCENT_COLOR)
+	UIHelper.set_list_button_selected(btn, true)
 
 
 ## Applies a selected style to evidence buttons.
 func _apply_evidence_selected_style(btn: Button) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = EVIDENCE_SELECTED_BG
-	style.border_color = EVIDENCE_SELECTED_BORDER
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(4)
-	style.set_content_margin_all(8)
-	btn.add_theme_stylebox_override("normal", style)
-	btn.add_theme_stylebox_override("pressed", style)
-	btn.add_theme_stylebox_override("hover", style)
-	btn.add_theme_color_override("font_color", EVIDENCE_SELECTED_TEXT)
-	btn.add_theme_color_override("font_pressed_color", EVIDENCE_SELECTED_TEXT)
-	btn.add_theme_color_override("font_hover_color", EVIDENCE_SELECTED_TEXT)
+	UIHelper.set_list_button_selected(btn, true)
 
 
 ## Applies a highlight style to a newly unlocked topic button.
 func _apply_new_topic_style(btn: Button) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = NEW_TOPIC_BG_COLOR
-	style.border_color = NEW_TOPIC_BORDER_COLOR
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(4)
-	style.set_content_margin_all(8)
-	btn.add_theme_stylebox_override("normal", style)
-	btn.add_theme_stylebox_override("pressed", style)
-	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_color_override("font_color", NEW_TOPIC_TEXT_COLOR)
 	btn.add_theme_color_override("font_pressed_color", NEW_TOPIC_TEXT_COLOR)
 	btn.add_theme_color_override("font_hover_color", NEW_TOPIC_TEXT_COLOR)
@@ -247,13 +204,9 @@ func _apply_new_topic_style(btn: Button) -> void:
 
 ## Applies a subtle warning style to a contradicted statement button.
 func _apply_contradicted_style(btn: Button) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = CONTRADICTED_BG_COLOR
-	style.border_color = CONTRADICTED_BORDER_COLOR
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(4)
-	style.set_content_margin_all(8)
-	btn.add_theme_stylebox_override("normal", style)
+	btn.add_theme_color_override("font_color", CONTRADICTED_TEXT_COLOR)
+	btn.add_theme_color_override("font_pressed_color", CONTRADICTED_TEXT_COLOR)
+	btn.add_theme_color_override("font_hover_color", CONTRADICTED_TEXT_COLOR)
 
 
 # =========================================================================
@@ -269,7 +222,7 @@ func _populate_topics() -> void:
 	if topics.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "No topics available."
-		empty.add_theme_color_override("font_color", UIColors.MUTED)
+		empty.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		topic_list.add_child(empty)
 		return
 
@@ -287,8 +240,7 @@ func _populate_topics() -> void:
 		elif is_new:
 			prefix = "\u2605 "
 		btn.text = prefix + topic.topic_name
-		btn.toggle_mode = true
-		btn.button_pressed = is_focused
+		UIHelper.apply_list_button_style(btn, is_focused, HORIZONTAL_ALIGNMENT_LEFT)
 		if is_focused:
 			_apply_focus_style(btn)
 		elif is_new:
@@ -306,7 +258,7 @@ func _populate_evidence() -> void:
 	if discovered.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "No evidence collected."
-		empty.add_theme_color_override("font_color", UIColors.MUTED)
+		empty.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		evidence_list.add_child(empty)
 		return
 
@@ -316,8 +268,7 @@ func _populate_evidence() -> void:
 		var btn: Button = Button.new()
 		var prefix: String = "\u25c6 " if is_selected else ""
 		btn.text = prefix + (ev.name if ev else ev_id)
-		btn.toggle_mode = true
-		btn.button_pressed = is_selected
+		UIHelper.apply_list_button_style(btn, is_selected, HORIZONTAL_ALIGNMENT_LEFT)
 		btn.set_meta("evidence_id", ev_id)
 		if is_selected:
 			_apply_evidence_selected_style(btn)
@@ -341,7 +292,7 @@ func _populate_statements() -> void:
 	if session_stmts.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "No statements recorded yet."
-		empty.add_theme_color_override("font_color", UIColors.MUTED)
+		empty.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		statement_list.add_child(empty)
 		return
 
@@ -357,8 +308,7 @@ func _populate_statements() -> void:
 		var is_contradicted: bool = stmt_id in contradicted_ids
 
 		var btn: Button = Button.new()
-		btn.toggle_mode = true
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		UIHelper.apply_list_button_style(btn, is_focused, HORIZONTAL_ALIGNMENT_LEFT)
 
 		var prefix: String = ""
 		if is_focused:
@@ -367,7 +317,6 @@ func _populate_statements() -> void:
 			prefix = "\u26a0 CONTRADICTED: "
 
 		btn.text = prefix + stmt.text
-		btn.button_pressed = is_focused
 		if is_focused:
 			_apply_focus_style(btn)
 		elif is_contradicted:

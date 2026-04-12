@@ -34,7 +34,7 @@ theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_type_variation = &"TitleScreenHeader"
 text = "Detective Investigation"
 horizontal_alignment = 1
 
@@ -53,7 +53,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(320, 50)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"TitleMenuButton"
 text = "New Game"
 
 [node name="ContinueButton" type="Button" parent="CenterContainer/VBoxContainer"]
@@ -61,7 +61,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(320, 50)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"TitleMenuButton"
 text = "Continue"
 
 [node name="SaveSlotsContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
@@ -76,7 +76,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(320, 50)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"TitleMenuButton"
 text = "Settings"
 
 [node name="DebugGameButton" type="Button" parent="CenterContainer/VBoxContainer"]
@@ -84,8 +84,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(320, 50)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(0.7, 0.5, 0.3, 1)
+theme_type_variation = &"TitleDebugButton"
 text = "Debug Game"
 
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
@@ -93,7 +92,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(320, 50)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"TitleMenuButton"
 text = "Quit"
 
 [node name="VersionLabel" type="Label" parent="."]

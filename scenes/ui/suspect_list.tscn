@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Suspects"
 horizontal_alignment = 1
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"PanelHeader"
 
 [node name="SuspectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2

@@ -13,6 +13,7 @@ extends Control
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: ScreenManager.navigate_back())
 	_refresh()
 
@@ -65,18 +66,18 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 	var header := Label.new()
 	var type_name: String = _get_warrant_type_name(w.get("type", 0))
 	header.text = "%s — Target: %s" % [type_name, w.get("target", "?")]
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	vbox.add_child(header)
 
 	# Status and details
 	var status := Label.new()
 	if is_approved:
 		status.text = "Approved (Day %d)" % w.get("day_requested", 0)
-		status.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
+		status.add_theme_color_override("font_color", UIColors.GREEN)
 	else:
 		var feedback: String = w.get("feedback", "Insufficient evidence.")
 		status.text = "Denied — %s" % feedback
-		status.add_theme_color_override("font_color", UIColors.ACCENT_CRITICAL)
+		status.add_theme_color_override("font_color", UIColors.RED)
 	status.theme_type_variation = &"MetadataLabel"
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(status)
@@ -89,8 +90,8 @@ func _add_warrant_card(w: Dictionary, is_approved: bool) -> void:
 		for cat: int in cats:
 			cat_names.append(UIHelper.get_legal_category_label(cat))
 		cat_label.text = "Categories: %s" % ", ".join(cat_names)
-		cat_label.add_theme_font_size_override("font_size", 13)
-		cat_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+		cat_label.add_theme_font_size_override("font_size", UIFonts.SIZE_DETAIL)
+		cat_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		vbox.add_child(cat_label)
 
 	warrant_list.add_child(card)
@@ -104,7 +105,7 @@ func _update_arrest_section() -> void:
 	var header := Label.new()
 	header.text = "ARRESTED SUSPECTS"
 	header.theme_type_variation = &"SectionHeader"
-	header.add_theme_color_override("font_color", UIColors.ACCENT_CRITICAL)
+	header.add_theme_color_override("font_color", UIColors.RED)
 	arrest_section.add_child(header)
 
 	for person_id: String in arrested:
@@ -246,8 +247,8 @@ func _submit_warrant_request(
 	var feedback: String = result.get("feedback", "")
 	if approved:
 		NotificationManager.notify_warrant("Warrant approved! %s" % feedback)
-		UIHelper.confirmation_flash("Warrant Approved", self, UIColors.ACCENT_PROCESSED)
+		UIHelper.confirmation_flash("Warrant Approved", self, UIColors.GREEN)
 	else:
 		NotificationManager.notify_warrant("Warrant denied. %s" % feedback)
-		UIHelper.confirmation_flash("Warrant Denied", self, UIColors.ACCENT_CRITICAL)
+		UIHelper.confirmation_flash("Warrant Denied", self, UIColors.RED)
 	_refresh()

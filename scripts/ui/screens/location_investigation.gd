@@ -6,13 +6,12 @@ extends Control
 
 
 @onready var title_label: Label = %TitleLabel
-@onready var description_label: Label = %DescriptionLabel
 @onready var completion_label: Label = %CompletionLabel
 @onready var object_list: VBoxContainer = %ObjectList
 @onready var scene_image: TextureRect = %SceneImage
 @onready var detail_panel: VBoxContainer = %DetailPanel
 @onready var detail_title: Label = %DetailTitle
-@onready var detail_description: RichTextLabel = %DetailDescription
+@onready var detail_description: Label = %DetailDescription
 @onready var detail_state: Label = %DetailState
 @onready var detail_actions: VBoxContainer = %DetailActions
 @onready var back_button: Button = %BackButton
@@ -27,6 +26,7 @@ const ACTION_BUTTON_COST_SUFFIX: String = " · 1 Action"
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 
 	var nav_data: Dictionary = ScreenManager.navigation_data
@@ -34,21 +34,20 @@ func _ready() -> void:
 
 	if location_id.is_empty():
 		push_error("[LocationInvestigation] No location_id in navigation data.")
-		_show_error_state("No location selected.")
+		_show_error_state()
 		return
 
 	_location = CaseManager.get_location(location_id)
 	if _location == null:
 		push_error("[LocationInvestigation] Location not found: %s" % location_id)
-		_show_error_state("Location '%s' could not be found." % location_id)
+		_show_error_state()
 		return
 
 	_setup_ui()
 
 
-func _show_error_state(message: String) -> void:
+func _show_error_state() -> void:
 	title_label.text = "Location Not Found"
-	description_label.text = message
 	completion_label.text = ""
 	object_list.visible = false
 	detail_panel.visible = false
@@ -57,7 +56,6 @@ func _show_error_state(message: String) -> void:
 ## Builds the initial UI layout.
 func _setup_ui() -> void:
 	title_label.text = _location.name
-	description_label.text = _location.description if not _location.description.is_empty() else "No description."
 
 	# Load scene image or show fallback placeholder
 	if not _location.image.is_empty() and ResourceLoader.exists(_location.image):
@@ -90,38 +88,17 @@ func _populate_objects() -> void:
 	if _location.investigable_objects.is_empty():
 		var empty: Label = Label.new()
 		empty.text = "Nothing to investigate here."
-		empty.add_theme_color_override("font_color", UIColors.MUTED)
+		empty.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		object_list.add_child(empty)
 		return
 
 	for obj: InvestigableObjectData in _location.investigable_objects:
 		var btn: Button = Button.new()
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		UIHelper.apply_list_button_style(btn, obj.id == _selected_object_id, HORIZONTAL_ALIGNMENT_LEFT)
 		btn.pressed.connect(_on_object_selected.bind(obj.id))
-
-		# Build button text: [StateMarker] [Name]
-		var state_marker: String = _get_state_marker(obj.id)
-		btn.text = "%s %s" % [state_marker, obj.name]
-
-		# Highlight selected object
-		if obj.id == _selected_object_id:
-			btn.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+		btn.text = "• %s" % [obj.name]
 
 		object_list.add_child(btn)
-
-## Gets the state marker symbol for an object using derived display status.
-func _get_state_marker(object_id: String) -> String:
-	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(_location.id, object_id)
-	match status:
-		Enums.ObjectDisplayStatus.NOT_INSPECTED:
-			return "🟡"
-		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
-			return "🔵"
-		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
-			return "🟠"
-		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
-			return "⚪"
-	return "🟡"
 
 
 ## Handles object selection from the list.
@@ -136,6 +113,7 @@ func _show_object_detail(object_id: String) -> void:
 	if obj == null:
 		return
 
+	_apply_detail_target_layout()
 	detail_panel.visible = true
 	detail_title.text = obj.name
 	detail_description.text = obj.description if not obj.description.is_empty() else "No details available."
@@ -145,16 +123,16 @@ func _show_object_detail(object_id: String) -> void:
 	match status:
 		Enums.ObjectDisplayStatus.NOT_INSPECTED:
 			detail_state.text = "Status: Not inspected"
-			detail_state.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+			detail_state.add_theme_color_override("font_color", UIColors.AMBER)
 		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
 			detail_state.text = "Status: Partially examined"
-			detail_state.add_theme_color_override("font_color", UIColors.ACCENT_EXAMINED)
+			detail_state.add_theme_color_override("font_color", UIColors.BLUE)
 		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
 			detail_state.text = "Status: Awaiting lab results"
-			detail_state.add_theme_color_override("font_color", UIColors.STATUS_PENDING)
+			detail_state.add_theme_color_override("font_color", UIColors.AMBER)
 		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
 			detail_state.text = "Status: Fully processed"
-			detail_state.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+			detail_state.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 
 	_populate_action_buttons(obj)
 	_populate_discovered_clues(obj)
@@ -223,6 +201,7 @@ func _refresh_ui() -> void:
 ## being rebuilt causes child controls (buttons) to end up with stale
 ## hit rects, making them unresponsive to clicks until a later refresh.
 func _clear_detail() -> void:
+	_apply_detail_placeholder_layout()
 	detail_title.text = "Select a target"
 	detail_state.text = ""
 	detail_description.text = "Choose an investigation target from the list to view details and available actions."
@@ -237,6 +216,28 @@ func _clear_detail() -> void:
 	if existing:
 		detail_panel.remove_child(existing)
 		existing.queue_free()
+
+
+func _apply_detail_placeholder_layout() -> void:
+	detail_panel.alignment = BoxContainer.ALIGNMENT_CENTER
+	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_state.visible = false
+	detail_state.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	detail_description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	detail_actions.visible = false
+
+
+func _apply_detail_target_layout() -> void:
+	detail_panel.alignment = BoxContainer.ALIGNMENT_BEGIN
+	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	detail_state.visible = true
+	detail_state.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	detail_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	detail_description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	detail_description.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	detail_actions.visible = true
 
 
 ## Builds a styled placeholder for the center scene panel when no art exists.
@@ -261,8 +262,8 @@ func _build_scene_placeholder() -> void:
 	# Location initial (large, centered)
 	var initial: Label = Label.new()
 	initial.text = _location.name.substr(0, 1).to_upper() if not _location.name.is_empty() else "?"
-	initial.add_theme_font_size_override("font_size", 64)
-	initial.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	initial.add_theme_font_size_override("font_size", UIFonts.SIZE_PLACEHOLDER_INITIAL)
+	initial.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	placeholder.add_child(initial)
 
@@ -313,16 +314,16 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 	# Investigation state message — always shown
 	var display_status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(_location.id, obj.id)
 	var hint_text: String = LocationInvestigationManager.get_object_status_hint(_location.id, obj.id)
-	var hint_color: Color = UIColors.SECONDARY
+	var hint_color: Color = UIColors.TEXT_SECONDARY
 	match display_status:
 		Enums.ObjectDisplayStatus.NOT_INSPECTED:
-			hint_color = UIColors.TEXT_MUTED
+			hint_color = UIColors.TEXT_GREY
 		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
-			hint_color = UIColors.ACCENT_CLUE
+			hint_color = UIColors.AMBER
 		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
-			hint_color = UIColors.STATUS_PROCESSING
+			hint_color = UIColors.BLUE
 		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
-			hint_color = UIColors.ACCENT_PROCESSED
+			hint_color = UIColors.GREEN
 
 	if not hint_text.is_empty():
 		var hint_label: Label = Label.new()
@@ -349,14 +350,14 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 	var header: Label = Label.new()
 	header.text = "CLUES FOUND HERE"
 	header.theme_type_variation = &"MetadataLabel"
-	header.add_theme_color_override("font_color", UIColors.HEADER)
+	header.add_theme_color_override("font_color", UIColors.TEXT_HIGHLIGHTED)
 	header.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
 	section.add_child(header)
 
 	if found_clues.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No evidence recovered from this target yet."
-		empty_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		empty_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
 		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		section.add_child(empty_label)
@@ -364,7 +365,7 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 		for clue: Dictionary in found_clues:
 			var clue_label: Label = Label.new()
 			clue_label.text = "  - %s" % clue["name"]
-			clue_label.add_theme_color_override("font_color", UIColors.SECONDARY)
+			clue_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 			clue_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
 			clue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			section.add_child(clue_label)

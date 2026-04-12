@@ -20,16 +20,16 @@ const STATUS_OPEN := "Open"
 const STATUS_EXHAUSTED := "Exhausted"
 
 const STATUS_COLORS: Dictionary = {
-	STATUS_NEW: UIColors.ACCENT_EXAMINED,
-	STATUS_OPEN: UIColors.ACCENT_CLUE,
-	STATUS_EXHAUSTED: UIColors.TEXT_MUTED,
+	STATUS_NEW: UIColors.BLUE,
+	STATUS_OPEN: UIColors.AMBER,
+	STATUS_EXHAUSTED: UIColors.TEXT_GREY,
 }
 
 # Card design constants
 const CARD_CORNER_RADIUS: int = 14
 const CARD_BORDER_WIDTH: int = 2
-const CARD_BORDER_COLOR: Color = UIColors.LOCATION_CARD_BORDER
-const CARD_BG: Color = UIColors.LOCATION_CARD_BG
+const CARD_BORDER_COLOR: Color = UIColors.BORDER_SUBTLE
+const CARD_BG: Color = UIColors.BG_BASE
 const MEDIA_CORNER_RADIUS: int = 14
 const CARD_SHADOW_SIZE: int = 8
 const CARD_SHADOW_COLOR: Color = UIColors.LOCATION_CARD_SHADOW
@@ -37,12 +37,12 @@ const CARD_SHADOW_COLOR: Color = UIColors.LOCATION_CARD_SHADOW
 # Hover constants
 const HOVER_SHADOW_SIZE: int = 8
 const HOVER_SHADOW_COLOR: Color = UIColors.LOCATION_CARD_HOVER_SHADOW
-const HOVER_BORDER_COLOR: Color = UIColors.LOCATION_CARD_HOVER_BORDER
+const HOVER_BORDER_COLOR: Color = UIColors.BLUE
 const HOVER_SCALE := Vector2(1.008, 1.008)
 const HOVER_MODULATE: Color = UIColors.LOCATION_CARD_HOVER_MODULATE
 
 const TEXT_COLOR_PRIMARY: Color = UIColors.TEXT_PRIMARY
-const TEXT_COLOR_MUTED: Color = UIColors.TEXT_MUTED
+const TEXT_COLOR_MUTED: Color = UIColors.TEXT_GREY
 const FONT_SIZE_TITLE: int = UIFonts.SIZE_TITLE
 const FONT_SIZE_BODY: int = UIFonts.SIZE_BODY
 const FONT_SIZE_META: int = UIFonts.SIZE_METADATA
@@ -144,7 +144,7 @@ func setup(location: LocationData) -> void:
 	var status: String = _resolve_status(_location_id)
 	_status_label.text = status.to_upper()
 	_status_label.add_theme_font_size_override("font_size", FONT_SIZE_META)
-	var status_color: Color = STATUS_COLORS.get(status, UIColors.TEXT_MUTED)
+	var status_color: Color = STATUS_COLORS.get(status, UIColors.TEXT_GREY)
 	_status_label.add_theme_color_override("font_color", status_color)
 	_apply_badge_style(status_color)
 
@@ -213,7 +213,7 @@ func _apply_invalid_setup_state(reason: String) -> void:
 	_evidence_label.add_theme_font_size_override("font_size", FONT_SIZE_BODY)
 	_evidence_label.add_theme_color_override("font_color", TEXT_COLOR_MUTED)
 
-	var status_color: Color = STATUS_COLORS.get(STATUS_NEW, UIColors.TEXT_MUTED)
+	var status_color: Color = STATUS_COLORS.get(STATUS_NEW, UIColors.TEXT_GREY)
 	_status_label.text = STATUS_NEW.to_upper()
 	_status_label.add_theme_font_size_override("font_size", FONT_SIZE_META)
 	_status_label.add_theme_color_override("font_color", status_color)
@@ -297,8 +297,8 @@ func _apply_placeholder_style() -> void:
 	ph_style.content_margin_top = 32
 	ph_style.content_margin_bottom = 32
 	_image_placeholder.add_theme_stylebox_override("panel", ph_style)
-	_placeholder_initial.add_theme_font_size_override("font_size", 32)
-	_placeholder_initial.add_theme_color_override("font_color", UIColors.LOCATION_CARD_PLACEHOLDER_TEXT)
+	_placeholder_initial.add_theme_font_size_override("font_size", UIFonts.SIZE_PANEL_HEADER)
+	_placeholder_initial.add_theme_color_override("font_color", UIColors.TEXT_PRIMARY)
 
 
 func _apply_badge_style(status_color: Color) -> void:

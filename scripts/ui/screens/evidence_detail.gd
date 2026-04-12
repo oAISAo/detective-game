@@ -27,6 +27,7 @@ var _lab_section: VBoxContainer = null
 
 func _ready() -> void:
 	_evidence_id = ScreenManager.navigation_data.get("evidence_id", "")
+	UIHelper.apply_back_button_icon(back_button, "Back")
 
 	back_button.pressed.connect(_on_back_pressed)
 	pin_button.pressed.connect(_on_pin_pressed)
@@ -138,7 +139,7 @@ func _populate_tags(ev: EvidenceData) -> void:
 	for tag: String in ev.tags:
 		var tag_label: Label = Label.new()
 		tag_label.text = "  %s  " % tag
-		tag_label.add_theme_color_override("font_color", UIColors.HEADER)
+		tag_label.add_theme_color_override("font_color", UIColors.TEXT_HIGHLIGHTED)
 		tags_container.add_child(tag_label)
 
 
@@ -150,7 +151,7 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 	if ev.related_persons.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", UIColors.MUTED)
+		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		related_persons_list.add_child(none_label)
 		return
 
@@ -176,7 +177,7 @@ func _populate_related_statements(ev: EvidenceData) -> void:
 	if related.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", UIColors.MUTED)
+		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		related_statements_list.add_child(none_label)
 		return
 
@@ -198,7 +199,7 @@ func _populate_legal_categories(ev: EvidenceData) -> void:
 	if ev.legal_categories.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", UIColors.MUTED)
+		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		legal_categories_list.add_child(none_label)
 		return
 
@@ -258,7 +259,7 @@ func _populate_lab_section(ev: EvidenceData) -> void:
 		# Lab analysis complete — show result
 		var status_label: Label = Label.new()
 		status_label.text = "Lab analysis complete."
-		status_label.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
+		status_label.add_theme_color_override("font_color", UIColors.GREEN)
 		_lab_section.add_child(status_label)
 		if output_ev:
 			var result_label: Label = Label.new()
@@ -269,13 +270,13 @@ func _populate_lab_section(ev: EvidenceData) -> void:
 		# Pending lab analysis
 		var status_label: Label = Label.new()
 		status_label.text = "Submitted to Lab — Results pending."
-		status_label.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+		status_label.add_theme_color_override("font_color", UIColors.AMBER)
 		_lab_section.add_child(status_label)
 	else:
 		# Can be submitted
 		var desc_label: Label = Label.new()
 		desc_label.text = "This evidence can be submitted for forensic analysis."
-		desc_label.add_theme_color_override("font_color", UIColors.SECONDARY)
+		desc_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_lab_section.add_child(desc_label)
 		var submit_btn: Button = Button.new()
@@ -326,7 +327,7 @@ func _populate_comparison_targets() -> void:
 	if targets.is_empty():
 		var none_label: Label = Label.new()
 		none_label.text = "No valid comparisons available."
-		none_label.add_theme_color_override("font_color", UIColors.MUTED)
+		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		comparison_list.add_child(none_label)
 		return
 
@@ -355,7 +356,7 @@ func _on_compare_with(other_id: String) -> void:
 	else:
 		var result_label: Label = Label.new()
 		result_label.text = "No new insights from this comparison."
-		result_label.add_theme_color_override("font_color", UIColors.MUTED)
+		result_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		comparison_list.add_child(result_label)
 
 
@@ -368,7 +369,7 @@ func _on_send_to_board_pressed() -> void:
 	BoardManager.send_to_board("evidence", _evidence_id)
 	send_to_board_button.text = "Sent to Board"
 	send_to_board_button.disabled = true
-	UIHelper.confirmation_flash("Added to Board", self, UIColors.ACCENT_EXAMINED)
+	UIHelper.confirmation_flash("Added to Board", self, UIColors.BLUE)
 
 
 # --- Label Helpers --- #

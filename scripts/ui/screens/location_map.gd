@@ -54,7 +54,7 @@ func _add_empty_state_message(message: String) -> void:
 	empty_label.text = message
 	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	empty_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	empty_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	empty_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	location_grid.add_child(empty_label)
 

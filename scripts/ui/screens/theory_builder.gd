@@ -37,10 +37,10 @@ const STRENGTH_LABELS: Dictionary = {
 
 ## Strength colors.
 const STRENGTH_COLORS: Dictionary = {
-	Enums.TheoryStrength.NONE: UIColors.MUTED,
-	Enums.TheoryStrength.WEAK: UIColors.ACCENT_CLUE,
-	Enums.TheoryStrength.MODERATE: UIColors.ACCENT_EXAMINED,
-	Enums.TheoryStrength.STRONG: UIColors.ACCENT_PROCESSED,
+	Enums.TheoryStrength.NONE: UIColors.TEXT_GREY,
+	Enums.TheoryStrength.WEAK: UIColors.AMBER,
+	Enums.TheoryStrength.MODERATE: UIColors.BLUE,
+	Enums.TheoryStrength.STRONG: UIColors.GREEN,
 }
 
 
@@ -53,6 +53,7 @@ var _selected_theory_id: String = ""
 # --- Lifecycle --- #
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	new_theory_button.pressed.connect(_on_new_theory_pressed)
 
@@ -88,9 +89,8 @@ func _rebuild_theory_list() -> void:
 		var btn: Button = Button.new()
 		btn.text = theory["name"]
 		btn.custom_minimum_size = Vector2(0, 32)
+		UIHelper.apply_list_button_style(btn, theory["id"] == _selected_theory_id, HORIZONTAL_ALIGNMENT_LEFT)
 		btn.pressed.connect(_on_theory_selected.bind(theory["id"]))
-		if theory["id"] == _selected_theory_id:
-			btn.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
 		theory_list_container.add_child(btn)
 
 
@@ -138,7 +138,7 @@ func _add_theory_header(theory: Dictionary) -> void:
 	var complete_label: Label = Label.new()
 	if TheoryManager.is_complete(_selected_theory_id):
 		complete_label.text = "✓ Complete"
-		complete_label.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
+		complete_label.add_theme_color_override("font_color", UIColors.GREEN)
 	else:
 		complete_label.text = "Incomplete"
 		complete_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
@@ -283,15 +283,15 @@ func _add_inconsistency_section(theory: Dictionary) -> void:
 
 	var header: Label = Label.new()
 	header.text = "⚠ Inconsistencies Found"
-	header.add_theme_font_size_override("font_size", 16)
-	header.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+	header.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
+	header.add_theme_color_override("font_color", UIColors.AMBER)
 	detail_panel.add_child(header)
 
 	for incon: Dictionary in inconsistencies:
 		var lbl: Label = Label.new()
 		lbl.text = "• %s" % incon.get("description", "Unknown conflict")
 		lbl.theme_type_variation = &"MetadataLabel"
-		lbl.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+		lbl.add_theme_color_override("font_color", UIColors.AMBER)
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		detail_panel.add_child(lbl)
 
@@ -302,7 +302,7 @@ func _create_step_panel(step: String) -> PanelContainer:
 	var panel: PanelContainer = PanelContainer.new()
 	var config: Dictionary = STEP_CONFIG.get(step, {})
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = config.get("color", Color(0.4, 0.4, 0.4))
+	style.bg_color = config.get("color", UIColors.TEXT_SECONDARY)
 	style.bg_color.a = 0.25
 	style.corner_radius_top_left = 4
 	style.corner_radius_top_right = 4
@@ -313,7 +313,7 @@ func _create_step_panel(step: String) -> PanelContainer:
 	style.content_margin_top = 8
 	style.content_margin_bottom = 8
 	style.border_width_left = 3
-	style.border_color = config.get("color", Color(0.5, 0.5, 0.5))
+	style.border_color = config.get("color", UIColors.TEXT_GREY)
 	panel.add_theme_stylebox_override("panel", style)
 
 	# Add step title inside a VBox (PanelContainer only supports one child)
@@ -321,8 +321,8 @@ func _create_step_panel(step: String) -> PanelContainer:
 	inner_vbox.name = "StepContent"
 	var title: Label = Label.new()
 	title.text = config.get("label", step)
-	title.add_theme_font_size_override("font_size", 16)
-	title.add_theme_color_override("font_color", config.get("color", Color.WHITE))
+	title.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
+	title.add_theme_color_override("font_color", config.get("color", UIColors.TEXT_PRIMARY))
 	inner_vbox.add_child(title)
 	panel.add_child(inner_vbox)
 	return panel
@@ -335,7 +335,7 @@ func _add_strength_label(parent: VBoxContainer, step: String) -> void:
 	var lbl: Label = Label.new()
 	lbl.text = STRENGTH_LABELS.get(strength, "—")
 	lbl.theme_type_variation = &"MetadataLabel"
-	lbl.add_theme_color_override("font_color", STRENGTH_COLORS.get(strength, Color.WHITE))
+	lbl.add_theme_color_override("font_color", STRENGTH_COLORS.get(strength, UIColors.TEXT_PRIMARY))
 	parent.add_child(lbl)
 
 
@@ -349,7 +349,7 @@ func _add_evidence_section(parent: VBoxContainer, step: String) -> void:
 			var ev_data: EvidenceData = CaseManager.get_evidence(ev_id)
 			var ev_label: Label = Label.new()
 			ev_label.text = "📎 %s" % (ev_data.name if ev_data else ev_id)
-			ev_label.add_theme_font_size_override("font_size", 13)
+			ev_label.add_theme_font_size_override("font_size", UIFonts.SIZE_DETAIL)
 			ev_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			hbox.add_child(ev_label)
 

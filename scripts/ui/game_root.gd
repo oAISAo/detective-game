@@ -43,9 +43,6 @@ const NAV_UNDERLINE_COLOR: Color = Color(0.86, 0.82, 0.72)
 const NAV_UNDERLINE_GLOW: Color = Color(0.68, 0.72, 0.50, 0.18)
 const BADGE_COLOR: Color = Color(0.18, 0.19, 0.22, 0.94)
 
-const END_DAY_BG: Color = Color(0.18, 0.19, 0.22, 0.94)
-const END_DAY_BORDER: Color = Color(0.42, 0.40, 0.36, 0.36)
-const END_DAY_HOVER_BG: Color = Color(0.24, 0.25, 0.29, 0.98)
 const END_DAY_TEXT: Color = Color(0.84, 0.82, 0.78)
 
 
@@ -115,9 +112,6 @@ func _ready() -> void:
 
 	# Notification button opens the notification panel modal
 	notification_button.pressed.connect(_on_notification_button_pressed)
-
-	# Style the End Day button
-	_style_end_day_button()
 
 	# End Day button
 	end_day_button.pressed.connect(_on_end_day_pressed)
@@ -234,13 +228,10 @@ func _build_nav_items() -> void:
 		icon_glow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		icon_glow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		icon_glow.add_theme_font_override("font", icon_font)
-		icon_glow.add_theme_font_size_override("font_size", 38)
-		icon_glow.add_theme_color_override("font_color", Color(
-			NAV_ICON_GLOW.r,
-			NAV_ICON_GLOW.g,
-			NAV_ICON_GLOW.b,
-			0.0
-		))
+		icon_glow.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON_GLOW)
+		var icon_glow_start: Color = NAV_ICON_GLOW
+		icon_glow_start.a = 0.0
+		icon_glow.add_theme_color_override("font_color", icon_glow_start)
 		icon_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		icon_glow.offset_top = 1
@@ -252,7 +243,7 @@ func _build_nav_items() -> void:
 		icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		icon_label.add_theme_font_override("font", icon_font)
-		icon_label.add_theme_font_size_override("font_size", 36)
+		icon_label.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON)
 		icon_label.add_theme_color_override("font_color", NAV_ICON_INACTIVE)
 		icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -270,13 +261,10 @@ func _build_nav_items() -> void:
 		text_glow.text = label_text
 		text_glow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		text_glow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		text_glow.add_theme_font_size_override("font_size", 15)
-		text_glow.add_theme_color_override("font_color", Color(
-			NAV_LABEL_GLOW.r,
-			NAV_LABEL_GLOW.g,
-			NAV_LABEL_GLOW.b,
-			0.0
-		))
+		text_glow.add_theme_font_size_override("font_size", UIFonts.SIZE_NAV_LABEL_GLOW)
+		var label_glow_start: Color = NAV_LABEL_GLOW
+		label_glow_start.a = 0.0
+		text_glow.add_theme_color_override("font_color", label_glow_start)
 		text_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		text_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		text_glow.offset_top = 1
@@ -287,7 +275,7 @@ func _build_nav_items() -> void:
 		text_label.text = label_text
 		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		text_label.add_theme_font_size_override("font_size", 14)
+		text_label.add_theme_font_size_override("font_size", UIFonts.SIZE_CALLOUT)
 		text_label.add_theme_color_override("font_color", NAV_LABEL_INACTIVE)
 		text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -586,73 +574,6 @@ func _style_command_bar() -> void:
 	command_bar.add_theme_stylebox_override("panel", style)
 
 
-## Styles the End Day button with a premium dark look.
-func _style_end_day_button() -> void:
-	# Normal
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = END_DAY_BG
-	normal.border_width_left = 1
-	normal.border_width_top = 1
-	normal.border_width_right = 1
-	normal.border_width_bottom = 1
-	normal.border_color = END_DAY_BORDER
-	normal.corner_radius_top_left = 8
-	normal.corner_radius_top_right = 8
-	normal.corner_radius_bottom_right = 8
-	normal.corner_radius_bottom_left = 8
-	normal.content_margin_left = 20.0
-	normal.content_margin_top = 8.0
-	normal.content_margin_right = 20.0
-	normal.content_margin_bottom = 8.0
-	end_day_button.add_theme_stylebox_override("normal", normal)
-
-	# Hover
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = END_DAY_HOVER_BG
-	hover.border_width_left = 1
-	hover.border_width_top = 1
-	hover.border_width_right = 1
-	hover.border_width_bottom = 1
-	hover.border_color = Color(0.5, 0.48, 0.42, 0.6)
-	hover.corner_radius_top_left = 8
-	hover.corner_radius_top_right = 8
-	hover.corner_radius_bottom_right = 8
-	hover.corner_radius_bottom_left = 8
-	hover.content_margin_left = 20.0
-	hover.content_margin_top = 8.0
-	hover.content_margin_right = 20.0
-	hover.content_margin_bottom = 8.0
-	end_day_button.add_theme_stylebox_override("hover", hover)
-
-	# Pressed
-	var pressed := StyleBoxFlat.new()
-	pressed.bg_color = Color(0.18, 0.18, 0.21, 0.95)
-	pressed.border_width_left = 1
-	pressed.border_width_top = 1
-	pressed.border_width_right = 1
-	pressed.border_width_bottom = 1
-	pressed.border_color = Color(0.9, 0.7, 0.2, 0.5)
-	pressed.corner_radius_top_left = 8
-	pressed.corner_radius_top_right = 8
-	pressed.corner_radius_bottom_right = 8
-	pressed.corner_radius_bottom_left = 8
-	pressed.content_margin_left = 20.0
-	pressed.content_margin_top = 8.0
-	pressed.content_margin_right = 20.0
-	pressed.content_margin_bottom = 8.0
-	end_day_button.add_theme_stylebox_override("pressed", pressed)
-
-	# Focus
-	end_day_button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-
-	# Font
-	end_day_button.add_theme_color_override("font_color", END_DAY_TEXT)
-	end_day_button.add_theme_color_override("font_hover_color", Color(1, 0.95, 0.88))
-	end_day_button.add_theme_color_override("font_pressed_color", Color(0.7, 0.65, 0.6))
-	end_day_button.add_theme_font_size_override("font_size", 18)
-	end_day_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-
 ## Styles the notification button to be minimal and flat.
 func _style_notification_button() -> void:
 	var empty := StyleBoxFlat.new()
@@ -672,9 +593,9 @@ func _style_notification_button() -> void:
 
 	notification_button.add_theme_stylebox_override("hover", hover)
 	notification_button.add_theme_font_override("font", icon_font)
-	notification_button.add_theme_font_size_override("font_size", 38)
-	notification_button.add_theme_color_override("font_color", Color(0.60, 0.58, 0.56))
-	notification_button.add_theme_color_override("font_hover_color", Color(0.72, 0.69, 0.65))
+	notification_button.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON_GLOW)
+	notification_button.add_theme_color_override("font_color", UIColors.TEXT_PRIMARY)
+	notification_button.add_theme_color_override("font_hover_color", UIColors.TEXT_HOVER)
 	notification_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	notification_button.clip_contents = false
 
@@ -686,7 +607,7 @@ func _style_notification_button() -> void:
 	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	badge.custom_minimum_size = Vector2(16, 16)
-	badge.add_theme_font_size_override("font_size", 14)
+	badge.add_theme_font_size_override("font_size", UIFonts.SIZE_CALLOUT)
 	badge.add_theme_color_override("font_color", END_DAY_TEXT)
 	var badge_box := StyleBoxFlat.new()
 	badge_box.bg_color = BADGE_COLOR
@@ -722,15 +643,17 @@ func _style_notification_button() -> void:
 
 ## Styles the left zone labels with appropriate sizes and colors.
 func _style_left_zone() -> void:
-	day_label.add_theme_font_size_override("font_size", 18)
-	day_label.add_theme_color_override("font_color", Color(0.72, 0.69, 0.65))
+	day_label.add_theme_font_size_override("font_size", UIFonts.SIZE_SECTION)
+	day_label.add_theme_color_override("font_color", UIColors.TEXT_SECTION_HEADER)
 
-	actions_label.add_theme_font_size_override("font_size", 20)
-	actions_label.add_theme_color_override("font_color", Color(0.72, 0.69, 0.65))
+	actions_label.add_theme_font_size_override("font_size", UIFonts.SIZE_TITLE)
+	actions_label.add_theme_color_override("font_color", UIColors.TEXT_SECTION_HEADER)
 
 	phase_icon.add_theme_font_override("font", icon_font)
-	phase_icon.add_theme_font_size_override("font_size", 38)
-	phase_icon.add_theme_color_override("font_color", Color(0.78, 0.62, 0.22, 0.75))
+	phase_icon.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON_GLOW)
+	var phase_icon_color: Color = UIColors.AMBER
+	phase_icon_color.a = 0.75
+	phase_icon.add_theme_color_override("font_color", phase_icon_color)
 
 
 ## Updates all command bar labels with current state.

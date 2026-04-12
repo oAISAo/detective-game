@@ -34,7 +34,7 @@ func setup(evidence: EvidenceData) -> void:
 	_type_badge.text = UIHelper.get_evidence_type_label(evidence.type)
 	_type_badge.add_theme_color_override("font_color", _get_type_color(evidence.type))
 	_description_label.text = _truncate(evidence.description, 100)
-	_description_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	_description_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	_apply_state(evidence)
 
 
@@ -46,14 +46,14 @@ func _apply_state(evidence: EvidenceData) -> void:
 	match evidence.lab_status:
 		Enums.LabStatus.COMPLETED:
 			_state_label.text = "Processed"
-			_state_label.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
+			_state_label.add_theme_color_override("font_color", UIColors.GREEN)
 		Enums.LabStatus.PROCESSING:
 			_state_label.text = "In Lab"
-			_state_label.add_theme_color_override("font_color", UIColors.ACCENT_EXAMINED)
+			_state_label.add_theme_color_override("font_color", UIColors.BLUE)
 		_:
 			if evidence.requires_lab_analysis:
 				_state_label.text = "Awaiting Analysis"
-				_state_label.add_theme_color_override("font_color", UIColors.ACCENT_CLUE)
+				_state_label.add_theme_color_override("font_color", UIColors.AMBER)
 			else:
 				_state_label.text = "Collected"
 				_state_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
@@ -61,14 +61,14 @@ func _apply_state(evidence: EvidenceData) -> void:
 
 func _get_type_color(type: Enums.EvidenceType) -> Color:
 	match type:
-		Enums.EvidenceType.FORENSIC: return UIColors.ACCENT_EXAMINED
+		Enums.EvidenceType.FORENSIC: return UIColors.BLUE
 		Enums.EvidenceType.DOCUMENT: return UIColors.TEXT_SECONDARY
-		Enums.EvidenceType.PHOTO: return UIColors.ACCENT_CLUE
-		Enums.EvidenceType.RECORDING: return UIColors.ACCENT_CRITICAL
-		Enums.EvidenceType.FINANCIAL: return UIColors.ACCENT_CLUE
-		Enums.EvidenceType.DIGITAL: return UIColors.ACCENT_EXAMINED
+		Enums.EvidenceType.PHOTO: return UIColors.AMBER
+		Enums.EvidenceType.RECORDING: return UIColors.RED
+		Enums.EvidenceType.FINANCIAL: return UIColors.AMBER
+		Enums.EvidenceType.DIGITAL: return UIColors.BLUE
 		Enums.EvidenceType.OBJECT: return UIColors.TEXT_SECONDARY
-	return UIColors.TEXT_MUTED
+	return UIColors.TEXT_GREY
 
 
 static func _truncate(text: String, max_length: int) -> String:

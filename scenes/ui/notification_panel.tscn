@@ -52,7 +52,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Notifications"
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"PanelHeader"
 
 [node name="ClearAllButton" type="Button" parent="CenterContainer/Panel/MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true

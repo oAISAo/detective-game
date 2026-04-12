@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Investigation Log"
 horizontal_alignment = 1
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"PanelHeader"
 
 [node name="LogScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
