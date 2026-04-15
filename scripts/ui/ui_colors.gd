@@ -76,6 +76,7 @@ const BORDER_SUBTLE: Color = Color(0.3, 0.28, 0.25, 0.6)
 ## Card shell and elevation.
 const LOCATION_CARD_SHADOW: Color = Color(0.0, 0.0, 0.0, 0.45)
 const LOCATION_CARD_MEDIA_BG: Color = Color(0.08, 0.09, 0.11)
+const LOCATION_CARD_GRADIENT_BOTTOM: Color = Color(0.04, 0.04, 0.05)
 
 ## Card hover feedback.
 const LOCATION_CARD_HOVER_SHADOW: Color = Color(0.3, 0.55, 0.9, 0.45)

@@ -33,6 +33,9 @@ const CARD_BG: Color = UIColors.BG_BASE
 const MEDIA_CORNER_RADIUS: int = 14
 const CARD_SHADOW_SIZE: int = 8
 const CARD_SHADOW_COLOR: Color = UIColors.LOCATION_CARD_SHADOW
+const CARD_INNER_RADIUS: int = CARD_CORNER_RADIUS - CARD_BORDER_WIDTH
+const CARD_GRADIENT_TOP: Color = CARD_BG
+const CARD_GRADIENT_BOTTOM: Color = UIColors.LOCATION_CARD_GRADIENT_BOTTOM
 
 # Hover constants
 const HOVER_SHADOW_SIZE: int = 8
@@ -66,6 +69,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_apply_card_style()
+	_apply_gradient_background()
 	_apply_media_frame_style()
 	_apply_image_mask()
 	_apply_footer_style()
@@ -88,7 +92,7 @@ func _ready() -> void:
 ## Ensures all interactive regions participate in one card-level hover state.
 func _configure_hover_event_routing() -> void:
 	# Child controls are display-only; route hover and click handling through the card.
-	var content_root: Node = get_node_or_null("VBox")
+	var content_root: Node = get_node_or_null("CardClip")
 	if content_root:
 		_set_control_tree_mouse_filter(content_root)
 
@@ -259,6 +263,70 @@ func _apply_card_style() -> void:
 	_hover_style.set_border_width_all(CARD_BORDER_WIDTH)
 	_hover_style.shadow_color = HOVER_SHADOW_COLOR
 	_hover_style.shadow_size = HOVER_SHADOW_SIZE
+
+
+## Inserts an inner clip panel with a gradient background between the card
+## and its content. The clip panel draws a rounded rect (inner radius) and
+## uses CLIP_CHILDREN_AND_DRAW to stencil-clip the gradient and content
+## to the inner rounded shape, keeping the outer border fully visible.
+func _apply_gradient_background() -> void:
+	var vbox: VBoxContainer = get_node("VBox")
+
+	# Inner clip shape — matches the inside of the border
+	var clip_style := StyleBoxFlat.new()
+	clip_style.bg_color = CARD_GRADIENT_TOP
+	clip_style.set_corner_radius_all(CARD_INNER_RADIUS)
+
+	var clip_panel := PanelContainer.new()
+	clip_panel.name = "CardClip"
+	clip_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	clip_panel.offset_left = CARD_BORDER_WIDTH
+	clip_panel.offset_top = CARD_BORDER_WIDTH
+	clip_panel.offset_right = -CARD_BORDER_WIDTH
+	clip_panel.offset_bottom = -CARD_BORDER_WIDTH
+	clip_panel.add_theme_stylebox_override("panel", clip_style)
+	clip_panel.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+
+	# Gradient texture filling top-to-bottom
+	var gradient := Gradient.new()
+	gradient.set_color(0, CARD_GRADIENT_TOP)# hold light color longer
+	gradient.set_color(1, CARD_GRADIENT_BOTTOM)
+
+	var gradient_texture := GradientTexture2D.new()
+	gradient_texture.gradient = gradient
+	gradient_texture.fill_from = Vector2(0.5, 0.6)
+	gradient_texture.fill_to = Vector2(0.5, 1.0)
+
+	var gradient_rect := TextureRect.new()
+	gradient_rect.name = "GradientBackground"
+	gradient_rect.texture = gradient_texture
+	gradient_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gradient_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	gradient_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gradient_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Padding container — replaces VBox's old anchor offsets
+	var padding := MarginContainer.new()
+	padding.name = "ContentPadding"
+	padding.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	padding.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	padding.add_theme_constant_override("margin_left", 16 - CARD_BORDER_WIDTH)
+	padding.add_theme_constant_override("margin_top", 16 - CARD_BORDER_WIDTH)
+	padding.add_theme_constant_override("margin_right", 16 - CARD_BORDER_WIDTH)
+	padding.add_theme_constant_override("margin_bottom", 16 - CARD_BORDER_WIDTH)
+
+	# Reparent VBox into the new structure
+	remove_child(vbox)
+	# Reset VBox anchors — now managed by MarginContainer, not anchor offsets
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.offset_left = 0
+	vbox.offset_top = 0
+	vbox.offset_right = 0
+	vbox.offset_bottom = 0
+	padding.add_child(vbox)
+	clip_panel.add_child(gradient_rect)
+	clip_panel.add_child(padding)
+	add_child(clip_panel)
 
 
 func _apply_image_mask() -> void:
