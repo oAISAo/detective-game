@@ -9,10 +9,12 @@ const _MATERIAL_ICON_FONT_PATH: String = "res://assets/fonts/MaterialSymbolsOutl
 const _BACK_ICON_LIGATURE: String = "arrow_back_ios"
 const _BACK_CONTENT_NODE_NAME: String = "BackButtonContent"
 const _BACK_CONTENT_MIN_WIDTH: float = 100.0
-const _BACK_CONTENT_MIN_HEIGHT: float = 44.0
+const _BACK_CONTENT_MIN_HEIGHT: float = 36.0
 const _BACK_MIN_MARGIN_X: int = 24
-const _BACK_MIN_MARGIN_Y: int = 10
+const _BACK_MIN_MARGIN_TOP: int = 10
+const _BACK_MIN_MARGIN_BOTTOM: int = 10
 const _BACK_CONTENT_SEPARATION: int = 6
+const _LIST_BUTTON_PARENT_SEPARATION_META: StringName = &"_list_button_parent_separation_pending"
 
 static var _back_icon_font: FontVariation = null
 static var _main_theme: Theme = null
@@ -130,10 +132,12 @@ static func apply_list_button_style(
 	if button == null:
 		return
 
+	_apply_list_button_theme(button)
 	button.theme_type_variation = &"ListButton"
 	button.toggle_mode = true
 	button.button_pressed = is_selected
 	button.alignment = horizontal_alignment
+	_apply_list_button_parent_spacing(button)
 
 
 ## Updates selection state for a ListButton without changing other properties.
@@ -145,12 +149,69 @@ static func set_list_button_selected(button: Button, is_selected: bool) -> void:
 	button.button_pressed = is_selected
 
 
+static func _apply_list_button_theme(button: Button) -> void:
+	var theme: Theme = _get_main_theme()
+	if theme == null:
+		return
+
+	_copy_theme_stylebox_from_type(button, theme, "normal", "ListButton")
+	_copy_theme_stylebox_from_type(button, theme, "hover", "ListButton")
+	_copy_theme_stylebox_from_type(button, theme, "pressed", "ListButton")
+	if theme.has_stylebox("hover_pressed", "ListButton"):
+		_copy_theme_stylebox_from_type(button, theme, "hover_pressed", "ListButton")
+	else:
+		var pressed_style: StyleBox = theme.get_stylebox("pressed", "ListButton")
+		if pressed_style != null:
+			button.add_theme_stylebox_override("hover_pressed", pressed_style.duplicate(true))
+	_copy_theme_stylebox_from_type(button, theme, "disabled", "ListButton")
+	_copy_theme_stylebox_from_type(button, theme, "focus", "ListButton")
+
+	var list_font: Font = theme.get_font("font", "ListButton")
+	if list_font != null:
+		button.add_theme_font_override("font", list_font)
+
+	var font_size: int = theme.get_font_size("font_size", "ListButton")
+	if font_size > 0:
+		button.add_theme_font_size_override("font_size", font_size)
+
+	button.add_theme_color_override("font_color", theme.get_color("font_color", "ListButton"))
+	button.add_theme_color_override("font_hover_color", theme.get_color("font_hover_color", "ListButton"))
+	button.add_theme_color_override("font_pressed_color", theme.get_color("font_pressed_color", "ListButton"))
+	var hover_pressed_font_color: Color = theme.get_color("font_pressed_color", "ListButton")
+	if theme.has_color("font_hover_pressed_color", "ListButton"):
+		hover_pressed_font_color = theme.get_color("font_hover_pressed_color", "ListButton")
+	button.add_theme_color_override("font_hover_pressed_color", hover_pressed_font_color)
+	button.add_theme_color_override("font_disabled_color", theme.get_color("font_disabled_color", "ListButton"))
+
+
+static func _apply_list_button_parent_spacing(button: Button) -> void:
+	var parent_box: BoxContainer = button.get_parent() as BoxContainer
+	if parent_box != null:
+		parent_box.add_theme_constant_override("separation", 0)
+		return
+
+	if button.has_meta(_LIST_BUTTON_PARENT_SEPARATION_META):
+		return
+
+	button.set_meta(_LIST_BUTTON_PARENT_SEPARATION_META, true)
+	button.tree_entered.connect(_on_list_button_tree_entered.bind(button), CONNECT_ONE_SHOT)
+
+
+static func _on_list_button_tree_entered(button: Button) -> void:
+	if button == null:
+		return
+	if button.has_meta(_LIST_BUTTON_PARENT_SEPARATION_META):
+		button.remove_meta(_LIST_BUTTON_PARENT_SEPARATION_META)
+	_apply_list_button_parent_spacing(button)
+
+
 ## Applies a shared icon + text treatment for back buttons while keeping
 ## the default button style, dimensions, and theme spacing.
 static func apply_back_button_icon(button: Button, label_text: String = "Back") -> void:
 	if button == null:
 		return
 	_apply_end_day_button_theme(button)
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var old_content: Node = button.get_node_or_null(_BACK_CONTENT_NODE_NAME)
 	if old_content:
@@ -161,15 +222,15 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	button.clip_contents = true
 
 	var margin_left: int = _BACK_MIN_MARGIN_X
-	var margin_top: int = _BACK_MIN_MARGIN_Y
+	var margin_top: int = _BACK_MIN_MARGIN_TOP
 	var margin_right: int = _BACK_MIN_MARGIN_X
-	var margin_bottom: int = _BACK_MIN_MARGIN_Y
+	var margin_bottom: int = _BACK_MIN_MARGIN_BOTTOM
 	var normal_style: StyleBox = button.get_theme_stylebox("normal")
 	if normal_style != null:
 		margin_left = maxi(_BACK_MIN_MARGIN_X, int(normal_style.get_content_margin(SIDE_LEFT)))
-		margin_top = maxi(_BACK_MIN_MARGIN_Y, int(normal_style.get_content_margin(SIDE_TOP)))
+		margin_top = mini(_BACK_MIN_MARGIN_TOP, int(normal_style.get_content_margin(SIDE_TOP)))
 		margin_right = maxi(_BACK_MIN_MARGIN_X, int(normal_style.get_content_margin(SIDE_RIGHT)))
-		margin_bottom = maxi(_BACK_MIN_MARGIN_Y, int(normal_style.get_content_margin(SIDE_BOTTOM)))
+		margin_bottom = maxi(_BACK_MIN_MARGIN_BOTTOM, int(normal_style.get_content_margin(SIDE_BOTTOM)))
 
 	var margin: MarginContainer = MarginContainer.new()
 	margin.name = _BACK_CONTENT_NODE_NAME
@@ -245,7 +306,16 @@ static func _apply_end_day_button_theme(button: Button) -> void:
 
 
 static func _copy_theme_stylebox(button: Button, theme: Theme, style_name: StringName) -> void:
-	var style: StyleBox = theme.get_stylebox(style_name, "Button")
+	_copy_theme_stylebox_from_type(button, theme, style_name, "Button")
+
+
+static func _copy_theme_stylebox_from_type(
+	button: Button,
+	theme: Theme,
+	style_name: StringName,
+	type_name: StringName
+) -> void:
+	var style: StyleBox = theme.get_stylebox(style_name, type_name)
 	if style == null:
 		return
 	button.add_theme_stylebox_override(style_name, style.duplicate(true))

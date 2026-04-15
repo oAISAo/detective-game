@@ -102,8 +102,8 @@ border_width_bottom = 1
 border_color = Color(0.38, 0.36, 0.33, 0.55)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+expand_margin_left = -6.0
+expand_margin_right = -6.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dagba"]
 
@@ -112,33 +112,20 @@ content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
 content_margin_bottom = 10.0
-bg_color = Color(0.19, 0.19, 0.22, 0.35)
+bg_color = Color(0.19, 0.19, 0.22, 0)
 border_width_bottom = 1
 border_color = Color(0.3, 0.28, 0.25, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+expand_margin_left = -6.0
+expand_margin_right = -6.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hf3i3"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
 content_margin_bottom = 10.0
-bg_color = Color(0.19, 0.19, 0.22, 0)
-border_width_bottom = 1
-border_color = Color(0.3, 0.28, 0.25, 0.6)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1nr78"]
-content_margin_left = 12.0
-content_margin_top = 10.0
-content_margin_right = 12.0
-content_margin_bottom = 10.0
-bg_color = Color(0.19, 0.19, 0.22, 0)
+bg_color = Color(0.19, 0.19, 0.22, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -148,6 +135,41 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+expand_margin_left = -6.0
+expand_margin_right = -6.0
+shadow_color = Color(1, 1, 1, 0.35)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1nr78"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.19, 0.19, 0.22, 0)
+border_width_bottom = 1
+border_color = Color(0.3, 0.28, 0.25, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+expand_margin_left = -6.0
+expand_margin_right = -6.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7adcq"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.19, 0.19, 0.22, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = -6.0
+expand_margin_right = -6.0
 shadow_color = Color(1, 1, 1, 0.35)
 shadow_size = 5
 
@@ -205,6 +227,13 @@ bg_color = Color(0.3, 0.28, 0.25, 0.4)
 [resource]
 default_font = ExtResource("1_regular")
 default_font_size = 16
+ActionButtonLabel/base_type = &"Label"
+ActionButtonLabel/colors/font_color = Color(0.85, 0.82, 0.78, 1)
+ActionButtonLabel/font_sizes/font_size = 18
+ActionButtonLabel/fonts/font = ExtResource("2_medium")
+ActionButtonMeta/base_type = &"Label"
+ActionButtonMeta/colors/font_color = Color(0.7, 0.68, 0.65, 1)
+ActionButtonMeta/font_sizes/font_size = 18
 BriefingText/base_type = &"RichTextLabel"
 BriefingText/colors/default_color = Color(0.85, 0.82, 0.78, 1)
 BriefingText/font_sizes/font_size = 20
@@ -244,13 +273,15 @@ ListButton/base_type = &"Button"
 ListButton/colors/font_color = Color(0.7, 0.68, 0.65, 1)
 ListButton/colors/font_disabled_color = Color(0.38, 0.36, 0.33, 1)
 ListButton/colors/font_hover_color = Color(1, 0.95, 0.88, 1)
+ListButton/colors/font_hover_pressed_color = Color(1, 0.95, 0.88, 1)
 ListButton/colors/font_pressed_color = Color(1, 0.95, 0.88, 1)
 ListButton/font_sizes/font_size = 18
 ListButton/styles/disabled = SubResource("StyleBoxFlat_0wthw")
 ListButton/styles/focus = SubResource("StyleBoxEmpty_dagba")
 ListButton/styles/hover = SubResource("StyleBoxFlat_xtbu8")
-ListButton/styles/normal = SubResource("StyleBoxFlat_hf3i3")
-ListButton/styles/pressed = SubResource("StyleBoxFlat_1nr78")
+ListButton/styles/hover_pressed = SubResource("StyleBoxFlat_hf3i3")
+ListButton/styles/normal = SubResource("StyleBoxFlat_1nr78")
+ListButton/styles/pressed = SubResource("StyleBoxFlat_7adcq")
 MenuButton/font_sizes/font_size = 22
 MetadataLabel/base_type = &"Label"
 MetadataLabel/colors/font_color = Color(0.5, 0.48, 0.45, 1)

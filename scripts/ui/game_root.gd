@@ -644,10 +644,10 @@ func _style_notification_button() -> void:
 ## Styles the left zone labels with appropriate sizes and colors.
 func _style_left_zone() -> void:
 	day_label.add_theme_font_size_override("font_size", UIFonts.SIZE_SECTION)
-	day_label.add_theme_color_override("font_color", UIColors.TEXT_SECTION_HEADER)
+	day_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 
 	actions_label.add_theme_font_size_override("font_size", UIFonts.SIZE_TITLE)
-	actions_label.add_theme_color_override("font_color", UIColors.TEXT_SECTION_HEADER)
+	actions_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 
 	phase_icon.add_theme_font_override("font", icon_font)
 	phase_icon.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON_GLOW)

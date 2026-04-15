@@ -33,6 +33,7 @@ static func apply_tokens(theme: Theme) -> void:
 	_apply_button_tokens(theme)
 	_apply_primary_button_tokens(theme)
 	_apply_list_button_tokens(theme)
+	_apply_action_button_tokens(theme)
 	_apply_label_tokens(theme)
 	_apply_variation_tokens(theme)
 	_apply_scene_variation_tokens(theme)
@@ -55,23 +56,26 @@ static func _apply_primary_button_tokens(theme: Theme) -> void:
 
 
 static func _apply_list_button_tokens(theme: Theme) -> void:
-	theme.set_color("font_color", "ListButton", UI_COLORS.TEXT_SECTION_HEADER)
+	theme.set_color("font_color", "ListButton", UI_COLORS.TEXT_SECONDARY)
 	theme.set_color("font_hover_color", "ListButton", UI_COLORS.TEXT_HOVER)
 	theme.set_color("font_pressed_color", "ListButton", UI_COLORS.TEXT_HOVER)
+	theme.set_color("font_hover_pressed_color", "ListButton", UI_COLORS.TEXT_HOVER)
 	theme.set_color("font_disabled_color", "ListButton", UI_COLORS.TEXT_DISABLED)
 	theme.set_font_size("font_size", "ListButton", UI_FONTS.SIZE_SECTION)
 
 	var normal_style: StyleBoxFlat = _create_list_button_style(
 		Color(UI_COLORS.BG_SURFACE.r, UI_COLORS.BG_SURFACE.g, UI_COLORS.BG_SURFACE.b, 0.0),
 		UI_COLORS.BORDER_SUBTLE,
-		0, 0, 0, 1
+		0, 0, 0, 1,
+		true
 	)
 	theme.set_stylebox("normal", "ListButton", normal_style)
 
 	var hover_style: StyleBoxFlat = _create_list_button_style(
-		Color(UI_COLORS.BG_SURFACE.r, UI_COLORS.BG_SURFACE.g, UI_COLORS.BG_SURFACE.b, 0.35),
+		Color(UI_COLORS.BG_SURFACE.r, UI_COLORS.BG_SURFACE.g, UI_COLORS.BG_SURFACE.b, 0.0),
 		UI_COLORS.BORDER_SUBTLE,
-		0, 0, 0, 1
+		0, 0, 0, 1,
+		true
 	)
 	theme.set_stylebox("hover", "ListButton", hover_style)
 
@@ -84,11 +88,13 @@ static func _apply_list_button_tokens(theme: Theme) -> void:
 	pressed_style.shadow_size = 5
 	pressed_style.shadow_offset = Vector2(0, 0)
 	theme.set_stylebox("pressed", "ListButton", pressed_style)
+	theme.set_stylebox("hover_pressed", "ListButton", pressed_style.duplicate(true))
 
 	var disabled_style: StyleBoxFlat = _create_list_button_style(
 		Color(UI_COLORS.BG_SURFACE.r, UI_COLORS.BG_SURFACE.g, UI_COLORS.BG_SURFACE.b, 0.0),
 		Color(UI_COLORS.TEXT_DISABLED.r, UI_COLORS.TEXT_DISABLED.g, UI_COLORS.TEXT_DISABLED.b, 0.55),
-		0, 0, 0, 1
+		0, 0, 0, 1,
+		true
 	)
 	theme.set_stylebox("disabled", "ListButton", disabled_style)
 	theme.set_stylebox("focus", "ListButton", StyleBoxEmpty.new())
@@ -100,7 +106,8 @@ static func _create_list_button_style(
 	border_left: int,
 	border_top: int,
 	border_right: int,
-	border_bottom: int
+	border_bottom: int,
+	flat_bottom_corners: bool = false
 ) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
@@ -113,11 +120,27 @@ static func _create_list_button_style(
 	style.content_margin_top = 10.0
 	style.content_margin_right = 12.0
 	style.content_margin_bottom = 10.0
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.expand_margin_left = -6.0
+	style.expand_margin_right = -6.0
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 0 if flat_bottom_corners else 8
+	style.corner_radius_bottom_right = 0 if flat_bottom_corners else 8
 	return style
+
+
+static func _apply_action_button_tokens(theme: Theme) -> void:
+	_set_variation_base(theme, "ActionButtonLabel", "Label")
+	theme.set_color("font_color", "ActionButtonLabel", UI_COLORS.TEXT_PRIMARY)
+	theme.set_font_size("font_size", "ActionButtonLabel", UI_FONTS.SIZE_SECTION)
+
+	var medium_font: Font = theme.get_font("font", "Button")
+	if medium_font != null:
+		theme.set_font("font", "ActionButtonLabel", medium_font)
+
+	_set_variation_base(theme, "ActionButtonMeta", "Label")
+	theme.set_color("font_color", "ActionButtonMeta", UI_COLORS.TEXT_SECONDARY)
+	theme.set_font_size("font_size", "ActionButtonMeta", UI_FONTS.SIZE_SECTION)
 
 
 static func _apply_label_tokens(theme: Theme) -> void:
@@ -133,7 +156,7 @@ static func _apply_variation_tokens(theme: Theme) -> void:
 	theme.set_color("font_color", "PanelHeader", UI_COLORS.TEXT_PRIMARY)
 	theme.set_font_size("font_size", "PanelHeader", UI_FONTS.SIZE_PANEL_HEADER)
 
-	theme.set_color("font_color", "SectionHeader", UI_COLORS.TEXT_SECTION_HEADER)
+	theme.set_color("font_color", "SectionHeader", UI_COLORS.TEXT_SECONDARY)
 	theme.set_font_size("font_size", "SectionHeader", UI_FONTS.SIZE_SECTION)
 
 	theme.set_color("font_color", "MetadataLabel", UI_COLORS.TEXT_GREY)

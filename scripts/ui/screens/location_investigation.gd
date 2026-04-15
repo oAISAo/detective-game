@@ -14,7 +14,11 @@ extends Control
 @onready var detail_description: Label = %DetailDescription
 @onready var detail_state: Label = %DetailState
 @onready var detail_actions: VBoxContainer = %DetailActions
+@onready var action_list: VBoxContainer = %ActionList
 @onready var back_button: Button = %BackButton
+@onready var _left_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/LeftPanel
+@onready var _center_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/CenterPanel
+@onready var _right_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/RightPanel
 
 ## The location being investigated.
 var _location: LocationData = null
@@ -22,12 +26,19 @@ var _location: LocationData = null
 ## The currently selected object ID.
 var _selected_object_id: String = ""
 
-const ACTION_BUTTON_COST_SUFFIX: String = " · 1 Action"
+const ACTION_BUTTON_SCENE: PackedScene = preload("res://scenes/ui/components/action_button.tscn")
+const INSPECT_ACTION_COST: int = 1
+const _PANEL_BORDER_WIDTH: int = 2
+const _PANEL_BORDER_COLOR: Color = Color(0.7, 0.68, 0.65, 0.45)
+const _PANEL_CORNER_RADIUS: int = 14
+const _OBJECT_LIST_TOP_PADDING: int = 6
 
 
 func _ready() -> void:
 	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
+	_apply_panel_styles()
+	_apply_scene_image_clip()
 
 	var nav_data: Dictionary = ScreenManager.navigation_data
 	var location_id: String = nav_data.get("location_id", "")
@@ -92,6 +103,11 @@ func _populate_objects() -> void:
 		object_list.add_child(empty)
 		return
 
+	# Top spacer so first item's selection shadow is visible
+	var spacer: Control = Control.new()
+	spacer.custom_minimum_size.y = _OBJECT_LIST_TOP_PADDING
+	object_list.add_child(spacer)
+
 	for obj: InvestigableObjectData in _location.investigable_objects:
 		var btn: Button = Button.new()
 		UIHelper.apply_list_button_style(btn, obj.id == _selected_object_id, HORIZONTAL_ALIGNMENT_LEFT)
@@ -140,30 +156,35 @@ func _show_object_detail(object_id: String) -> void:
 
 ## Populates action buttons for the selected object.
 func _populate_action_buttons(obj: InvestigableObjectData) -> void:
-	for child: Node in detail_actions.get_children():
-		detail_actions.remove_child(child)
+	for child: Node in action_list.get_children():
+		action_list.remove_child(child)
 		child.queue_free()
 
 	# Visual inspection / Examine button
 	var has_visual: bool = "visual_inspection" in obj.available_actions
 	var has_examine: bool = "examine_device" in obj.available_actions
 	if has_visual or has_examine:
-		var inspect_btn: Button = Button.new()
-		var base_text: String = "🔍 Examine" if has_examine else "👁 Visual Inspection"
-		inspect_btn.text = "%s%s" % [base_text, ACTION_BUTTON_COST_SUFFIX]
+		var inspect_btn: Control = ACTION_BUTTON_SCENE.instantiate() as Control
+		if inspect_btn == null:
+			push_error("[LocationInvestigation] Failed to instantiate ActionButton scene")
+			return
+
+		var inspect_text: String = "Examine" if has_examine else "Visual Inspection"
+		inspect_btn.set("action_text", inspect_text)
+		inspect_btn.set("action_cost", INSPECT_ACTION_COST)
 
 		var already_done: bool = false
 		var actions: Array = LocationInvestigationManager.get_performed_actions(_location.id, obj.id)
 		already_done = "visual_inspection" in actions
 
 		if already_done:
-			inspect_btn.text += " (done)"
-			inspect_btn.disabled = true
+			inspect_btn.set("action_text", "%s (done)" % inspect_text)
+			inspect_btn.set("disabled", true)
 		elif not GameManager.has_actions_remaining():
-			inspect_btn.disabled = true
+			inspect_btn.set("disabled", true)
 			inspect_btn.tooltip_text = "No actions remaining today. End the day to continue."
-		inspect_btn.pressed.connect(_on_inspect_pressed.bind(obj.id))
-		detail_actions.add_child(inspect_btn)
+		inspect_btn.connect("pressed", Callable(self, "_on_inspect_pressed").bind(obj.id))
+		action_list.add_child(inspect_btn)
 
 
 ## Handles visual inspection action.
@@ -207,8 +228,8 @@ func _clear_detail() -> void:
 	detail_description.text = "Choose an investigation target from the list to view details and available actions."
 
 	# Clear action buttons
-	for child: Node in detail_actions.get_children():
-		detail_actions.remove_child(child)
+	for child: Node in action_list.get_children():
+		action_list.remove_child(child)
 		child.queue_free()
 
 	# Clear clues section
@@ -378,3 +399,48 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 func _on_back_pressed() -> void:
 	LocationInvestigationManager.leave_location()
 	ScreenManager.navigate_back()
+
+
+## Applies border and padding overrides to the three main panels.
+func _apply_panel_styles() -> void:
+	for panel: PanelContainer in [_left_panel, _center_panel, _right_panel]:
+		var style: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate(true) as StyleBoxFlat
+		style.border_width_left = _PANEL_BORDER_WIDTH
+		style.border_width_top = _PANEL_BORDER_WIDTH
+		style.border_width_right = _PANEL_BORDER_WIDTH
+		style.border_width_bottom = _PANEL_BORDER_WIDTH
+		style.border_color = _PANEL_BORDER_COLOR
+		if panel == _center_panel:
+			style.content_margin_left = float(_PANEL_BORDER_WIDTH)
+			style.content_margin_top = float(_PANEL_BORDER_WIDTH)
+			style.content_margin_right = float(_PANEL_BORDER_WIDTH)
+			style.content_margin_bottom = float(_PANEL_BORDER_WIDTH)
+		panel.add_theme_stylebox_override("panel", style)
+
+
+## Clips the center panel's image to the inner rounded shape.
+## Inserts a PanelContainer between CenterPanel and CenterVBox that draws
+## the inner rounded rect (corner_radius - border_width) and uses
+## CLIP_CHILDREN_AND_DRAW to stencil-clip the image to that shape.
+## The outer CenterPanel's border remains fully visible.
+func _apply_scene_image_clip() -> void:
+	var center_vbox: VBoxContainer = _center_panel.get_node("CenterVBox") as VBoxContainer
+
+	var inner_radius: int = _PANEL_CORNER_RADIUS - _PANEL_BORDER_WIDTH
+	var clip_style := StyleBoxFlat.new()
+	clip_style.bg_color = UIColors.BG_SURFACE
+	clip_style.corner_radius_top_left = inner_radius
+	clip_style.corner_radius_top_right = inner_radius
+	clip_style.corner_radius_bottom_left = inner_radius
+	clip_style.corner_radius_bottom_right = inner_radius
+
+	var clip_panel := PanelContainer.new()
+	clip_panel.name = "CenterClip"
+	clip_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	clip_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	clip_panel.add_theme_stylebox_override("panel", clip_style)
+	clip_panel.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+
+	_center_panel.remove_child(center_vbox)
+	clip_panel.add_child(center_vbox)
+	_center_panel.add_child(clip_panel)

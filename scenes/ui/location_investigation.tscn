@@ -33,6 +33,8 @@ layout_mode = 2
 [node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
+custom_minimum_size = Vector2(100, 42)
+size_flags_vertical = 4
 text = "Back"
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
@@ -58,7 +60,7 @@ theme_override_constants/separation = 36
 [node name="LeftPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
+size_flags_stretch_ratio = 0.75
 theme_type_variation = &"SurfacePanel"
 
 [node name="LeftVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel"]
@@ -69,6 +71,7 @@ theme_override_constants/separation = 8
 layout_mode = 2
 text = "INVESTIGATION TARGETS"
 theme_type_variation = &"SectionHeader"
+theme_override_constants/separation = 8
 
 [node name="ObjectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 layout_mode = 2
@@ -78,7 +81,6 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-; theme_override_constants/separation = 4
 
 [node name="CenterPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
@@ -88,7 +90,6 @@ theme_type_variation = &"SurfacePanel"
 
 [node name="CenterVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/CenterPanel"]
 layout_mode = 2
-theme_override_constants/separation = 8
 
 [node name="SceneImage" type="TextureRect" parent="MarginContainer/VBoxContainer/MainColumns/CenterPanel/CenterVBox"]
 unique_name_in_owner = true
@@ -100,7 +101,7 @@ stretch_mode = 6
 [node name="RightPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
+size_flags_stretch_ratio = 0.75
 theme_type_variation = &"SurfacePanel"
 
 [node name="RightVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel"]
@@ -144,5 +145,17 @@ autowrap_mode = 3
 [node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ActionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ActionList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions/ActionMargin"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6

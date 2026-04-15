@@ -52,10 +52,7 @@ const TEXT_HOVER: Color = Color(1, 0.95, 0.88)
 const TEXT_HIGHLIGHTED: Color = Color(0.7, 0.65, 0.6)
 
 ## Secondary text — hints, supplementary info, subtitles.
-const TEXT_SECONDARY: Color = Color(0.6, 0.55, 0.4)
-
-## Section header text — stronger than secondary, softer than primary.
-const TEXT_SECTION_HEADER: Color = Color(0.7, 0.68, 0.65)
+const TEXT_SECONDARY: Color = Color(0.7, 0.68, 0.65)
 
 ## Muted text — disabled states, placeholders, metadata.
 const TEXT_GREY: Color = Color(0.5, 0.48, 0.45)

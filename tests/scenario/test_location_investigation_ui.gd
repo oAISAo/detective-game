@@ -445,6 +445,50 @@ func test_location_scene_has_no_forensic_tools_section() -> void:
 	instance.queue_free()
 
 
+# Test: Detail inspect action uses reusable ActionButton component
+func test_detail_action_uses_reusable_action_button_component() -> void:
+	ScreenManager.navigation_data = {"location_id": "loc_hallway"}
+
+	var scene: PackedScene = load("res://scenes/ui/location_investigation.tscn") as PackedScene
+	assert_not_null(scene, "Location investigation scene should load")
+	if scene == null:
+		return
+
+	var instance: Control = scene.instantiate() as Control
+	assert_not_null(instance, "Location investigation scene should instantiate")
+	if instance == null:
+		return
+
+	add_child_autofree(instance)
+	instance._on_object_selected("obj_security_system")
+
+	var action_list: VBoxContainer = instance.get_node_or_null(
+		"MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions/ActionMargin/ActionList"
+	) as VBoxContainer
+	assert_not_null(action_list, "ActionList container should exist")
+	if action_list == null:
+		return
+
+	assert_eq(action_list.get_child_count(), 1, "Selected object should expose one inspect action")
+	if action_list.get_child_count() < 1:
+		return
+
+	var action_control: Control = action_list.get_child(0) as Control
+	assert_not_null(action_control, "Inspect action control should be created")
+	if action_control == null:
+		return
+
+	assert_eq(
+		action_control.get_script().resource_path,
+		"res://scripts/ui/components/action_button.gd",
+		"Inspect action should instantiate the reusable ActionButton component"
+	)
+	assert_eq(action_control.get("action_text"), "Examine")
+	assert_eq(action_control.get("action_cost"), 1)
+
+	ScreenManager.navigation_data = {}
+
+
 # Test: Multiple locations can be loaded and investigated independently
 func test_multiple_locations_support() -> void:
 	# Hallway
