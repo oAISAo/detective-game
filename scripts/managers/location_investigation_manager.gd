@@ -297,31 +297,6 @@ func get_object_display_status(location_id: String, object_id: String) -> Enums.
 	return Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
 
 
-## Returns the derived display status hint text for an object.
-## Provides state-aware investigation messaging for the UI detail panel.
-func get_object_status_hint(location_id: String, object_id: String) -> String:
-	var status: Enums.ObjectDisplayStatus = get_object_display_status(location_id, object_id)
-	match status:
-		Enums.ObjectDisplayStatus.NOT_INSPECTED:
-			return "This area has not been examined yet."
-		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
-			# Check if this object has lab-eligible evidence that hasn't been submitted
-			var object_data: InvestigableObjectData = _get_object(location_id, object_id)
-			if object_data:
-				for ev_id: String in object_data.evidence_results:
-					var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-					if lab_req and GameManager.has_evidence(ev_id):
-						var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-						if ev and ev.lab_status == Enums.LabStatus.NOT_SUBMITTED:
-							return "Evidence recovered. Review it in the Evidence tab and submit it for forensic analysis."
-			return "Review related items in the Evidence tab for additional analysis."
-		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
-			return "Forensic analysis is in progress. Results will arrive in a future briefing."
-		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
-			return "No further leads are currently available at this target."
-	return ""
-
-
 ## Returns whether any object at a location has evidence pending in the lab.
 func has_pending_lab_at_location(location_id: String) -> bool:
 	var location: LocationData = CaseManager.get_location(location_id)

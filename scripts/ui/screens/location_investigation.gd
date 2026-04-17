@@ -11,6 +11,7 @@ extends Control
 @onready var scene_image: TextureRect = %SceneImage
 @onready var detail_panel: VBoxContainer = %DetailPanel
 @onready var detail_title: Label = %DetailTitle
+@onready var detail_description_margin: MarginContainer = %DetailDescriptionMargin
 @onready var detail_description: Label = %DetailDescription
 @onready var detail_state: Label = %DetailState
 @onready var detail_actions: VBoxContainer = %DetailActions
@@ -32,6 +33,16 @@ const _PANEL_BORDER_WIDTH: int = 2
 const _PANEL_BORDER_COLOR: Color = Color(0.7, 0.68, 0.65, 0.45)
 const _PANEL_CORNER_RADIUS: int = 14
 const _OBJECT_LIST_TOP_PADDING: int = 6
+const _SECTION_SPACING: int = 18
+const _CLUES_GRID_COLUMNS: int = 3
+const _CLUES_GRID_SEPARATION: int = 10
+const _CLUES_HEADER_BOTTOM_MARGIN: int = 8
+const _POLAROID_CORNER_RADIUS: int = 6
+const _POLAROID_PADDING: int = 4
+const _POLAROID_BOTTOM_PADDING: int = 10
+const _POLAROID_IMAGE_MIN_HEIGHT: int = 120
+const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
+var _handwriting_font: Font = null
 
 
 func _ready() -> void:
@@ -39,6 +50,7 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	_apply_panel_styles()
 	_apply_scene_image_clip()
+	_handwriting_font = _load_handwriting_font()
 
 	var nav_data: Dictionary = ScreenManager.navigation_data
 	var location_id: String = nav_data.get("location_id", "")
@@ -232,11 +244,17 @@ func _clear_detail() -> void:
 		action_list.remove_child(child)
 		child.queue_free()
 
-	# Clear clues section
-	var existing: Node = detail_panel.get_node_or_null("CluesSection")
-	if existing:
-		detail_panel.remove_child(existing)
-		existing.queue_free()
+	# Clear clues section and its spacer
+	_remove_clues_section()
+
+
+## Removes any dynamically added nodes after DetailActions (spacer + CluesSection).
+func _remove_clues_section() -> void:
+	var actions_idx: int = detail_actions.get_index()
+	while actions_idx + 1 < detail_panel.get_child_count():
+		var next: Node = detail_panel.get_child(actions_idx + 1)
+		detail_panel.remove_child(next)
+		next.queue_free()
 
 
 func _apply_detail_placeholder_layout() -> void:
@@ -244,6 +262,8 @@ func _apply_detail_placeholder_layout() -> void:
 	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	detail_state.visible = false
 	detail_state.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_description_margin.add_theme_constant_override("margin_top", 0)
+	detail_description_margin.add_theme_constant_override("margin_bottom", 0)
 	detail_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	detail_description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	detail_description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -255,10 +275,12 @@ func _apply_detail_target_layout() -> void:
 	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	detail_state.visible = true
 	detail_state.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	detail_description_margin.add_theme_constant_override("margin_top", 20)
 	detail_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	detail_description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	detail_description.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	detail_actions.visible = true
+	detail_description_margin.add_theme_constant_override("margin_bottom", _SECTION_SPACING)
 
 
 ## Builds a styled placeholder for the center scene panel when no art exists.
@@ -318,62 +340,40 @@ func _find_object(object_id: String) -> InvestigableObjectData:
 	return null
 
 
-## Populates the "Clues found in this area" section and investigation messaging
-## for the selected object. Always shows the section with appropriate empty/populated state.
+## Populates the "Clues found in this area" section below the action buttons.
+## Each discovered clue is displayed as a polaroid-style card with image and text.
 func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
-	# Remove previous clues section if any — must remove from tree immediately
+	# Remove previous clues section and spacer — must remove from tree immediately
 	# to avoid stale nodes interfering with layout and child indexing.
-	var existing: Node = detail_panel.get_node_or_null("CluesSection")
-	if existing:
-		detail_panel.remove_child(existing)
-		existing.queue_free()
+	_remove_clues_section()
 
-	var section: VBoxContainer = VBoxContainer.new()
-	section.name = "CluesSection"
-	section.add_theme_constant_override("separation", 4)
-
-	# Investigation state message — always shown
-	var display_status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(_location.id, obj.id)
-	var hint_text: String = LocationInvestigationManager.get_object_status_hint(_location.id, obj.id)
-	var hint_color: Color = UIColors.TEXT_SECONDARY
-	match display_status:
-		Enums.ObjectDisplayStatus.NOT_INSPECTED:
-			hint_color = UIColors.TEXT_GREY
-		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED:
-			hint_color = UIColors.AMBER
-		Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS:
-			hint_color = UIColors.BLUE
-		Enums.ObjectDisplayStatus.FULLY_PROCESSED:
-			hint_color = UIColors.GREEN
-
-	if not hint_text.is_empty():
-		var hint_label: Label = Label.new()
-		hint_label.text = hint_text
-		hint_label.add_theme_color_override("font_color", hint_color)
-		hint_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-		hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		section.add_child(hint_label)
-
-	# Check which evidence from this object has been discovered (or upgraded)
-	var found_clues: Array[Dictionary] = []
+	# Collect discovered evidence for this object
+	var found_clues: Array[EvidenceData] = []
 	for ev_id: String in obj.evidence_results:
 		if GameManager.has_evidence(ev_id):
 			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-			found_clues.append({"id": ev_id, "name": ev.name if ev else ev_id})
+			if ev:
+				found_clues.append(ev)
 		else:
-			# Check if this raw evidence was upgraded to analyzed
 			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
 			if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
 				var ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
-				found_clues.append({"id": lab_req.output_evidence_id, "name": ev.name if ev else lab_req.output_evidence_id})
+				if ev:
+					found_clues.append(ev)
 
-	# Clues found header
+	var section: VBoxContainer = VBoxContainer.new()
+	section.name = "CluesSection"
+	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	section.add_theme_constant_override("separation", _CLUES_GRID_SEPARATION)
+
+	# Clues discovered header
+	var header_margin: MarginContainer = MarginContainer.new()
+	header_margin.add_theme_constant_override("margin_bottom", _CLUES_HEADER_BOTTOM_MARGIN)
 	var header: Label = Label.new()
-	header.text = "CLUES FOUND HERE"
-	header.theme_type_variation = &"MetadataLabel"
-	header.add_theme_color_override("font_color", UIColors.TEXT_HIGHLIGHTED)
-	header.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-	section.add_child(header)
+	header.text = "CLUES DISCOVERED"
+	header.theme_type_variation = &"SectionHeader"
+	header_margin.add_child(header)
+	section.add_child(header_margin)
 
 	if found_clues.is_empty():
 		var empty_label: Label = Label.new()
@@ -383,16 +383,100 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		section.add_child(empty_label)
 	else:
-		for clue: Dictionary in found_clues:
-			var clue_label: Label = Label.new()
-			clue_label.text = "  - %s" % clue["name"]
-			clue_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-			clue_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-			clue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			section.add_child(clue_label)
+		var scroll: ScrollContainer = ScrollContainer.new()
+		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+
+		var grid: GridContainer = GridContainer.new()
+		grid.columns = _CLUES_GRID_COLUMNS
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", _CLUES_GRID_SEPARATION)
+		grid.add_theme_constant_override("v_separation", _CLUES_GRID_SEPARATION)
+
+		for ev: EvidenceData in found_clues:
+			var card: PanelContainer = _build_polaroid_card(ev)
+			grid.add_child(card)
+
+		scroll.add_child(grid)
+		section.add_child(scroll)
+
+	# Add spacing margin above the section
+	var spacer: Control = Control.new()
+	spacer.custom_minimum_size.y = _SECTION_SPACING
+	detail_panel.add_child(spacer)
+	detail_panel.move_child(spacer, detail_actions.get_index() + 1)
 
 	detail_panel.add_child(section)
-	detail_panel.move_child(section, detail_description.get_index() + 1)
+	detail_panel.move_child(section, spacer.get_index() + 1)
+
+
+## Builds a single polaroid-style card for a piece of evidence.
+## Layout: light rounded panel → image area → name label.
+func _build_polaroid_card(ev: EvidenceData) -> PanelContainer:
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = UIColors.POLAROID_BG
+	card_style.corner_radius_top_left = _POLAROID_CORNER_RADIUS
+	card_style.corner_radius_top_right = _POLAROID_CORNER_RADIUS
+	card_style.corner_radius_bottom_left = _POLAROID_CORNER_RADIUS
+	card_style.corner_radius_bottom_right = _POLAROID_CORNER_RADIUS
+	card_style.content_margin_left = _POLAROID_PADDING
+	card_style.content_margin_top = _POLAROID_PADDING
+	card_style.content_margin_right = _POLAROID_PADDING
+	card_style.content_margin_bottom = _POLAROID_BOTTOM_PADDING
+
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", card_style)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+
+	# Evidence image
+	if not ev.image.is_empty() and ResourceLoader.exists(ev.image):
+		var img_clip := Control.new()
+		img_clip.clip_contents = true
+		img_clip.custom_minimum_size.y = _POLAROID_IMAGE_MIN_HEIGHT
+		img_clip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		img_clip.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var img := TextureRect.new()
+		img.texture = load(ev.image)
+		img.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		img_clip.add_child(img)
+		vbox.add_child(img_clip)
+	else:
+		var placeholder := ColorRect.new()
+		placeholder.color = UIColors.POLAROID_IMAGE_PLACEHOLDER_BG
+		placeholder.custom_minimum_size.y = _POLAROID_IMAGE_MIN_HEIGHT
+		placeholder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		placeholder.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		vbox.add_child(placeholder)
+
+	# Evidence name (handwriting font)
+	var name_label := Label.new()
+	name_label.text = ev.name
+	name_label.add_theme_color_override("font_color", UIColors.POLAROID_TEXT_TITLE)
+	name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
+	if _handwriting_font:
+		name_label.add_theme_font_override("font", _handwriting_font)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.custom_minimum_size.y = UIFonts.SIZE_BODY * 2.6
+	vbox.add_child(name_label)
+
+	card.add_child(vbox)
+	return card
+
+
+## Loads the handwriting font used for polaroid clue labels.
+func _load_handwriting_font() -> Font:
+	if ResourceLoader.exists(_HANDWRITING_FONT_PATH):
+		return load(_HANDWRITING_FONT_PATH) as Font
+	push_warning("[LocationInvestigation] Handwriting font not found: %s" % _HANDWRITING_FONT_PATH)
+	return null
 
 
 ## Navigates back to location map.

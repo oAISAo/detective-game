@@ -197,7 +197,7 @@ static func _apply_scene_variation_tokens(theme: Theme) -> void:
 	theme.set_font_size("font_size", "EmptyStateLabel", UI_FONTS.SIZE_BODY)
 
 	theme.set_color("font_color", "DetailStateLabel", UI_COLORS.TEXT_GREY)
-	theme.set_font_size("font_size", "DetailStateLabel", UI_FONTS.SIZE_DETAIL)
+	theme.set_font_size("font_size", "DetailStateLabel", UI_FONTS.SIZE_BODY)
 
 	theme.set_color("font_color", "WarningLabel", UI_COLORS.AMBER_WARNING)
 	theme.set_font_size("font_size", "WarningLabel", UI_FONTS.SIZE_CALLOUT)

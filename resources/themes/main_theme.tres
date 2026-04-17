@@ -1,9 +1,9 @@
-[gd_resource type="Theme" format=3]
+[gd_resource type="Theme" format=3 uid="uid://cnqeofmdqkwli"]
 
-[ext_resource type="FontFile" path="res://assets/fonts/Inter-Regular.ttf" id="1_regular"]
-[ext_resource type="FontFile" path="res://assets/fonts/Inter-Medium.ttf" id="2_medium"]
-[ext_resource type="FontFile" path="res://assets/fonts/Inter-SemiBold.ttf" id="3_semibold"]
-[ext_resource type="FontFile" path="res://assets/fonts/Inter-Bold.ttf" id="4_bold"]
+[ext_resource type="FontFile" uid="uid://blt4gepxn6l6r" path="res://assets/fonts/Inter-Regular.ttf" id="1_regular"]
+[ext_resource type="FontFile" uid="uid://cqx8qn4so8c2g" path="res://assets/fonts/Inter-Medium.ttf" id="2_medium"]
+[ext_resource type="FontFile" uid="uid://8er3mm4kbh06" path="res://assets/fonts/Inter-SemiBold.ttf" id="3_semibold"]
+[ext_resource type="FontFile" uid="uid://dwufoi8weuo2o" path="res://assets/fonts/Inter-Bold.ttf" id="4_bold"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_disabled"]
 content_margin_left = 24.0
@@ -258,7 +258,7 @@ DebugMenuButton/colors/font_pressed_color = Color(0.7, 0.65, 0.6, 1)
 DebugMenuButton/font_sizes/font_size = 22
 DetailStateLabel/base_type = &"Label"
 DetailStateLabel/colors/font_color = Color(0.5, 0.48, 0.45, 1)
-DetailStateLabel/font_sizes/font_size = 13
+DetailStateLabel/font_sizes/font_size = 16
 EmptyStateLabel/base_type = &"Label"
 EmptyStateLabel/colors/font_color = Color(0.5, 0.48, 0.45, 1)
 EmptyStateLabel/font_sizes/font_size = 16

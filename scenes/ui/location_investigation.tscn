@@ -130,7 +130,11 @@ text = ""
 theme_type_variation = &"DetailStateLabel"
 horizontal_alignment = 1
 
-[node name="DetailDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="DetailDescriptionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DetailDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailDescriptionMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
