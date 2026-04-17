@@ -66,7 +66,7 @@ func _on_location_pressed(location_id: String) -> void:
 
 ## Navigates to the location investigation screen.
 func _navigate_to_location(location_id: String) -> void:
-	var result: Dictionary = LocationInvestigationManager.start_map_investigation(location_id)
+	var result: Dictionary = LocationInvestigationManager.start_investigation(location_id)
 	if not result.get("success", false):
 		_show_start_failure_message(result)
 		return

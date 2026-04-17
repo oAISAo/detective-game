@@ -57,6 +57,13 @@ static func safe_disconnect(sig: Signal, callable: Callable) -> void:
 		sig.disconnect(callable)
 
 
+## Removes and frees all children of a node.
+static func clear_children(parent: Node) -> void:
+	for child: Node in parent.get_children():
+		parent.remove_child(child)
+		child.queue_free()
+
+
 ## Creates and adds a styled section header label to a parent container.
 ## Uses the SectionHeader theme type variation and uppercases the text.
 static func add_section_header(text: String, parent: Control) -> void:

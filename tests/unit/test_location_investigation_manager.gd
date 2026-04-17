@@ -179,16 +179,16 @@ func after_all() -> void:
 
 func test_first_visit_is_free() -> void:
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_true(result, "First visit should succeed")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "First visit should succeed")
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Location entry should be free")
 	assert_true(GameManager.has_visited_location("loc_apt"))
 
 
 func test_first_visit_with_no_actions_still_succeeds() -> void:
 	GameManager.actions_remaining = 0
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_true(result, "Location entry should succeed even when no actions remain")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "Location entry should succeed even when no actions remain")
 	assert_true(GameManager.has_visited_location("loc_apt"))
 
 
@@ -196,8 +196,8 @@ func test_new_location_visit_with_no_actions_still_succeeds() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	GameManager.actions_remaining = 0
-	var result: bool = _loc_inv_mgr.start_investigation("loc_hallway")
-	assert_true(result, "New location visit should stay free")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_hallway")
+	assert_true(result.get("success", false), "New location visit should stay free")
 	assert_true(GameManager.has_visited_location("loc_hallway"))
 
 
@@ -205,8 +205,8 @@ func test_return_visit_is_free() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_true(result)
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false))
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Return visit should be free")
 
 
@@ -214,19 +214,19 @@ func test_return_visit_with_no_actions_still_succeeds() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	GameManager.actions_remaining = 0
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_true(result, "Revisits should remain free")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "Revisits should remain free")
 
 
 func test_invalid_location_fails() -> void:
-	var result: bool = _loc_inv_mgr.start_investigation("loc_nonexistent")
-	assert_false(result)
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_nonexistent")
+	assert_false(result.get("success", true))
 	assert_push_error("Unknown location: loc_nonexistent")
 
 
-func test_start_investigation_with_result_returns_free_entry_context() -> void:
+func test_start_investigation_returns_free_entry_context() -> void:
 	GameManager.actions_remaining = 0
-	var result: Dictionary = _loc_inv_mgr.start_investigation_with_result("loc_apt")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
 	assert_true(result.get("success", false), "Free entry should succeed with no actions")
 	assert_eq(
 		result.get("error_code", ""),
@@ -236,14 +236,11 @@ func test_start_investigation_with_result_returns_free_entry_context() -> void:
 		result.get("error_message", ""),
 		""
 	)
-	assert_eq(result.get("action_cost", -1), 0)
 	assert_true(result.get("is_first_visit", false))
-	assert_false(result.has("visit_mode"))
-	assert_false(result.has("full_investigation"))
 
 
-func test_start_investigation_with_result_invalid_location_has_structured_error() -> void:
-	var result: Dictionary = _loc_inv_mgr.start_investigation_with_result("loc_nonexistent")
+func test_start_investigation_invalid_location_has_structured_error() -> void:
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_nonexistent")
 	assert_push_error("Unknown location: loc_nonexistent")
 	assert_false(result.get("success", true))
 	assert_eq(
@@ -254,24 +251,6 @@ func test_start_investigation_with_result_invalid_location_has_structured_error(
 		result.get("error_message", ""),
 		LocationInvestigationManager.START_ERROR_MESSAGE_UNKNOWN_LOCATION
 	)
-	var last: Dictionary = _loc_inv_mgr.get_last_start_investigation_result()
-	assert_eq(
-		last.get("error_code", ""),
-		LocationInvestigationManager.START_ERROR_UNKNOWN_LOCATION
-	)
-
-
-func test_start_map_investigation_uses_manager_policy() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	_loc_inv_mgr.leave_location()
-	GameManager.actions_remaining = 1
-
-	var result: Dictionary = _loc_inv_mgr.start_map_investigation("loc_apt")
-	assert_true(result.get("success", false), "Map policy visit should succeed with one action")
-	assert_eq(result.get("action_cost", -1), 0)
-	assert_false(result.has("visit_mode"))
-	assert_false(result.has("full_investigation"))
-	assert_eq(GameManager.actions_remaining, 1, "Map policy should not spend an action on location entry")
 
 
 func test_investigation_started_signal() -> void:

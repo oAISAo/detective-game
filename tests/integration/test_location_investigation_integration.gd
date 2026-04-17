@@ -482,8 +482,8 @@ func after_all() -> void:
 
 func test_visit_examine_discover_flow() -> void:
 	# Arrive at location
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment")
-	assert_true(result, "Should start investigation")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apartment")
+	assert_true(result.get("success", false), "Should start investigation")
 
 	# See objects — check they exist
 	var location: LocationData = CaseManager.get_location("loc_apartment")
@@ -633,8 +633,8 @@ func test_investigation_actions_cost_economy() -> void:
 		GameManager.use_action()
 
 	# Visits are still free, but investigation actions should fail when no slots remain.
-	var visit_result: bool = _loc_inv_mgr.start_investigation("loc_parking")
-	assert_true(visit_result, "Should still allow visiting with no actions")
+	var visit_result: Dictionary = _loc_inv_mgr.start_investigation("loc_parking")
+	assert_true(visit_result.get("success", false), "Should still allow visiting with no actions")
 	var investigation_result: Array[String] = _loc_inv_mgr.inspect_object("loc_parking", "obj_parking_camera")
 	assert_eq(investigation_result.size(), 0, "Investigation action should fail with no actions remaining")
 
@@ -645,8 +645,8 @@ func test_revisit_is_free_but_investigation_costs_action() -> void:
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 
 	# Revisit should stay free.
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment")
-	assert_true(result, "Revisit should succeed")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apartment")
+	assert_true(result.get("success", false), "Revisit should succeed")
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Revisit should be free")
 
 	# Investigation action still costs one slot on revisit.

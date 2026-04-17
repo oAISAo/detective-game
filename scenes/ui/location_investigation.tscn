@@ -112,54 +112,76 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
-alignment = 1
 
-[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="PlaceholderState" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Select an object"
+size_flags_vertical = 3
+alignment = 1
+
+[node name="PlaceholderTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/PlaceholderState"]
+layout_mode = 2
+text = "Select a target"
 theme_type_variation = &"PanelHeader"
 horizontal_alignment = 1
 
-[node name="DetailState" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = ""
-theme_type_variation = &"DetailStateLabel"
-horizontal_alignment = 1
-
-[node name="DetailDescriptionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="DetailDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailDescriptionMargin"]
-unique_name_in_owner = true
+[node name="PlaceholderDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/PlaceholderState"]
 layout_mode = 2
 size_flags_vertical = 4
-bbcode_enabled = true
-fit_content = true
-text = ""
+text = "Choose an investigation target from the list to view details and available actions."
 theme_type_variation = &"SectionText"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="TargetState" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_type_variation = &"PanelHeader"
+
+[node name="DetailState" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_type_variation = &"DetailStateLabel"
+
+[node name="DetailDescriptionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="DetailDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState/DetailDescriptionMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+bbcode_enabled = true
+fit_content = true
+text = ""
+theme_type_variation = &"SectionText"
+autowrap_mode = 3
+
+[node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ActionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions"]
+[node name="ActionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState/DetailActions"]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="ActionList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions/ActionMargin"]
+[node name="ActionList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState/DetailActions/ActionMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6

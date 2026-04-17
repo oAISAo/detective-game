@@ -2,6 +2,9 @@
 ## Manages runtime investigation state at locations.
 ## Tracks per-object investigation states, handles evidence discovery from objects,
 ## manages location visit accounting (first visit vs return), and calculates completion.
+##
+## Dependencies: CaseManager (location/evidence/lab-request lookups),
+## GameManager (evidence discovery, action slots, visit tracking).
 extends BaseSubsystem
 
 
@@ -14,6 +17,11 @@ const START_ERROR_UNKNOWN_LOCATION: String = "unknown_location"
 ## User-facing fallback messages for investigation start failures.
 const START_ERROR_MESSAGE_UNKNOWN_LOCATION: String = "This location is unavailable right now."
 const INVESTIGATION_ERROR_MESSAGE_NO_ACTIONS: String = "You have no actions remaining today. Use 'End Day' to proceed."
+
+## Canonical action identifiers used for tracking performed actions.
+const ACTION_VISUAL_INSPECTION: String = "visual_inspection"
+const ACTION_EXAMINE_DEVICE: String = "examine_device"
+const ACTION_TOOL_PREFIX: String = "tool:"
 
 ## Location-level status values for map-facing UI and logs.
 const LOCATION_STATUS_NEW: String = "new"
@@ -55,9 +63,6 @@ var _performed_actions: Dictionary = {}
 ## Whether the player is currently at a location.
 var current_location_id: String = ""
 
-## Last structured result from start_investigation_with_result.
-var _last_start_investigation_result: Dictionary = {}
-
 
 # --- Lifecycle --- #
 
@@ -70,69 +75,40 @@ func reset() -> void:
 	_object_states.clear()
 	_performed_actions.clear()
 	current_location_id = ""
-	_last_start_investigation_result.clear()
 
 
 # --- Location Visit --- #
 
 ## Starts investigation at a location.
 ## Location entry is free; investigation actions spend slots on the detail screen.
-## Returns true if investigation started successfully.
-func start_investigation(location_id: String) -> bool:
-	var result: Dictionary = start_investigation_with_result(location_id)
-	return result.get("success", false)
-
-
-## Starts an investigation and returns a structured result.
-## Result fields:
-## - success: bool
-## - error_code: String
-## - error_message: String
-## - location_id: String
-## - is_first_visit: bool
-## - action_cost: int
-func start_investigation_with_result(location_id: String) -> Dictionary:
+## Returns a structured result: { success, error_code, error_message, location_id, is_first_visit }.
+func start_investigation(location_id: String) -> Dictionary:
 	var location: LocationData = CaseManager.get_location(location_id)
 	if location == null:
 		push_error("[LocationInvestigationManager] Unknown location: %s" % location_id)
-		return _record_start_result(_build_start_result(
-			false,
-			START_ERROR_UNKNOWN_LOCATION,
-			START_ERROR_MESSAGE_UNKNOWN_LOCATION,
-			location_id,
-			false,
-			0
-		))
+		return {
+			"success": false,
+			"error_code": START_ERROR_UNKNOWN_LOCATION,
+			"error_message": START_ERROR_MESSAGE_UNKNOWN_LOCATION,
+			"location_id": location_id,
+			"is_first_visit": false,
+		}
 
 	var is_first_visit: bool = not GameManager.has_visited_location(location_id)
-	var action_cost: int = _get_visit_action_cost()
+	if is_first_visit:
+		GameManager.visit_location(location_id)
 
-	_apply_visit_cost(location_id, is_first_visit, action_cost)
-
-	# Initialize object states if not yet tracked
 	_ensure_location_initialized(location_id)
 
 	current_location_id = location_id
 	investigation_started.emit(location_id, is_first_visit)
-	return _record_start_result(_build_start_result(
-		true,
-		START_ERROR_NONE,
-		"",
-		location_id,
-		is_first_visit,
-		action_cost
-	))
-
-
-## Starts investigation using the map policy.
-## This keeps map action-cost rules owned by the manager.
-func start_map_investigation(location_id: String) -> Dictionary:
-	return start_investigation_with_result(location_id)
-
-
-## Returns the last structured start result.
-func get_last_start_investigation_result() -> Dictionary:
-	return _last_start_investigation_result.duplicate(true)
+	return {
+		"success": true,
+		"error_code": START_ERROR_NONE,
+		"error_message": "",
+		"location_id": location_id,
+		"is_first_visit": is_first_visit,
+	}
 
 
 ## Leaves the current location.
@@ -155,10 +131,10 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 		return []
 
 	var action_key: String = "%s:%s" % [location_id, object_id]
-	if "visual_inspection" in _performed_actions.get(action_key, []):
+	if ACTION_VISUAL_INSPECTION in _performed_actions.get(action_key, []):
 		return []
 
-	var inspectable_actions: Array[String] = ["visual_inspection", "examine_device"]
+	var inspectable_actions: Array[String] = [ACTION_VISUAL_INSPECTION, ACTION_EXAMINE_DEVICE]
 	var has_inspection: bool = false
 	for action: String in object_data.available_actions:
 		if action in inspectable_actions:
@@ -171,13 +147,15 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 	if not _consume_investigation_action("inspection"):
 		return []
 
-	# Record the action — also record any examine_device action so the state
-	# machine counts it as completed.
+	# Record the action. Both visual_inspection and examine_device are treated as
+	# a single "inspection" action — recording both ensures _update_object_state()
+	# correctly counts the inspection as completed regardless of which label the
+	# object uses in available_actions.
 	if action_key not in _performed_actions:
 		_performed_actions[action_key] = []
-	_performed_actions[action_key].append("visual_inspection")
-	if "examine_device" in object_data.available_actions:
-		_performed_actions[action_key].append("examine_device")
+	_performed_actions[action_key].append(ACTION_VISUAL_INSPECTION)
+	if ACTION_EXAMINE_DEVICE in object_data.available_actions:
+		_performed_actions[action_key].append(ACTION_EXAMINE_DEVICE)
 
 	# Discover evidence via inspection (visual_inspection or examine_device)
 	var discovered: Array[String] = []
@@ -209,7 +187,7 @@ func use_tool_on_object(location_id: String, object_id: String, tool_id: String)
 		return []
 
 	var action_key: String = "%s:%s" % [location_id, object_id]
-	var tool_action: String = "tool:%s" % tool_id
+	var tool_action: String = "%s%s" % [ACTION_TOOL_PREFIX, tool_id]
 	if tool_action in _performed_actions.get(action_key, []):
 		return []
 
@@ -341,29 +319,23 @@ func get_suspect_relevance_tags(location_id: String) -> Array[String]:
 		return []
 	var person_ids: Dictionary = {}
 	for ev_id: String in location.evidence_pool:
-		if not GameManager.has_evidence(ev_id):
-			# Check if raw was upgraded
+		if not is_evidence_discovered(ev_id):
+			continue
+		# Resolve the actual evidence object (raw or upgraded)
+		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+		if ev == null:
 			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-			if lab_req == null or not GameManager.has_evidence(lab_req.output_evidence_id):
-				continue
-			# Use the output evidence for related persons
-			var ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
-			if ev:
-				for pid: String in ev.related_persons:
-					if pid != "p_victim":
-						person_ids[pid] = true
-		else:
-			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-			if ev:
-				for pid: String in ev.related_persons:
-					if pid != "p_victim":
-						person_ids[pid] = true
+			if lab_req != null:
+				ev = CaseManager.get_evidence(lab_req.output_evidence_id)
+		if ev:
+			for pid: String in ev.related_persons:
+				if pid != "p_victim":
+					person_ids[pid] = true
 	var names: Array[String] = []
 	for pid: String in person_ids.keys():
 		var person: Resource = CaseManager.get_person(pid)
 		if person:
 			var pname: String = person.get("name") if person.get("name") else pid
-			# Use first name only
 			var parts: PackedStringArray = pname.split(" ")
 			names.append(parts[0])
 	return names
@@ -377,6 +349,14 @@ func get_performed_actions(location_id: String, object_id: String) -> Array:
 
 # --- Location Completion --- #
 
+## Returns true if evidence has been discovered, either directly or via lab upgrade.
+func is_evidence_discovered(ev_id: String) -> bool:
+	if GameManager.has_evidence(ev_id):
+		return true
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+	return lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id)
+
+
 ## Returns the completion counts for a location: { "found": int, "total": int }.
 func get_location_completion(location_id: String) -> Dictionary:
 	var location: LocationData = CaseManager.get_location(location_id)
@@ -388,13 +368,8 @@ func get_location_completion(location_id: String) -> Dictionary:
 	for obj: InvestigableObjectData in location.investigable_objects:
 		total += obj.evidence_results.size()
 		for ev_id: String in obj.evidence_results:
-			if GameManager.has_evidence(ev_id):
+			if is_evidence_discovered(ev_id):
 				found += 1
-			else:
-				# Check if this raw evidence was upgraded to an analyzed version
-				var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-				if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
-					found += 1
 
 	return {"found": found, "total": total}
 
@@ -469,6 +444,11 @@ func _get_object(location_id: String, object_id: String) -> InvestigableObjectDa
 	return null
 
 
+## Public accessor for object data by location and object ID.
+func get_object(location_id: String, object_id: String) -> InvestigableObjectData:
+	return _get_object(location_id, object_id)
+
+
 ## Updates an object's investigation state based on performed actions.
 func _update_object_state(location_id: String, object_id: String, object_data: InvestigableObjectData) -> void:
 	_ensure_location_initialized(location_id)
@@ -484,18 +464,18 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 	# Count inspection action (visual_inspection or examine_device count as one)
 	var has_inspectable: bool = false
 	for action: String in object_data.available_actions:
-		if action == "visual_inspection" or action == "examine_device":
+		if action == ACTION_VISUAL_INSPECTION or action == ACTION_EXAMINE_DEVICE:
 			has_inspectable = true
 			break
 	if has_inspectable:
 		total_actions += 1
-		if "visual_inspection" in actions_done or "examine_device" in actions_done:
+		if ACTION_VISUAL_INSPECTION in actions_done or ACTION_EXAMINE_DEVICE in actions_done:
 			completed_actions += 1
 
 	# Count tool-based actions
 	for tool_req: String in object_data.tool_requirements:
 		total_actions += 1
-		if "tool:%s" % tool_req in actions_done:
+		if "%s%s" % [ACTION_TOOL_PREFIX, tool_req] in actions_done:
 			completed_actions += 1
 
 	var old_state: Enums.InvestigationState = _object_states[location_id].get(
@@ -521,50 +501,12 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 			location_completed.emit(location_id)
 
 
-## Calculates the action cost for a visit based on current visit context.
-func _get_visit_action_cost() -> int:
-	return 0
-
-
-## Applies visit-side effects for action spending and first-visit markers.
-func _apply_visit_cost(location_id: String, is_first_visit: bool, action_cost: int) -> void:
-	if action_cost > 0:
-		GameManager.use_action()
-	if is_first_visit:
-		GameManager.visit_location(location_id)
-
-
 ## Spends one investigation action slot. Returns true when spending succeeded.
 func _consume_investigation_action(action_name: String) -> bool:
 	if not GameManager.has_actions_remaining():
 		push_warning("[LocationInvestigationManager] No actions remaining for %s." % action_name)
 		return false
 	return GameManager.use_action()
-
-
-## Builds a structured start result dictionary.
-func _build_start_result(
-	success: bool,
-	error_code: String,
-	error_message: String,
-	location_id: String,
-	is_first_visit: bool,
-	action_cost: int
-) -> Dictionary:
-	return {
-		"success": success,
-		"error_code": error_code,
-		"error_message": error_message,
-		"location_id": location_id,
-		"is_first_visit": is_first_visit,
-		"action_cost": action_cost,
-	}
-
-
-## Persists the last structured result and returns a copy.
-func _record_start_result(result: Dictionary) -> Dictionary:
-	_last_start_investigation_result = result.duplicate(true)
-	return _last_start_investigation_result.duplicate(true)
 
 
 # --- Serialization --- #

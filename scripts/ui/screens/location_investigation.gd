@@ -10,8 +10,9 @@ extends Control
 @onready var object_list: VBoxContainer = %ObjectList
 @onready var scene_image: TextureRect = %SceneImage
 @onready var detail_panel: VBoxContainer = %DetailPanel
+@onready var _placeholder_state: VBoxContainer = %PlaceholderState
+@onready var _target_state: VBoxContainer = %TargetState
 @onready var detail_title: Label = %DetailTitle
-@onready var detail_description_margin: MarginContainer = %DetailDescriptionMargin
 @onready var detail_description: Label = %DetailDescription
 @onready var detail_state: Label = %DetailState
 @onready var detail_actions: VBoxContainer = %DetailActions
@@ -27,27 +28,25 @@ var _location: LocationData = null
 ## The currently selected object ID.
 var _selected_object_id: String = ""
 
+## Stored callable for signal cleanup.
+var _back_pressed_cb: Callable
+
 const ACTION_BUTTON_SCENE: PackedScene = preload("res://scenes/ui/components/action_button.tscn")
+const CLUES_SECTION_SCENE: PackedScene = preload("res://scenes/ui/components/clues_section.tscn")
 const INSPECT_ACTION_COST: int = 1
 const _PANEL_BORDER_WIDTH: int = 2
 const _PANEL_BORDER_COLOR: Color = Color(0.7, 0.68, 0.65, 0.45)
 const _PANEL_CORNER_RADIUS: int = 14
 const _OBJECT_LIST_TOP_PADDING: int = 6
-const _SECTION_SPACING: int = 18
-const _CLUES_GRID_COLUMNS: int = 3
-const _CLUES_GRID_SEPARATION: int = 10
-const _CLUES_HEADER_BOTTOM_MARGIN: int = 8
-const _POLAROID_CORNER_RADIUS: int = 6
-const _POLAROID_PADDING: int = 4
-const _POLAROID_BOTTOM_PADDING: int = 10
-const _POLAROID_IMAGE_MIN_HEIGHT: int = 120
+const _DETAIL_SECTION_SPACING: int = 18
 const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
 var _handwriting_font: Font = null
 
 
 func _ready() -> void:
+	_back_pressed_cb = _on_back_pressed
 	UIHelper.apply_back_button_icon(back_button, "Back")
-	back_button.pressed.connect(_on_back_pressed)
+	back_button.pressed.connect(_back_pressed_cb)
 	_apply_panel_styles()
 	_apply_scene_image_clip()
 	_handwriting_font = _load_handwriting_font()
@@ -69,11 +68,16 @@ func _ready() -> void:
 	_setup_ui()
 
 
+func _exit_tree() -> void:
+	UIHelper.safe_disconnect(back_button.pressed, _back_pressed_cb)
+
+
 func _show_error_state() -> void:
 	title_label.text = "Location Not Found"
 	completion_label.text = ""
 	object_list.visible = false
-	detail_panel.visible = false
+	_placeholder_state.visible = false
+	_target_state.visible = false
 
 
 ## Builds the initial UI layout.
@@ -104,9 +108,7 @@ func _update_completion() -> void:
 ## buttons. Adding child controls to Buttons in Godot 4 breaks click detection over
 ## the text area. All visual info is encoded in the button text string instead.
 func _populate_objects() -> void:
-	for child: Node in object_list.get_children():
-		object_list.remove_child(child)
-		child.queue_free()
+	UIHelper.clear_children(object_list)
 
 	if _location.investigable_objects.is_empty():
 		var empty: Label = Label.new()
@@ -137,12 +139,12 @@ func _on_object_selected(object_id: String) -> void:
 
 ## Shows detail panel for a selected object.
 func _show_object_detail(object_id: String) -> void:
-	var obj: InvestigableObjectData = _find_object(object_id)
+	var obj: InvestigableObjectData = LocationInvestigationManager.get_object(_location.id, object_id)
 	if obj == null:
 		return
 
-	_apply_detail_target_layout()
-	detail_panel.visible = true
+	_placeholder_state.visible = false
+	_target_state.visible = true
 	detail_title.text = obj.name
 	detail_description.text = obj.description if not obj.description.is_empty() else "No details available."
 
@@ -168,13 +170,11 @@ func _show_object_detail(object_id: String) -> void:
 
 ## Populates action buttons for the selected object.
 func _populate_action_buttons(obj: InvestigableObjectData) -> void:
-	for child: Node in action_list.get_children():
-		action_list.remove_child(child)
-		child.queue_free()
+	UIHelper.clear_children(action_list)
 
 	# Visual inspection / Examine button
-	var has_visual: bool = "visual_inspection" in obj.available_actions
-	var has_examine: bool = "examine_device" in obj.available_actions
+	var has_visual: bool = LocationInvestigationManager.ACTION_VISUAL_INSPECTION in obj.available_actions
+	var has_examine: bool = LocationInvestigationManager.ACTION_EXAMINE_DEVICE in obj.available_actions
 	if has_visual or has_examine:
 		var inspect_btn: Control = ACTION_BUTTON_SCENE.instantiate() as Control
 		if inspect_btn == null:
@@ -187,7 +187,7 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 
 		var already_done: bool = false
 		var actions: Array = LocationInvestigationManager.get_performed_actions(_location.id, obj.id)
-		already_done = "visual_inspection" in actions
+		already_done = LocationInvestigationManager.ACTION_VISUAL_INSPECTION in actions
 
 		if already_done:
 			inspect_btn.set("action_text", "%s (done)" % inspect_text)
@@ -228,63 +228,28 @@ func _refresh_ui() -> void:
 		_show_object_detail(_selected_object_id)
 
 
-## Resets the detail panel to its empty/placeholder state.
-## The panel stays visible to avoid Godot layout invalidation issues —
-## toggling visibility on a VBoxContainer while sibling containers are
-## being rebuilt causes child controls (buttons) to end up with stale
-## hit rects, making them unresponsive to clicks until a later refresh.
+## Resets the detail panel to its placeholder state.
 func _clear_detail() -> void:
-	_apply_detail_placeholder_layout()
-	detail_title.text = "Select a target"
-	detail_state.text = ""
-	detail_description.text = "Choose an investigation target from the list to view details and available actions."
+	_placeholder_state.visible = true
+	_target_state.visible = false
 
-	# Clear action buttons
-	for child: Node in action_list.get_children():
-		action_list.remove_child(child)
-		child.queue_free()
-
-	# Clear clues section and its spacer
+	UIHelper.clear_children(action_list)
 	_remove_clues_section()
 
 
-## Removes any dynamically added nodes after DetailActions (spacer + CluesSection).
+## Removes any dynamically added CluesSection from the target state.
 func _remove_clues_section() -> void:
-	var actions_idx: int = detail_actions.get_index()
-	while actions_idx + 1 < detail_panel.get_child_count():
-		var next: Node = detail_panel.get_child(actions_idx + 1)
-		detail_panel.remove_child(next)
-		next.queue_free()
-
-
-func _apply_detail_placeholder_layout() -> void:
-	detail_panel.alignment = BoxContainer.ALIGNMENT_CENTER
-	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	detail_state.visible = false
-	detail_state.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	detail_description_margin.add_theme_constant_override("margin_top", 0)
-	detail_description_margin.add_theme_constant_override("margin_bottom", 0)
-	detail_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	detail_description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	detail_description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	detail_actions.visible = false
-
-
-func _apply_detail_target_layout() -> void:
-	detail_panel.alignment = BoxContainer.ALIGNMENT_BEGIN
-	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	detail_state.visible = true
-	detail_state.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	detail_description_margin.add_theme_constant_override("margin_top", 20)
-	detail_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	detail_description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	detail_description.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	detail_actions.visible = true
-	detail_description_margin.add_theme_constant_override("margin_bottom", _SECTION_SPACING)
+	var old_section: Node = _target_state.get_node_or_null("CluesSection")
+	if old_section:
+		_target_state.remove_child(old_section)
+		old_section.queue_free()
+	var old_spacer: Node = _target_state.get_node_or_null("CluesSpacer")
+	if old_spacer:
+		_target_state.remove_child(old_spacer)
+		old_spacer.queue_free()
 
 
 ## Builds a styled placeholder for the center scene panel when no art exists.
-## Shows location initial + name in a clean presentation, future-ready for scene images.
 func _build_scene_placeholder() -> void:
 	var center_vbox: VBoxContainer = scene_image.get_parent() as VBoxContainer
 	if center_vbox == null:
@@ -330,145 +295,33 @@ func _build_scene_placeholder() -> void:
 	center_vbox.add_child(placeholder)
 
 
-## Finds an investigable object by ID.
-func _find_object(object_id: String) -> InvestigableObjectData:
-	if _location == null:
-		return null
-	for obj: InvestigableObjectData in _location.investigable_objects:
-		if obj.id == object_id:
-			return obj
-	return null
-
-
 ## Populates the "Clues found in this area" section below the action buttons.
-## Each discovered clue is displayed as a polaroid-style card with image and text.
 func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
-	# Remove previous clues section and spacer — must remove from tree immediately
-	# to avoid stale nodes interfering with layout and child indexing.
 	_remove_clues_section()
 
 	# Collect discovered evidence for this object
 	var found_clues: Array[EvidenceData] = []
 	for ev_id: String in obj.evidence_results:
-		if GameManager.has_evidence(ev_id):
+		if LocationInvestigationManager.is_evidence_discovered(ev_id):
+			# Resolve the actual evidence (raw or upgraded via lab)
 			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
+			if ev == null:
+				var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+				if lab_req != null:
+					ev = CaseManager.get_evidence(lab_req.output_evidence_id)
 			if ev:
 				found_clues.append(ev)
-		else:
-			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-			if lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id):
-				var ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
-				if ev:
-					found_clues.append(ev)
 
-	var section: VBoxContainer = VBoxContainer.new()
-	section.name = "CluesSection"
-	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	section.add_theme_constant_override("separation", _CLUES_GRID_SEPARATION)
-
-	# Clues discovered header
-	var header_margin: MarginContainer = MarginContainer.new()
-	header_margin.add_theme_constant_override("margin_bottom", _CLUES_HEADER_BOTTOM_MARGIN)
-	var header: Label = Label.new()
-	header.text = "CLUES DISCOVERED"
-	header.theme_type_variation = &"SectionHeader"
-	header_margin.add_child(header)
-	section.add_child(header_margin)
-
-	if found_clues.is_empty():
-		var empty_label: Label = Label.new()
-		empty_label.text = "No evidence recovered from this target yet."
-		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
-		empty_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		section.add_child(empty_label)
-	else:
-		var scroll: ScrollContainer = ScrollContainer.new()
-		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-
-		var grid: GridContainer = GridContainer.new()
-		grid.columns = _CLUES_GRID_COLUMNS
-		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_theme_constant_override("h_separation", _CLUES_GRID_SEPARATION)
-		grid.add_theme_constant_override("v_separation", _CLUES_GRID_SEPARATION)
-
-		for ev: EvidenceData in found_clues:
-			var card: PanelContainer = _build_polaroid_card(ev)
-			grid.add_child(card)
-
-		scroll.add_child(grid)
-		section.add_child(scroll)
-
-	# Add spacing margin above the section
+	# Add spacing before clues section
 	var spacer: Control = Control.new()
-	spacer.custom_minimum_size.y = _SECTION_SPACING
-	detail_panel.add_child(spacer)
-	detail_panel.move_child(spacer, detail_actions.get_index() + 1)
+	spacer.name = "CluesSpacer"
+	spacer.custom_minimum_size.y = _DETAIL_SECTION_SPACING
+	_target_state.add_child(spacer)
 
-	detail_panel.add_child(section)
-	detail_panel.move_child(section, spacer.get_index() + 1)
-
-
-## Builds a single polaroid-style card for a piece of evidence.
-## Layout: light rounded panel → image area → name label.
-func _build_polaroid_card(ev: EvidenceData) -> PanelContainer:
-	var card_style := StyleBoxFlat.new()
-	card_style.bg_color = UIColors.POLAROID_BG
-	card_style.corner_radius_top_left = _POLAROID_CORNER_RADIUS
-	card_style.corner_radius_top_right = _POLAROID_CORNER_RADIUS
-	card_style.corner_radius_bottom_left = _POLAROID_CORNER_RADIUS
-	card_style.corner_radius_bottom_right = _POLAROID_CORNER_RADIUS
-	card_style.content_margin_left = _POLAROID_PADDING
-	card_style.content_margin_top = _POLAROID_PADDING
-	card_style.content_margin_right = _POLAROID_PADDING
-	card_style.content_margin_bottom = _POLAROID_BOTTOM_PADDING
-
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", card_style)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-
-	# Evidence image
-	if not ev.image.is_empty() and ResourceLoader.exists(ev.image):
-		var img_clip := Control.new()
-		img_clip.clip_contents = true
-		img_clip.custom_minimum_size.y = _POLAROID_IMAGE_MIN_HEIGHT
-		img_clip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		img_clip.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		var img := TextureRect.new()
-		img.texture = load(ev.image)
-		img.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		img_clip.add_child(img)
-		vbox.add_child(img_clip)
-	else:
-		var placeholder := ColorRect.new()
-		placeholder.color = UIColors.POLAROID_IMAGE_PLACEHOLDER_BG
-		placeholder.custom_minimum_size.y = _POLAROID_IMAGE_MIN_HEIGHT
-		placeholder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		placeholder.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		vbox.add_child(placeholder)
-
-	# Evidence name (handwriting font)
-	var name_label := Label.new()
-	name_label.text = ev.name
-	name_label.add_theme_color_override("font_color", UIColors.POLAROID_TEXT_TITLE)
-	name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
-	if _handwriting_font:
-		name_label.add_theme_font_override("font", _handwriting_font)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.custom_minimum_size.y = UIFonts.SIZE_BODY * 2.6
-	vbox.add_child(name_label)
-
-	card.add_child(vbox)
-	return card
+	# Instantiate and populate clues section
+	var section: CluesSection = CLUES_SECTION_SCENE.instantiate() as CluesSection
+	_target_state.add_child(section)
+	section.populate(found_clues, _handwriting_font)
 
 
 ## Loads the handwriting font used for polaroid clue labels.
@@ -503,10 +356,6 @@ func _apply_panel_styles() -> void:
 
 
 ## Clips the center panel's image to the inner rounded shape.
-## Inserts a PanelContainer between CenterPanel and CenterVBox that draws
-## the inner rounded rect (corner_radius - border_width) and uses
-## CLIP_CHILDREN_AND_DRAW to stencil-clip the image to that shape.
-## The outer CenterPanel's border remains fully visible.
 func _apply_scene_image_clip() -> void:
 	var center_vbox: VBoxContainer = _center_panel.get_node("CenterVBox") as VBoxContainer
 
