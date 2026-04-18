@@ -153,7 +153,7 @@ func test_location_map_scroll_content_has_shadow_padding() -> void:
 		"Location grid should have bottom padding so card shadows remain visible when scrolled")
 
 
-func test_location_map_shows_failure_notification_when_no_actions() -> void:
+func test_location_map_allows_navigation_when_no_actions() -> void:
 	GameManager.actions_remaining = 0
 	var screen: Control = _instantiate_map_screen()
 	var card: LocationCard = _get_first_location_card(screen)
@@ -161,12 +161,11 @@ func test_location_map_shows_failure_notification_when_no_actions() -> void:
 
 	NotificationManager.clear_all()
 	card.card_pressed.emit(card.get_location_id())
+	assert_push_error("[ScreenManager] GameRoot not found.")
 
 	var notifications: Array[Dictionary] = NotificationManager.get_all()
-	assert_eq(notifications.size(), 1, "Failed location navigation should create one notification")
-	assert_eq(notifications[0].get("title", ""), "Cannot Visit Location")
-	var message: String = str(notifications[0].get("message", "")).to_lower()
-	assert_true(message.contains("no actions remaining"), "Failure should explain action shortage")
+	assert_eq(notifications.size(), 0, "Free entry should not show a failure notification")
+	assert_eq(LocationInvestigationManager.current_location_id, "loc_apt")
 
 
 func test_location_map_shows_failure_notification_for_invalid_location() -> void:
@@ -174,7 +173,7 @@ func test_location_map_shows_failure_notification_for_invalid_location() -> void
 
 	NotificationManager.clear_all()
 	screen._on_location_pressed("loc_nonexistent")
-	assert_push_error("Unknown location: loc_nonexistent")
+	assert_push_error("[LocationInvestigationManager] Unknown location: loc_nonexistent")
 
 	var notifications: Array[Dictionary] = NotificationManager.get_all()
 	assert_eq(notifications.size(), 1, "Invalid location should produce one failure notification")

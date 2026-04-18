@@ -82,7 +82,7 @@ func _refresh_notifications() -> void:
 	if unread.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No new notifications."
-		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		notification_list.add_child(empty_label)
 		return
 

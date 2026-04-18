@@ -41,13 +41,13 @@ func _apply_status() -> void:
 
 	if has_broken:
 		_status_label.text = "Broken"
-		_status_label.add_theme_color_override("font_color", UIColors.ACCENT_PROCESSED)
+		_status_label.add_theme_color_override("font_color", UIColors.GREEN)
 	elif not can_today:
 		_status_label.text = "Questioned today"
 		_status_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	else:
 		_status_label.text = "Available"
-		_status_label.add_theme_color_override("font_color", UIColors.STATUS_AVAILABLE)
+		_status_label.add_theme_color_override("font_color", UIColors.GREEN)
 
 
 func _configure_button() -> void:
@@ -70,12 +70,12 @@ func _configure_button() -> void:
 
 func _get_role_color(role: Enums.PersonRole) -> Color:
 	match role:
-		Enums.PersonRole.SUSPECT: return UIColors.ACCENT_CRITICAL
-		Enums.PersonRole.WITNESS: return UIColors.ACCENT_EXAMINED
-		Enums.PersonRole.VICTIM: return UIColors.TEXT_MUTED
-		Enums.PersonRole.INVESTIGATOR: return UIColors.ACCENT_PROCESSED
-		Enums.PersonRole.TECHNICIAN: return UIColors.ACCENT_PROCESSED
-	return UIColors.TEXT_MUTED
+		Enums.PersonRole.SUSPECT: return UIColors.RED
+		Enums.PersonRole.WITNESS: return UIColors.BLUE
+		Enums.PersonRole.VICTIM: return UIColors.TEXT_GREY
+		Enums.PersonRole.INVESTIGATOR: return UIColors.GREEN
+		Enums.PersonRole.TECHNICIAN: return UIColors.GREEN
+	return UIColors.TEXT_GREY
 
 
 func _on_interrogate_pressed() -> void:

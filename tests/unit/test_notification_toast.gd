@@ -10,42 +10,42 @@ extends GutTest
 
 func test_accent_color_evidence_is_clue() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.EVIDENCE)
-	assert_eq(color, UIColors.ACCENT_CLUE, "EVIDENCE should map to ACCENT_CLUE")
+	assert_eq(color, UIColors.AMBER, "EVIDENCE should map to AMBER")
 
 
 func test_accent_color_lab_result_is_clue() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.LAB_RESULT)
-	assert_eq(color, UIColors.ACCENT_CLUE, "LAB_RESULT should map to ACCENT_CLUE")
+	assert_eq(color, UIColors.AMBER, "LAB_RESULT should map to AMBER")
 
 
 func test_accent_color_hint_is_clue() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.HINT)
-	assert_eq(color, UIColors.ACCENT_CLUE, "HINT should map to ACCENT_CLUE")
+	assert_eq(color, UIColors.AMBER, "HINT should map to AMBER")
 
 
 func test_accent_color_statement_is_processed() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.STATEMENT)
-	assert_eq(color, UIColors.ACCENT_PROCESSED, "STATEMENT should map to ACCENT_PROCESSED")
+	assert_eq(color, UIColors.GREEN, "STATEMENT should map to GREEN")
 
 
 func test_accent_color_surveillance_is_processed() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.SURVEILLANCE)
-	assert_eq(color, UIColors.ACCENT_PROCESSED, "SURVEILLANCE should map to ACCENT_PROCESSED")
+	assert_eq(color, UIColors.GREEN, "SURVEILLANCE should map to GREEN")
 
 
 func test_accent_color_warrant_is_processed() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.WARRANT)
-	assert_eq(color, UIColors.ACCENT_PROCESSED, "WARRANT should map to ACCENT_PROCESSED")
+	assert_eq(color, UIColors.GREEN, "WARRANT should map to GREEN")
 
 
 func test_accent_color_story_is_processed() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.STORY)
-	assert_eq(color, UIColors.ACCENT_PROCESSED, "STORY should map to ACCENT_PROCESSED")
+	assert_eq(color, UIColors.GREEN, "STORY should map to GREEN")
 
 
 func test_accent_color_system_is_critical() -> void:
 	var color: Color = NotificationToast.get_accent_color(NotificationManager.NotificationType.SYSTEM)
-	assert_eq(color, UIColors.ACCENT_CRITICAL, "SYSTEM should map to ACCENT_CRITICAL")
+	assert_eq(color, UIColors.RED, "SYSTEM should map to RED")
 
 
 # ============================================================

@@ -22,6 +22,7 @@ const ANALYSIS_TYPES: Array[String] = [
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: ScreenManager.navigate_back())
 	_refresh()
 
@@ -68,7 +69,7 @@ func _add_request_card(req: Dictionary, is_pending: bool) -> void:
 		req.get("analysis_type", "Unknown"),
 		req.get("input_evidence_id", "?"),
 	]
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	vbox.add_child(header)
 
 	# Status line
@@ -77,13 +78,13 @@ func _add_request_card(req: Dictionary, is_pending: bool) -> void:
 		var completion_day: int = req.get("completion_day", 0)
 		if completion_day <= GameManager.current_day:
 			status.text = "Result: Available now"
-			status.add_theme_color_override("font_color", UIColors.STATUS_AVAILABLE)
+			status.add_theme_color_override("font_color", UIColors.GREEN)
 		else:
 			status.text = "Result: Day %d morning" % completion_day
-			status.add_theme_color_override("font_color", UIColors.STATUS_PENDING)
+			status.add_theme_color_override("font_color", UIColors.AMBER)
 	else:
 		status.text = "Completed — Output: %s" % req.get("output_evidence_id", "?")
-		status.add_theme_color_override("font_color", UIColors.STATUS_COMPLETE)
+		status.add_theme_color_override("font_color", UIColors.GREEN)
 	status.theme_type_variation = &"MetadataLabel"
 	vbox.add_child(status)
 	# Cancel button for pending

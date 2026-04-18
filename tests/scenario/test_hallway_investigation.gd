@@ -27,8 +27,8 @@ func test_first_visit_starts_full_investigation() -> void:
 	assert_false(GameManager.has_visited_location("loc_hallway"),
 		"Hallway should not be visited initially")
 
-	var success: bool = LocationInvestigationManager.start_investigation("loc_hallway")
-	assert_true(success, "Should be able to start investigation on first visit")
+	var result: Dictionary = LocationInvestigationManager.start_investigation("loc_hallway")
+	assert_true(result.get("success", false), "Should be able to start investigation on first visit")
 
 	assert_true(GameManager.has_visited_location("loc_hallway"),
 		"Hallway should be marked as visited after starting investigation")

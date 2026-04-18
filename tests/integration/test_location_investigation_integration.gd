@@ -482,8 +482,8 @@ func after_all() -> void:
 
 func test_visit_examine_discover_flow() -> void:
 	# Arrive at location
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment")
-	assert_true(result, "Should start investigation")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apartment")
+	assert_true(result.get("success", false), "Should start investigation")
 
 	# See objects — check they exist
 	var location: LocationData = CaseManager.get_location("loc_apartment")
@@ -516,6 +516,7 @@ func test_tool_reveals_hidden_evidence() -> void:
 
 func test_full_apartment_investigation_yields_all_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apartment")
+	GameManager.actions_remaining = 10
 
 	# 1. Wine glass — tool-dependent evidence
 	_loc_inv_mgr.use_tool_on_object("loc_apartment", "obj_wine_glass", "fingerprint_powder")
@@ -549,6 +550,7 @@ func test_full_apartment_investigation_yields_all_evidence() -> void:
 
 
 func test_all_evidence_discoverable_across_locations() -> void:
+	GameManager.actions_remaining = 30
 	var all_evidence: Array[String] = [
 		"E1", "E2", "E3", "E4", "E5", "E6",
 		"E15", "E16", "E20",
@@ -608,35 +610,48 @@ func test_all_evidence_discoverable_across_locations() -> void:
 		assert_true(GameManager.has_evidence(ev_id), "Should have discovered %s" % ev_id)
 
 
-func test_visit_costs_action_economy() -> void:
+func test_investigation_actions_cost_economy() -> void:
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 
 	_loc_inv_mgr.start_investigation("loc_apartment")
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "1st visit costs 1 action")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Location entry should be free")
+
+	var first_discovery: Array[String] = _loc_inv_mgr.inspect_object("loc_apartment", "obj_desk")
+	assert_eq(first_discovery.size(), 1, "Inspection should execute")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Inspection should cost one action")
 	_loc_inv_mgr.leave_location()
 
 	_loc_inv_mgr.start_investigation("loc_hallway")
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "2nd visit costs 1 action")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Second location entry should also be free")
+	var second_discovery: Array[String] = _loc_inv_mgr.inspect_object("loc_hallway", "obj_security_camera")
+	assert_eq(second_discovery.size(), 1)
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "Second investigation action should cost one action")
 	_loc_inv_mgr.leave_location()
 
 	# Exhaust remaining actions
 	for i in GameManager.actions_remaining:
 		GameManager.use_action()
 
-	# Cannot visit another location
-	var result: bool = _loc_inv_mgr.start_investigation("loc_parking")
-	assert_false(result, "Should fail — no actions")
+	# Visits are still free, but investigation actions should fail when no slots remain.
+	var visit_result: Dictionary = _loc_inv_mgr.start_investigation("loc_parking")
+	assert_true(visit_result.get("success", false), "Should still allow visiting with no actions")
+	var investigation_result: Array[String] = _loc_inv_mgr.inspect_object("loc_parking", "obj_parking_camera")
+	assert_eq(investigation_result.size(), 0, "Investigation action should fail with no actions remaining")
 
 
-func test_revisit_costs_action() -> void:
+func test_revisit_is_free_but_investigation_costs_action() -> void:
 	_loc_inv_mgr.start_investigation("loc_apartment")
 	_loc_inv_mgr.leave_location()
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
 
-	# Revisit should consume one additional action
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apartment")
-	assert_true(result, "Revisit should succeed")
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "Revisit should cost one action")
+	# Revisit should stay free.
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apartment")
+	assert_true(result.get("success", false), "Revisit should succeed")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Revisit should be free")
+
+	# Investigation action still costs one slot on revisit.
+	_loc_inv_mgr.inspect_object("loc_apartment", "obj_desk")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
 
 
 func test_multi_location_state_persistence() -> void:

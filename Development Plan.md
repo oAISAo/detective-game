@@ -249,7 +249,7 @@ All actions are defined via `ActionData` resources, not hardcoded logic.
 
 **Major Actions** (cost 1 time slot):
 - Interrogate suspect
-- Visit location (full investigation, 1 action each visit)
+- Visit location (entry is free; each investigation action performed there costs 1)
 - Search location
 - Examine digital device
 - Analyze evidence group
@@ -737,11 +737,12 @@ if tool_used AND object_supports_tool → reveal evidence
 
 ### 6.5 — Location Visit System
 
-- Every visit → full investigation and costs 1 action slot
+- Every visit → free entry to the location investigation screen
+- Each inspect/examine/tool investigation action at the location costs 1 action slot
 
 ```
 Return to Victim's Apartment?
-• Investigate location (1 action)
+• Enter location (free)
 ```
 
 ### 6.6 — Location Completion Indicator
@@ -787,7 +788,7 @@ Multi-layer investigation: initial inspection reveals basic observations, deeper
 - InvestigableObject data-driven system
 - Object investigation states with visual feedback
 - ToolManager with three tools
-- Location revisit system (full investigation only, 1 action per visit)
+- Location revisit system (free entry, paid investigation actions)
 - Location completion indicators
 - Five prototype locations built
 - Evidence discovery flow working
@@ -798,7 +799,7 @@ Multi-layer investigation: initial inspection reveals basic observations, deeper
 - **Unit:** Object state transitions correctly (not_inspected → partial → full)
 - **Unit:** ToolManager correctly validates tool+object compatibility
 - **Unit:** Location completion count matches discovered evidence
-- **Unit:** Revisit correctly costs 1 action
+- **Unit:** Revisit remains free while each investigate action costs 1
 - **Integration:** Visit location → examine object → evidence appears in archive
 - **Integration:** Tool used on object → hidden evidence revealed
 - **Integration:** All 25 evidence items discoverable through location investigation

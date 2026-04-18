@@ -15,20 +15,20 @@ const ACCENT_BAR_WIDTH: float = 4.0
 
 ## Maps NotificationType values to accent colors.
 const ACCENT_MAP: Dictionary = {
-	NotificationManager.NotificationType.EVIDENCE: UIColors.ACCENT_CLUE,
-	NotificationManager.NotificationType.LAB_RESULT: UIColors.ACCENT_CLUE,
-	NotificationManager.NotificationType.HINT: UIColors.ACCENT_CLUE,
-	NotificationManager.NotificationType.STATEMENT: UIColors.ACCENT_PROCESSED,
-	NotificationManager.NotificationType.SURVEILLANCE: UIColors.ACCENT_PROCESSED,
-	NotificationManager.NotificationType.WARRANT: UIColors.ACCENT_PROCESSED,
-	NotificationManager.NotificationType.STORY: UIColors.ACCENT_PROCESSED,
-	NotificationManager.NotificationType.SYSTEM: UIColors.ACCENT_CRITICAL,
+	NotificationManager.NotificationType.EVIDENCE: UIColors.AMBER,
+	NotificationManager.NotificationType.LAB_RESULT: UIColors.AMBER,
+	NotificationManager.NotificationType.HINT: UIColors.AMBER,
+	NotificationManager.NotificationType.STATEMENT: UIColors.GREEN,
+	NotificationManager.NotificationType.SURVEILLANCE: UIColors.GREEN,
+	NotificationManager.NotificationType.WARRANT: UIColors.GREEN,
+	NotificationManager.NotificationType.STORY: UIColors.GREEN,
+	NotificationManager.NotificationType.SYSTEM: UIColors.RED,
 }
 
 
 ## Returns the accent color for a given NotificationType.
 static func get_accent_color(type: NotificationManager.NotificationType) -> Color:
-	return ACCENT_MAP.get(type, UIColors.TEXT_MUTED)
+	return ACCENT_MAP.get(type, UIColors.TEXT_GREY)
 
 
 ## Builds child nodes and starts the slide-in animation.

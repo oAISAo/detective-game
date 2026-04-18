@@ -33,7 +33,7 @@ func _refresh() -> void:
 	if all_notifications.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No notifications."
-		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		notification_list.add_child(empty_label)
 		clear_all_button.visible = false
 		return
@@ -47,7 +47,7 @@ func _refresh() -> void:
 		# Unread indicator
 		var indicator: Label = Label.new()
 		indicator.text = "●" if not notif.get("read", false) else "○"
-		indicator.add_theme_color_override("font_color", UIColors.ACCENT_CLUE if not notif.get("read", false) else UIColors.TEXT_MUTED)
+		indicator.add_theme_color_override("font_color", UIColors.AMBER if not notif.get("read", false) else UIColors.TEXT_GREY)
 		item.add_child(indicator)
 
 		# Text

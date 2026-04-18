@@ -484,10 +484,16 @@ Major Actions
 Cost: 1 action
 Examples:
 interrogate suspect
-visit location
+inspect/examine an investigable target at a location
 search location
 examine digital device
 analyze large evidence group
+
+Location Entry
+Cost: 0 actions
+Examples:
+open a location from the map
+return to a previously visited location
 
 Passive Actions
 Cost: 0 actions

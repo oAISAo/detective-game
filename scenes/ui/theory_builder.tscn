@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Theory Builder"
 horizontal_alignment = 1
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"PanelHeader"
 
 [node name="TheoryCountLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -86,8 +86,7 @@ size_flags_horizontal = 3
 text = "Select or create a theory to begin."
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
+theme_type_variation = &"EmptyStateLabel"
 
 [node name="DetailScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer"]
 unique_name_in_owner = true

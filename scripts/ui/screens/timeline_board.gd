@@ -24,10 +24,10 @@ const END_HOUR: int = 23
 
 ## Certainty level visual colors.
 const CERTAINTY_COLORS: Dictionary = {
-	"CONFIRMED": UIColors.ACCENT_PROCESSED,
-	"LIKELY": UIColors.ACCENT_EXAMINED,
-	"CLAIMED": UIColors.ACCENT_CLUE,
-	"UNKNOWN": UIColors.STATUS_UNKNOWN,
+	"CONFIRMED": UIColors.GREEN,
+	"LIKELY": UIColors.BLUE,
+	"CLAIMED": UIColors.AMBER,
+	"UNKNOWN": UIColors.TEXT_GREY,
 }
 
 ## Hypothesis card color.
@@ -43,6 +43,7 @@ var _current_day: int = 1
 # --- Lifecycle --- #
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	add_hypothesis_button.pressed.connect(_on_add_hypothesis_pressed)
 	day_selector.item_selected.connect(_on_day_selected)
@@ -105,7 +106,7 @@ func _build_hour_markers() -> void:
 		var marker: Label = Label.new()
 		marker.text = "%02d:00 ────────────────────────────────" % hour
 		marker.theme_type_variation = &"MetadataLabel"
-		marker.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+		marker.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		timeline_container.add_child(marker)
 
 
@@ -232,7 +233,7 @@ func _create_hypothesis_card(hyp: Dictionary) -> PanelContainer:
 		var detail_label: Label = Label.new()
 		detail_label.text = "Hypothesis  |  %s" % persons_text
 		detail_label.theme_type_variation = &"MetadataLabel"
-		detail_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.75))
+		detail_label.add_theme_color_override("font_color", UIColors.AMBER_WARNING)
 		vbox.add_child(detail_label)
 
 	var remove_btn: Button = Button.new()
@@ -262,7 +263,7 @@ func _apply_certainty_style(panel: PanelContainer, certainty: String) -> void:
 		style.border_width_right = 2
 		style.border_width_top = 2
 		style.border_width_bottom = 2
-		style.border_color = UIColors.ACCENT_CLUE
+		style.border_color = UIColors.AMBER
 	panel.add_theme_stylebox_override("panel", style)
 
 

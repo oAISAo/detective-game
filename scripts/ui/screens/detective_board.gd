@@ -60,6 +60,7 @@ var _node_controls: Dictionary = {}
 # --- Lifecycle --- #
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	clear_button.pressed.connect(_on_clear_pressed)
 
@@ -169,7 +170,7 @@ func _create_node_control(node_data: Dictionary) -> void:
 	type_badge.text = "[%s]" % node_data["type"].to_upper()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_badge.theme_type_variation = &"MetadataLabel"
-	type_badge.add_theme_color_override("font_color", UIColors.HEADER)
+	type_badge.add_theme_color_override("font_color", UIColors.TEXT_HIGHLIGHTED)
 	vbox.add_child(type_badge)
 
 	if not node_data.get("note", "").is_empty():

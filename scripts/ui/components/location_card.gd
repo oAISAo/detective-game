@@ -1,6 +1,6 @@
 ## LocationCard.gd
 ## Cinematic photo-card for investigation locations.
-## Image with status overlay, title/description footer, evidence count, and visit button.
+## Image with status overlay, title/description footer, and evidence count.
 class_name LocationCard
 extends Panel
 
@@ -20,29 +20,32 @@ const STATUS_OPEN := "Open"
 const STATUS_EXHAUSTED := "Exhausted"
 
 const STATUS_COLORS: Dictionary = {
-	STATUS_NEW: UIColors.ACCENT_EXAMINED,
-	STATUS_OPEN: UIColors.ACCENT_CLUE,
-	STATUS_EXHAUSTED: UIColors.TEXT_MUTED,
+	STATUS_NEW: UIColors.BLUE,
+	STATUS_OPEN: UIColors.AMBER,
+	STATUS_EXHAUSTED: UIColors.TEXT_GREY,
 }
 
 # Card design constants
 const CARD_CORNER_RADIUS: int = 14
 const CARD_BORDER_WIDTH: int = 2
-const CARD_BORDER_COLOR: Color = UIColors.LOCATION_CARD_BORDER
-const CARD_BG: Color = UIColors.LOCATION_CARD_BG
+const CARD_BORDER_COLOR: Color = UIColors.BORDER_SUBTLE
+const CARD_BG: Color = UIColors.BG_BASE
 const MEDIA_CORNER_RADIUS: int = 14
 const CARD_SHADOW_SIZE: int = 8
 const CARD_SHADOW_COLOR: Color = UIColors.LOCATION_CARD_SHADOW
+const CARD_INNER_RADIUS: int = CARD_CORNER_RADIUS - CARD_BORDER_WIDTH
+const CARD_GRADIENT_TOP: Color = CARD_BG
+const CARD_GRADIENT_BOTTOM: Color = UIColors.LOCATION_CARD_GRADIENT_BOTTOM
 
 # Hover constants
 const HOVER_SHADOW_SIZE: int = 8
 const HOVER_SHADOW_COLOR: Color = UIColors.LOCATION_CARD_HOVER_SHADOW
-const HOVER_BORDER_COLOR: Color = UIColors.LOCATION_CARD_HOVER_BORDER
+const HOVER_BORDER_COLOR: Color = UIColors.BLUE
 const HOVER_SCALE := Vector2(1.008, 1.008)
 const HOVER_MODULATE: Color = UIColors.LOCATION_CARD_HOVER_MODULATE
 
 const TEXT_COLOR_PRIMARY: Color = UIColors.TEXT_PRIMARY
-const TEXT_COLOR_MUTED: Color = UIColors.TEXT_MUTED
+const TEXT_COLOR_MUTED: Color = UIColors.TEXT_GREY
 const FONT_SIZE_TITLE: int = UIFonts.SIZE_TITLE
 const FONT_SIZE_BODY: int = UIFonts.SIZE_BODY
 const FONT_SIZE_META: int = UIFonts.SIZE_METADATA
@@ -52,34 +55,28 @@ const MEDIA_MASK_SHADER: Shader = preload("res://assets/shaders/rounded_media_ma
 @onready var _image_rect: TextureRect = %ImageRect
 @onready var _image_placeholder: PanelContainer = %ImagePlaceholder
 @onready var _placeholder_initial: Label = %PlaceholderInitial
-@onready var _image_area: Control = $"VBox/ImageArea"
-@onready var _overlay_margin: MarginContainer = $"VBox/ImageArea/MediaFrame/OverlayMargin"
-@onready var _badge_row: HBoxContainer = $"VBox/ImageArea/MediaFrame/OverlayMargin/BadgeRow"
 @onready var _name_label: Label = %NameLabel
 @onready var _description_label: Label = %DescriptionLabel
 @onready var _evidence_prefix_label: Label = %EvidencePrefixLabel
 @onready var _evidence_label: Label = %EvidenceLabel
 @onready var _status_badge: PanelContainer = %StatusBadge
 @onready var _status_label: Label = %StatusLabel
-@onready var _inspect_button: Button = %InspectButton
 @onready var _footer: VBoxContainer = %Footer
 
 
 func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	mouse_filter = Control.MOUSE_FILTER_PASS
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_apply_card_style()
+	_apply_gradient_background()
 	_apply_media_frame_style()
 	_apply_image_mask()
 	_apply_footer_style()
-	_apply_inspect_button_style()
 	_apply_placeholder_style()
 
-	# Canonical activation path: inspect button press only.
-	_inspect_button.pressed.connect(_on_pressed)
-	_inspect_button.focus_mode = Control.FOCUS_ALL
-	_inspect_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	# Canonical activation path: full-card mouse click.
+	gui_input.connect(_on_card_gui_input)
 	_configure_hover_event_routing()
 
 	mouse_entered.connect(_on_mouse_entered)
@@ -94,20 +91,10 @@ func _ready() -> void:
 
 ## Ensures all interactive regions participate in one card-level hover state.
 func _configure_hover_event_routing() -> void:
-	# Non-interactive visual controls should not consume hover hit-testing.
-	_image_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_media_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_image_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_image_placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_placeholder_initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_overlay_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_status_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# The inspect button is interactive, so bridge its hover lifecycle to the card.
-	_inspect_button.mouse_entered.connect(_on_hover_source_entered)
-	_inspect_button.mouse_exited.connect(_on_hover_source_exited)
+	# Child controls are display-only; route hover and click handling through the card.
+	var content_root: Node = get_node_or_null("CardClip")
+	if content_root:
+		_set_control_tree_mouse_filter(content_root)
 
 
 ## Populates the card with location data. Call after adding to the scene tree.
@@ -122,7 +109,6 @@ func setup(location: LocationData) -> void:
 		return
 
 	_location_id = normalized_location_id
-	_inspect_button.disabled = false
 
 	var display_name: String = location.name.strip_edges()
 	if display_name.is_empty():
@@ -162,7 +148,7 @@ func setup(location: LocationData) -> void:
 	var status: String = _resolve_status(_location_id)
 	_status_label.text = status.to_upper()
 	_status_label.add_theme_font_size_override("font_size", FONT_SIZE_META)
-	var status_color: Color = STATUS_COLORS.get(status, UIColors.TEXT_MUTED)
+	var status_color: Color = STATUS_COLORS.get(status, UIColors.TEXT_GREY)
 	_status_label.add_theme_color_override("font_color", status_color)
 	_apply_badge_style(status_color)
 
@@ -212,7 +198,6 @@ func _show_image_placeholder(location_name: String) -> void:
 func _apply_invalid_setup_state(reason: String) -> void:
 	push_error("[LocationCard] setup rejected: %s" % reason)
 	_location_id = ""
-	_inspect_button.disabled = true
 
 	_name_label.text = "UNKNOWN LOCATION"
 	_name_label.uppercase = true
@@ -232,7 +217,7 @@ func _apply_invalid_setup_state(reason: String) -> void:
 	_evidence_label.add_theme_font_size_override("font_size", FONT_SIZE_BODY)
 	_evidence_label.add_theme_color_override("font_color", TEXT_COLOR_MUTED)
 
-	var status_color: Color = STATUS_COLORS.get(STATUS_NEW, UIColors.TEXT_MUTED)
+	var status_color: Color = STATUS_COLORS.get(STATUS_NEW, UIColors.TEXT_GREY)
 	_status_label.text = STATUS_NEW.to_upper()
 	_status_label.add_theme_font_size_override("font_size", FONT_SIZE_META)
 	_status_label.add_theme_color_override("font_color", status_color)
@@ -280,6 +265,70 @@ func _apply_card_style() -> void:
 	_hover_style.shadow_size = HOVER_SHADOW_SIZE
 
 
+## Inserts an inner clip panel with a gradient background between the card
+## and its content. The clip panel draws a rounded rect (inner radius) and
+## uses CLIP_CHILDREN_AND_DRAW to stencil-clip the gradient and content
+## to the inner rounded shape, keeping the outer border fully visible.
+func _apply_gradient_background() -> void:
+	var vbox: VBoxContainer = get_node("VBox")
+
+	# Inner clip shape — matches the inside of the border
+	var clip_style := StyleBoxFlat.new()
+	clip_style.bg_color = CARD_GRADIENT_TOP
+	clip_style.set_corner_radius_all(CARD_INNER_RADIUS)
+
+	var clip_panel := PanelContainer.new()
+	clip_panel.name = "CardClip"
+	clip_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	clip_panel.offset_left = CARD_BORDER_WIDTH
+	clip_panel.offset_top = CARD_BORDER_WIDTH
+	clip_panel.offset_right = -CARD_BORDER_WIDTH
+	clip_panel.offset_bottom = -CARD_BORDER_WIDTH
+	clip_panel.add_theme_stylebox_override("panel", clip_style)
+	clip_panel.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+
+	# Gradient texture filling top-to-bottom
+	var gradient := Gradient.new()
+	gradient.set_color(0, CARD_GRADIENT_TOP)# hold light color longer
+	gradient.set_color(1, CARD_GRADIENT_BOTTOM)
+
+	var gradient_texture := GradientTexture2D.new()
+	gradient_texture.gradient = gradient
+	gradient_texture.fill_from = Vector2(0.5, 0.6)
+	gradient_texture.fill_to = Vector2(0.5, 1.0)
+
+	var gradient_rect := TextureRect.new()
+	gradient_rect.name = "GradientBackground"
+	gradient_rect.texture = gradient_texture
+	gradient_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gradient_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	gradient_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gradient_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Padding container — replaces VBox's old anchor offsets
+	var padding := MarginContainer.new()
+	padding.name = "ContentPadding"
+	padding.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	padding.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	padding.add_theme_constant_override("margin_left", 16 - CARD_BORDER_WIDTH)
+	padding.add_theme_constant_override("margin_top", 16 - CARD_BORDER_WIDTH)
+	padding.add_theme_constant_override("margin_right", 16 - CARD_BORDER_WIDTH)
+	padding.add_theme_constant_override("margin_bottom", 16 - CARD_BORDER_WIDTH)
+
+	# Reparent VBox into the new structure
+	remove_child(vbox)
+	# Reset VBox anchors — now managed by MarginContainer, not anchor offsets
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.offset_left = 0
+	vbox.offset_top = 0
+	vbox.offset_right = 0
+	vbox.offset_bottom = 0
+	padding.add_child(vbox)
+	clip_panel.add_child(gradient_rect)
+	clip_panel.add_child(padding)
+	add_child(clip_panel)
+
+
 func _apply_image_mask() -> void:
 	_image_mask_material = ShaderMaterial.new()
 	_image_mask_material.shader = MEDIA_MASK_SHADER
@@ -307,35 +356,6 @@ func _apply_footer_style() -> void:
 	_footer.add_theme_constant_override("separation", 6)
 
 
-func _apply_inspect_button_style() -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = UIColors.LOCATION_CARD_BUTTON_BG
-	normal.border_color = UIColors.LOCATION_CARD_BUTTON_BORDER
-	normal.set_border_width_all(0)
-	normal.corner_radius_top_left = 20
-	normal.corner_radius_top_right = 20
-	normal.corner_radius_bottom_left = 20
-	normal.corner_radius_bottom_right = 20
-	normal.content_margin_left = 12
-	normal.content_margin_right = 12
-	normal.content_margin_top = 10
-	normal.content_margin_bottom = 10
-	_inspect_button.add_theme_stylebox_override("normal", normal)
-
-	var hover := normal.duplicate()
-	hover.bg_color = UIColors.LOCATION_CARD_BUTTON_BG_HOVER
-	_inspect_button.add_theme_stylebox_override("hover", hover)
-
-	var pressed := normal.duplicate()
-	pressed.bg_color = UIColors.LOCATION_CARD_BUTTON_BG_PRESSED
-	_inspect_button.add_theme_stylebox_override("pressed", pressed)
-
-	_inspect_button.add_theme_color_override("font_color", UIColors.LOCATION_CARD_BUTTON_TEXT)
-	_inspect_button.add_theme_color_override("font_hover_color", UIColors.LOCATION_CARD_BUTTON_TEXT_HOVER)
-	_inspect_button.add_theme_color_override("font_pressed_color", UIColors.LOCATION_CARD_BUTTON_TEXT_PRESSED)
-	_inspect_button.add_theme_font_size_override("font_size", FONT_SIZE_TITLE)
-
-
 func _apply_placeholder_style() -> void:
 	var ph_style := StyleBoxFlat.new()
 	ph_style.bg_color = UIColors.LOCATION_CARD_PLACEHOLDER_BG
@@ -345,8 +365,8 @@ func _apply_placeholder_style() -> void:
 	ph_style.content_margin_top = 32
 	ph_style.content_margin_bottom = 32
 	_image_placeholder.add_theme_stylebox_override("panel", ph_style)
-	_placeholder_initial.add_theme_font_size_override("font_size", 32)
-	_placeholder_initial.add_theme_color_override("font_color", UIColors.LOCATION_CARD_PLACEHOLDER_TEXT)
+	_placeholder_initial.add_theme_font_size_override("font_size", UIFonts.SIZE_PANEL_HEADER)
+	_placeholder_initial.add_theme_color_override("font_color", UIColors.TEXT_PRIMARY)
 
 
 func _apply_badge_style(status_color: Color) -> void:
@@ -370,12 +390,22 @@ func _apply_badge_style(status_color: Color) -> void:
 # --- Mouse / Hover ---
 
 
+func _on_card_gui_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+	if mouse_event.button_index != MOUSE_BUTTON_LEFT or not mouse_event.pressed:
+		return
+	_on_pressed()
+	accept_event()
+
+
 func _on_mouse_entered() -> void:
 	_on_hover_source_entered()
 
 
 func _on_mouse_exited() -> void:
-	_on_hover_source_exited()
+	_set_hovered_state(false)
 
 
 func _on_hover_source_entered() -> void:
@@ -441,3 +471,10 @@ func _on_pressed() -> void:
 	if _location_id.is_empty():
 		return
 	card_pressed.emit(_location_id)
+
+
+func _set_control_tree_mouse_filter(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child: Node in node.get_children():
+		_set_control_tree_mouse_filter(child)

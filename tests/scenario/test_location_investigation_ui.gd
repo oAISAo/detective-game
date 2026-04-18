@@ -244,6 +244,32 @@ func test_status_hint_text_maps_correctly() -> void:
 		"FULLY_PROCESSED hint should mention no further leads. Got: %s" % hint_done)
 
 
+# Test: Partial hint routes player to Evidence tab, not scene tools
+func test_partial_hint_routes_to_evidence_tab() -> void:
+	LocationInvestigationManager.start_investigation("loc_hallway")
+	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
+	LocationInvestigationManager.leave_location()
+
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
+	LabManager.submit_request(
+		"ev_shoe_print_raw",
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	DaySystem.force_advance_day()
+	DaySystem.process_morning()
+
+	var hint: String = LocationInvestigationManager.get_object_status_hint(
+		"loc_hallway", "obj_hallway_floor"
+	)
+	assert_true(hint.contains("Evidence tab"),
+		"Partial-state hint should guide to Evidence tab. Got: %s" % hint)
+	assert_false(hint.to_lower().contains("tool"),
+		"Partial-state hint should not direct to tool usage. Got: %s" % hint)
+
+
 # =========================================================================
 # TASK 3 — DETAIL PANEL CONTENT
 # =========================================================================
@@ -397,6 +423,70 @@ func test_location_data_has_image_field() -> void:
 	# image field exists on LocationData (may be empty for placeholder fallback)
 	assert_true(location.has_method("get") or "image" in location,
 		"LocationData should have image property")
+
+
+# Test: Location scene no longer includes forensic tools section
+func test_location_scene_has_no_forensic_tools_section() -> void:
+	var scene: PackedScene = load("res://scenes/ui/location_investigation.tscn")
+	assert_not_null(scene, "Location investigation scene should load")
+
+	var instance: Control = scene.instantiate() as Control
+	assert_not_null(instance, "Location investigation scene should instantiate")
+
+	assert_null(
+		instance.get_node_or_null("MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/ToolsHeader"),
+		"ToolsHeader should not exist in location detail screen"
+	)
+	assert_null(
+		instance.get_node_or_null("MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/ToolPanel"),
+		"ToolPanel should not exist in location detail screen"
+	)
+
+	instance.queue_free()
+
+
+# Test: Detail inspect action uses reusable ActionButton component
+func test_detail_action_uses_reusable_action_button_component() -> void:
+	ScreenManager.navigation_data = {"location_id": "loc_hallway"}
+
+	var scene: PackedScene = load("res://scenes/ui/location_investigation.tscn") as PackedScene
+	assert_not_null(scene, "Location investigation scene should load")
+	if scene == null:
+		return
+
+	var instance: Control = scene.instantiate() as Control
+	assert_not_null(instance, "Location investigation scene should instantiate")
+	if instance == null:
+		return
+
+	add_child_autofree(instance)
+	instance._on_object_selected("obj_security_system")
+
+	var action_list: VBoxContainer = instance.get_node_or_null(
+		"MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions/ActionMargin/ActionList"
+	) as VBoxContainer
+	assert_not_null(action_list, "ActionList container should exist")
+	if action_list == null:
+		return
+
+	assert_eq(action_list.get_child_count(), 1, "Selected object should expose one inspect action")
+	if action_list.get_child_count() < 1:
+		return
+
+	var action_control: Control = action_list.get_child(0) as Control
+	assert_not_null(action_control, "Inspect action control should be created")
+	if action_control == null:
+		return
+
+	assert_eq(
+		action_control.get_script().resource_path,
+		"res://scripts/ui/components/action_button.gd",
+		"Inspect action should instantiate the reusable ActionButton component"
+	)
+	assert_eq(action_control.get("action_text"), "Examine")
+	assert_eq(action_control.get("action_cost"), 1)
+
+	ScreenManager.navigation_data = {}
 
 
 # Test: Multiple locations can be loaded and investigated independently

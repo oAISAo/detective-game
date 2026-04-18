@@ -11,6 +11,7 @@ extends Control
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	_populate_log()
 
@@ -44,7 +45,7 @@ func _populate_log() -> void:
 	if entries.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "Investigation log is empty."
-		empty_label.add_theme_color_override("font_color", UIColors.MUTED)
+		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		log_entries.add_child(empty_label)
 		return
 

@@ -80,7 +80,7 @@ var _test_case_data: Dictionary = {
 			"id": "act_visit",
 			"name": "Visit Scene",
 			"type": "VISIT_LOCATION",
-			"time_cost": 1,
+			"time_cost": 0,
 			"target": "loc_scene",
 			"requirements": [],
 			"results": ["evidence:ev_initial", "location:loc_scene"],
@@ -147,13 +147,13 @@ func test_morning_daytime_night_cycle() -> void:
 	assert_eq(GameManager.actions_remaining, 4)
 	var result: bool = ActionSystem.execute_action("act_visit")
 	assert_true(result, "Should execute visit action")
-	assert_eq(GameManager.actions_remaining, 3)
+	assert_eq(GameManager.actions_remaining, 4, "Visit action should be free")
 	assert_true(GameManager.has_evidence("ev_initial"))
 
 	# Execute second action
 	result = ActionSystem.execute_action("act_interrogate")
 	assert_true(result, "Should execute interrogation with evidence")
-	assert_eq(GameManager.actions_remaining, 2)
+	assert_eq(GameManager.actions_remaining, 3)
 
 	# Still in Daytime with actions remaining
 	assert_eq(GameManager.current_phase, Enums.DayPhase.DAYTIME)
@@ -239,7 +239,7 @@ func test_lab_request_completes_on_correct_day() -> void:
 	DaySystem.try_end_day()
 
 	# Day 2 morning — should complete
-	var briefing2: Array[String] = DaySystem.process_morning()
+	var _briefing2: Array[String] = DaySystem.process_morning()
 	assert_eq(GameManager.active_lab_requests.size(), 0, "Lab should be completed on Day 2")
 	assert_true(GameManager.has_evidence("ev_lab_output"), "Lab output evidence should be discovered")
 

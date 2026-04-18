@@ -14,6 +14,7 @@ extends Control
 
 
 func _ready() -> void:
+	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: ScreenManager.navigate_back())
 	charge_button.pressed.connect(func() -> void: _on_choice("charge"))
 	investigate_button.pressed.connect(func() -> void: _on_choice("investigate"))

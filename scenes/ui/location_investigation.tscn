@@ -18,14 +18,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 26
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 36
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 26
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -33,7 +33,9 @@ layout_mode = 2
 [node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "← Back"
+custom_minimum_size = Vector2(100, 42)
+size_flags_vertical = 4
+text = "Back"
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -41,31 +43,24 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Location Investigation"
 horizontal_alignment = 1
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"TitleScreenHeader"
 
 [node name="CompletionLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "0/0 clues found"
+text = "Evidence: 0 / 0"
 horizontal_alignment = 2
-
-[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Location description."
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.6, 0.55, 0.4, 1)
+theme_type_variation = &"ScreenSubHeader"
 
 [node name="MainColumns" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 36
 
 [node name="LeftPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.3
+size_flags_stretch_ratio = 0.75
 theme_type_variation = &"SurfacePanel"
 
 [node name="LeftVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel"]
@@ -76,6 +71,7 @@ theme_override_constants/separation = 8
 layout_mode = 2
 text = "INVESTIGATION TARGETS"
 theme_type_variation = &"SectionHeader"
+theme_override_constants/separation = 8
 
 [node name="ObjectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 layout_mode = 2
@@ -85,17 +81,15 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
 
 [node name="CenterPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.4
+size_flags_stretch_ratio = 1.0
 theme_type_variation = &"SurfacePanel"
 
 [node name="CenterVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/CenterPanel"]
 layout_mode = 2
-theme_override_constants/separation = 8
 
 [node name="SceneImage" type="TextureRect" parent="MarginContainer/VBoxContainer/MainColumns/CenterPanel/CenterVBox"]
 unique_name_in_owner = true
@@ -107,7 +101,7 @@ stretch_mode = 6
 [node name="RightPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.3
+size_flags_stretch_ratio = 0.75
 theme_type_variation = &"SurfacePanel"
 
 [node name="RightVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel"]
@@ -118,39 +112,76 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
 
-[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="PlaceholderState" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Select an object"
-theme_type_variation = &"SectionHeader"
+size_flags_vertical = 3
+alignment = 1
 
-[node name="DetailState" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="PlaceholderTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/PlaceholderState"]
+layout_mode = 2
+text = "Select a target"
+theme_type_variation = &"PanelHeader"
+horizontal_alignment = 1
+
+[node name="PlaceholderDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/PlaceholderState"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Choose an investigation target from the list to view details and available actions."
+theme_type_variation = &"SectionText"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="TargetState" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
-theme_override_font_sizes/font_size = 13
+theme_type_variation = &"PanelHeader"
 
-[node name="DetailDescription" type="RichTextLabel" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="DetailState" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_type_variation = &"DetailStateLabel"
+
+[node name="DetailDescriptionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="DetailDescription" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState/DetailDescriptionMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
 bbcode_enabled = true
 fit_content = true
 text = ""
+theme_type_variation = &"SectionText"
+autowrap_mode = 3
 
-[node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+[node name="DetailActions" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ToolsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+[node name="ActionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState/DetailActions"]
 layout_mode = 2
-text = "FORENSIC TOOLS"
-theme_type_variation = &"SectionHeader"
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="ToolPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+[node name="ActionList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/TargetState/DetailActions/ActionMargin"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6

@@ -54,7 +54,7 @@ func _add_empty_state_message(message: String) -> void:
 	empty_label.text = message
 	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	empty_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	empty_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	empty_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	location_grid.add_child(empty_label)
 
@@ -66,7 +66,7 @@ func _on_location_pressed(location_id: String) -> void:
 
 ## Navigates to the location investigation screen.
 func _navigate_to_location(location_id: String) -> void:
-	var result: Dictionary = LocationInvestigationManager.start_map_investigation(location_id)
+	var result: Dictionary = LocationInvestigationManager.start_investigation(location_id)
 	if not result.get("success", false):
 		_show_start_failure_message(result)
 		return

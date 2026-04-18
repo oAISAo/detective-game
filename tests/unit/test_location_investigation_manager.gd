@@ -177,73 +177,70 @@ func after_all() -> void:
 
 # --- Location Visit Tests --- #
 
-func test_first_visit_costs_action() -> void:
+func test_first_visit_is_free() -> void:
 	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_true(result, "First visit should succeed")
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1, "Should cost 1 action")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "First visit should succeed")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Location entry should be free")
 	assert_true(GameManager.has_visited_location("loc_apt"))
 
 
-func test_first_visit_no_actions_fails() -> void:
+func test_first_visit_with_no_actions_still_succeeds() -> void:
 	GameManager.actions_remaining = 0
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_false(result, "Should fail with no actions remaining")
-	assert_push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "Location entry should succeed even when no actions remain")
+	assert_true(GameManager.has_visited_location("loc_apt"))
 
 
-func test_first_visit_second_location_no_actions_fails() -> void:
+func test_new_location_visit_with_no_actions_still_succeeds() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	GameManager.actions_remaining = 0
-	var result: bool = _loc_inv_mgr.start_investigation("loc_hallway")
-	assert_false(result, "Should fail visiting new location with no actions")
-	assert_push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_hallway")
+	assert_true(result.get("success", false), "New location visit should stay free")
+	assert_true(GameManager.has_visited_location("loc_hallway"))
 
 
-func test_return_visit_costs_action() -> void:
+func test_return_visit_is_free() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 1)
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_true(result)
-	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY - 2, "Return visit should cost 1 action")
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY)
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false))
+	assert_eq(GameManager.actions_remaining, GameManager.ACTIONS_PER_DAY, "Return visit should be free")
 
 
-func test_return_visit_no_actions_fails() -> void:
+func test_return_visit_with_no_actions_still_succeeds() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.leave_location()
 	GameManager.actions_remaining = 0
-	var result: bool = _loc_inv_mgr.start_investigation("loc_apt")
-	assert_false(result)
-	assert_push_warning("[LocationInvestigationManager] No actions remaining for location visit.")
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "Revisits should remain free")
 
 
 func test_invalid_location_fails() -> void:
-	var result: bool = _loc_inv_mgr.start_investigation("loc_nonexistent")
-	assert_false(result)
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_nonexistent")
+	assert_false(result.get("success", true))
 	assert_push_error("Unknown location: loc_nonexistent")
 
 
-func test_start_investigation_with_result_returns_error_context_for_no_actions() -> void:
+func test_start_investigation_returns_free_entry_context() -> void:
 	GameManager.actions_remaining = 0
-	var result: Dictionary = _loc_inv_mgr.start_investigation_with_result("loc_apt")
-	assert_false(result.get("success", true))
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_apt")
+	assert_true(result.get("success", false), "Free entry should succeed with no actions")
 	assert_eq(
 		result.get("error_code", ""),
-		LocationInvestigationManager.START_ERROR_NO_ACTIONS
+		LocationInvestigationManager.START_ERROR_NONE
 	)
 	assert_eq(
 		result.get("error_message", ""),
-		LocationInvestigationManager.START_ERROR_MESSAGE_NO_ACTIONS
+		""
 	)
-	assert_eq(result.get("action_cost", -1), 1)
-	assert_false(result.has("visit_mode"))
-	assert_false(result.has("full_investigation"))
+	assert_true(result.get("is_first_visit", false))
 
 
-func test_start_investigation_with_result_invalid_location_has_structured_error() -> void:
-	var result: Dictionary = _loc_inv_mgr.start_investigation_with_result("loc_nonexistent")
+func test_start_investigation_invalid_location_has_structured_error() -> void:
+	var result: Dictionary = _loc_inv_mgr.start_investigation("loc_nonexistent")
 	assert_push_error("Unknown location: loc_nonexistent")
 	assert_false(result.get("success", true))
 	assert_eq(
@@ -254,24 +251,6 @@ func test_start_investigation_with_result_invalid_location_has_structured_error(
 		result.get("error_message", ""),
 		LocationInvestigationManager.START_ERROR_MESSAGE_UNKNOWN_LOCATION
 	)
-	var last: Dictionary = _loc_inv_mgr.get_last_start_investigation_result()
-	assert_eq(
-		last.get("error_code", ""),
-		LocationInvestigationManager.START_ERROR_UNKNOWN_LOCATION
-	)
-
-
-func test_start_map_investigation_uses_manager_policy() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	_loc_inv_mgr.leave_location()
-	GameManager.actions_remaining = 1
-
-	var result: Dictionary = _loc_inv_mgr.start_map_investigation("loc_apt")
-	assert_true(result.get("success", false), "Map policy visit should succeed with one action")
-	assert_eq(result.get("action_cost", -1), 1)
-	assert_false(result.has("visit_mode"))
-	assert_false(result.has("full_investigation"))
-	assert_eq(GameManager.actions_remaining, 0, "Map policy full visit should spend one action")
 
 
 func test_investigation_started_signal() -> void:
@@ -336,25 +315,40 @@ func test_state_change_signal() -> void:
 
 func test_inspect_object_discovers_evidence_no_tools() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	var before: int = GameManager.actions_remaining
 	# obj_desk has visual_inspection, no tool_requirements, evidence: ev_note
 	var discovered: Array[String] = _loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
 	assert_eq(discovered.size(), 1)
 	assert_has(discovered, "ev_note")
 	assert_true(GameManager.has_evidence("ev_note"))
+	assert_eq(GameManager.actions_remaining, before - 1, "Inspection should spend one action")
 
 
 func test_inspect_object_with_tool_requirements_discovers_no_visual_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	var before: int = GameManager.actions_remaining
 	# obj_glass has visual_inspection + tool_requirements; evidence is TOOL-method only
 	var discovered: Array[String] = _loc_inv_mgr.inspect_object("loc_apt", "obj_glass")
 	assert_eq(discovered.size(), 0, "Visual inspection should not discover TOOL-method evidence")
+	assert_eq(GameManager.actions_remaining, before - 1, "Inspection should spend one action even when no evidence is found")
 
 
 func test_inspect_twice_returns_empty() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	var before: int = GameManager.actions_remaining
 	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
 	var second: Array[String] = _loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
 	assert_eq(second.size(), 0, "Second inspection should return nothing")
+	assert_eq(GameManager.actions_remaining, before - 1, "Repeated inspection should not spend another action")
+
+
+func test_inspect_without_actions_returns_empty() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
+	GameManager.actions_remaining = 0
+	var discovered: Array[String] = _loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
+	assert_eq(discovered.size(), 0)
+	assert_false(GameManager.has_evidence("ev_note"), "Inspection should not discover evidence with no actions")
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for inspection.")
 
 
 func test_inspect_emits_evidence_found() -> void:
@@ -377,12 +371,14 @@ func test_inspect_invalid_object_returns_empty() -> void:
 
 func test_use_tool_discovers_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	var before: int = GameManager.actions_remaining
 	var discovered: Array[String] = _loc_inv_mgr.use_tool_on_object(
 		"loc_apt", "obj_glass", "fingerprint_powder"
 	)
 	assert_eq(discovered.size(), 1)
 	assert_has(discovered, "ev_prints")
 	assert_true(GameManager.has_evidence("ev_prints"))
+	assert_eq(GameManager.actions_remaining, before - 1, "Tool use should spend one action")
 
 
 func test_use_tool_emits_evidence_found() -> void:
@@ -396,20 +392,35 @@ func test_use_tool_emits_evidence_found() -> void:
 
 func test_use_incompatible_tool_returns_empty() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	var before: int = GameManager.actions_remaining
 	var discovered: Array[String] = _loc_inv_mgr.use_tool_on_object(
 		"loc_apt", "obj_glass", "uv_light"
 	)
 	assert_eq(discovered.size(), 0, "Incompatible tool should reveal nothing")
+	assert_eq(GameManager.actions_remaining, before, "Incompatible tool attempts should not spend actions")
 	assert_push_warning("[LocationInvestigationManager] Tool 'UV Light' is not compatible with 'Wine Glass'")
 
 
 func test_use_tool_twice_returns_empty() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	var before: int = GameManager.actions_remaining
 	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
 	var second: Array[String] = _loc_inv_mgr.use_tool_on_object(
 		"loc_apt", "obj_glass", "fingerprint_powder"
 	)
 	assert_eq(second.size(), 0, "Second tool use should return nothing")
+	assert_eq(GameManager.actions_remaining, before - 1, "Repeated tool use should not spend another action")
+
+
+func test_use_tool_without_actions_returns_empty() -> void:
+	_loc_inv_mgr.start_investigation("loc_apt")
+	GameManager.actions_remaining = 0
+	var discovered: Array[String] = _loc_inv_mgr.use_tool_on_object(
+		"loc_apt", "obj_glass", "fingerprint_powder"
+	)
+	assert_eq(discovered.size(), 0)
+	assert_false(GameManager.has_evidence("ev_prints"), "Tool use should not discover evidence with no actions")
+	assert_push_warning("[LocationInvestigationManager] No actions remaining for tool use.")
 
 
 func test_tool_advances_state_to_fully_examined() -> void:
@@ -526,6 +537,7 @@ func test_examined_object_count() -> void:
 
 func test_location_completed_signal() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
+	GameManager.actions_remaining = 10
 	watch_signals(_loc_inv_mgr)
 	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
 	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")

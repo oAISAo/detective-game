@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Suspect Name"
 horizontal_alignment = 1
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"PanelHeader"
 
 [node name="PhaseLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -120,7 +120,6 @@ theme_type_variation = &"SectionHeader"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Current Focus: None"
-theme_override_font_sizes/font_size = 16
 
 [node name="StatementScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/RightPanel/StatementSection"]
 layout_mode = 2

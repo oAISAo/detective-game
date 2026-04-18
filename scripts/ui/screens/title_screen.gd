@@ -74,7 +74,7 @@ func _show_settings_dialog() -> void:
 
 	var header: Label = Label.new()
 	header.text = "Window Mode"
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	vbox.add_child(header)
 
 	var current_mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()

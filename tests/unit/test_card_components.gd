@@ -318,8 +318,9 @@ func test_location_card_setup_rejects_null_location_data() -> void:
 	card.setup(null)
 	assert_push_error("[LocationCard] setup rejected: null location data")
 	assert_eq(card.get_location_id(), "", "Invalid setup should not set a location id")
-	var inspect_button: Button = card.get_node("%InspectButton")
-	assert_true(inspect_button.disabled, "Invalid setup should disable the inspect button")
+	watch_signals(card)
+	card._on_pressed()
+	assert_signal_not_emitted(card, "card_pressed")
 
 
 func test_location_card_setup_rejects_missing_location_id_and_blocks_press_signal() -> void:
@@ -433,7 +434,7 @@ func test_location_card_hover_state_tracks_card_mouse_events() -> void:
 		"Hover state should clear on card mouse exit")
 
 
-func test_location_card_hover_includes_image_and_button_regions() -> void:
+func test_location_card_hover_includes_image_and_footer_regions() -> void:
 	var card: LocationCard = _location_card_scene.instantiate()
 	add_child_autofree(card)
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
@@ -447,7 +448,11 @@ func test_location_card_hover_includes_image_and_button_regions() -> void:
 	var badge_row: HBoxContainer = card.get_node("VBox/ImageArea/MediaFrame/OverlayMargin/BadgeRow")
 	var status_badge: PanelContainer = card.get_node("%StatusBadge")
 	var status_label: Label = card.get_node("%StatusLabel")
-	var inspect_button: Button = card.get_node("%InspectButton")
+	var footer: VBoxContainer = card.get_node("%Footer")
+	var name_label: Label = card.get_node("%NameLabel")
+	var description_label: Label = card.get_node("%DescriptionLabel")
+	var evidence_prefix: Label = card.get_node("%EvidencePrefixLabel")
+	var evidence_value: Label = card.get_node("%EvidenceLabel")
 
 	assert_eq(image_area.mouse_filter, Control.MOUSE_FILTER_IGNORE,
 		"Image area wrapper should ignore mouse so card hover and cursor styling remain active")
@@ -465,11 +470,21 @@ func test_location_card_hover_includes_image_and_button_regions() -> void:
 		"Status badge should ignore mouse so badge hover does not drop card highlight")
 	assert_eq(status_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
 		"Status label should ignore mouse so badge text does not suppress card hover/cursor")
+	assert_eq(footer.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Footer container should ignore mouse so text regions route hover/clicks to the card")
+	assert_eq(name_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Title label should ignore mouse so card hover stays unified")
+	assert_eq(description_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Description label should ignore mouse so card hover stays unified")
+	assert_eq(evidence_prefix.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Evidence prefix should ignore mouse so card hover stays unified")
+	assert_eq(evidence_value.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"Evidence value should ignore mouse so card hover stays unified")
 
 	card._set_hovered_state(false)
-	inspect_button.mouse_entered.emit()
+	card._on_mouse_entered()
 	assert_true(card._is_hovered,
-		"Visit button hover should activate the same card-level hover style")
+		"Card hover should activate from card-level mouse entry")
 
 
 func test_location_card_hover_clears_after_fast_exit_from_image_region() -> void:
@@ -488,7 +503,7 @@ func test_location_card_hover_clears_after_fast_exit_from_image_region() -> void
 		"Hover state should clear after quick exits when pointer is outside card bounds")
 
 
-func test_location_card_button_click_emits_single_press_event() -> void:
+func test_location_card_click_emits_single_press_event() -> void:
 	var card: LocationCard = _location_card_scene.instantiate()
 	add_child_autofree(card)
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
@@ -503,14 +518,16 @@ func test_location_card_button_click_emits_single_press_event() -> void:
 		pressed_event["id"] = location_id
 	)
 
-	var inspect_button: Button = card.get_node("%InspectButton")
-	inspect_button.pressed.emit()
+	var click_event: InputEventMouseButton = InputEventMouseButton.new()
+	click_event.button_index = MOUSE_BUTTON_LEFT
+	click_event.pressed = true
+	card._on_card_gui_input(click_event)
 
-	assert_eq(pressed_event["count"], 1, "One button click should emit exactly one card_pressed event")
-	assert_eq(pressed_event["id"], "loc_apartment", "Button click should emit the card's location id")
+	assert_eq(pressed_event["count"], 1, "One card click should emit exactly one card_pressed event")
+	assert_eq(pressed_event["id"], "loc_apartment", "Card click should emit the card's location id")
 
 
-func test_location_card_keyboard_focus_activation_matches_pointer_route() -> void:
+func test_location_card_non_left_click_does_not_emit_signal() -> void:
 	var card: LocationCard = _location_card_scene.instantiate()
 	add_child_autofree(card)
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
@@ -523,16 +540,13 @@ func test_location_card_keyboard_focus_activation_matches_pointer_route() -> voi
 		pressed_event["count"] = int(pressed_event["count"]) + 1
 	)
 
-	var inspect_button: Button = card.get_node("%InspectButton")
-	assert_eq(inspect_button.focus_mode, Control.FOCUS_ALL,
-		"Inspect button should explicitly support keyboard focus")
-	inspect_button.grab_focus()
-	assert_true(inspect_button.has_focus(),
-		"Inspect button should be focusable for keyboard activation")
-	inspect_button.pressed.emit()
+	var right_click: InputEventMouseButton = InputEventMouseButton.new()
+	right_click.button_index = MOUSE_BUTTON_RIGHT
+	right_click.pressed = true
+	card._on_card_gui_input(right_click)
 
-	assert_eq(pressed_event["count"], 1,
-		"Focused button activation should use the same single-event route as pointer activation")
+	assert_eq(pressed_event["count"], 0,
+		"Non-left clicks should not emit a new press event")
 
 
 func test_location_card_media_and_text_use_same_left_padding() -> void:
@@ -576,6 +590,5 @@ func test_location_card_emits_signal() -> void:
 	var loc: LocationData = CaseManager.get_location("loc_apartment")
 	card.setup(loc)
 	watch_signals(card)
-	var inspect_button: Button = card.get_node("%InspectButton")
-	inspect_button.pressed.emit()
+	card._on_pressed()
 	assert_signal_emitted_with_parameters(card, "card_pressed", ["loc_apartment"])

@@ -41,7 +41,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Timeline"
 horizontal_alignment = 1
-theme_type_variation = &"ScreenHeader"
+theme_type_variation = &"PanelHeader"
 
 [node name="DaySelector" type="OptionButton" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
@@ -66,8 +66,7 @@ layout_mode = 2
 visible = false
 text = ""
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.9, 0.55, 0.3, 1)
+theme_type_variation = &"WarningLabel"
 
 [node name="TimelineScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true

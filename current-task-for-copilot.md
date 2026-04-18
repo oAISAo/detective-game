@@ -1,170 +1,150 @@
-Problem 1 — Hover only works on the “empty border area”
+Copilot Prompt — New Action Button Redesign (Godot)
 
-This is expected behavior in Godot.
+You are creating a new styling for the Action Button to match a new design. Apply this styling to
 
-👉 Your root:
+🎯 Goal
 
-extends PanelContainer
+Transform the current button into a cinematic investigation action button with:
 
-👉 Your children (image, footer, etc.) are Controls that receive mouse input
+blue glowing border + shadow
+split background with diagonal separator
+left: action label
+right: cost (“1 Action”) with hourglass icon
+no old icons
+clean, reusable structure
 
-So what happens:
 
-Mouse over child → child handles it
-Parent (LocationCard) does NOT receive mouse_entered
+🔧 1. Base Structure (IMPORTANT — do NOT hack StyleBox for everything)
 
-That’s why hover only triggers in the padding area.
+Refactor the button into layered structure:
 
-✅ Fix (simple and correct)
+ActionButton (PanelContainer or Button root)
+├── Background (Control)  <-- custom drawing happens here
+├── Content (HBoxContainer)
+│   ├── Label_ActionText
+│   ├── Spacer
+│   ├── HBox_Right
+│       ├── TextureRect_Hourglass
+│       ├── Label_Cost
+Use PanelContainer as root for styling flexibility
+Do NOT rely only on StyleBoxFlat → we need custom drawing
 
-Add this in _ready():
 
-mouse_filter = Control.MOUSE_FILTER_PASS
+🎨 2. Border + Glow (Blue Outline)
 
-AND for all major children:
+Replace existing style with:
 
-_image_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-_footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-_gradient_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+StyleBoxFlat:
+border_color: blue (we have it in ui_colors)
+border_width: 1px
+corner_radius: 14
+bg_color: transparent or very dark
 
-👉 This lets the parent receive hover consistently
+Add glow effect:
+add a shadow (same as for selected List Button styling)
 
-🔴 Problem 2 — “Why do we even need this extra box?”
 
-You’re absolutely right to question this.
+✂️ 3. Diagonal Split Background (KEY FEATURE)
 
-👉 Current structure:
+Implement this using custom drawing in _draw() on the Background node.
 
-PanelContainer (card)
-  └── VBox (content)
-        ├── Image
-        ├── Gradient overlay
-        └── Footer panel (extra container)
-              └── Footer content
+Behavior:
+Left side: slightly brighter blue/teal
+Right side: darker desaturated blue
+Diagonal cut from top middle → bottom right
+Example logic:
+func _draw():
+    var w = size.x
+    var h = size.y
 
-This is over-engineered.
+    var left_color = Color(0.1, 0.25, 0.3)
+    var right_color = Color(0.05, 0.1, 0.15)
 
-💣 The real issue
+    # Left polygon
+    draw_polygon([
+        Vector2(0, 0),
+        Vector2(w * 0.6, 0),
+        Vector2(w * 0.4, h),
+        Vector2(0, h)
+    ], [left_color])
 
-You added the footer panel to:
+    # Right polygon
+    draw_polygon([
+        Vector2(w * 0.6, 0),
+        Vector2(w, 0),
+        Vector2(w, h),
+        Vector2(w * 0.4, h)
+    ], [right_color])
 
-get padding
-get background
-get rounded corners
+Optional:
+add subtle gradient or noise texture overlay for polish
 
-But:
-👉 The card already has rounded corners
-👉 The gradient already handles visual separation
 
-So now:
+⏳ 4. Hourglass Icon (Replace Dot)
+Remove old dot icon completely
+Add TextureRect before cost label
+Use a simple minimal hourglass icon:
+Size: ~14–18px
+Add slight separation (margin_right: 6)
 
-containers overlap
-rounding conflicts
-clipping issues appear
-✅ Correct approach (what you should do)
 
-👉 You do NOT need the extra footer panel at all.
+📝 5. Text Layout
 
-✔ Simplify to this:
-PanelContainer (card)
-  └── VBox (content)
-        ├── Image
-        ├── Gradient overlay (on top of image)
-        └── Footer (VBox)
-              ├── Title
-              ├── Description
-              ├── Evidence
-              └── Button
-🔧 Replace _apply_footer_style() with this:
-func _apply_footer_style() -> void:
-	_footer.add_theme_constant_override("separation", 6)
+Left:
 
-	_footer.add_theme_constant_override("margin_left", FOOTER_PADDING_H)
-	_footer.add_theme_constant_override("margin_right", FOOTER_PADDING_H)
-	_footer.add_theme_constant_override("margin_top", FOOTER_PADDING_V)
-	_footer.add_theme_constant_override("margin_bottom", FOOTER_PADDING_V)
+"Visual Inspection" (unchanged)
+aligned left
+medium weight
 
-👉 No reparenting
-👉 No extra PanelContainer
-👉 No clipping issues
+Right:
+"1 Action"
+slightly dimmer color than main text
+inline with icon
 
-🔴 Problem 3 — “Why don’t rounded corners work on the gradient/container?”
+Spacing:
+use HBoxContainer with size_flags_horizontal = EXPAND
+push right content using spacer
 
-Because:
 
-👉 Godot does NOT clip children to parent radius
+🖱️ 6. Hover + Interaction
 
-So:
+Hover state should:
+slightly increase brightness of left background
+slightly intensify border glow
+optional: subtle upward lift (translate Y -1px)
 
-your card has rounded corners ✅
-but children (gradient, footer) draw outside that shape ❌
-✅ Proper fix (important)
+DO NOT:
+change layout
+move text
+add heavy animations
 
-On the root card:
 
-clip_contents = true
+🎯 7. Reusability
 
-👉 This forces:
+Expose variables:
 
-gradient
-image
-footer
+@export var action_text: String
+@export var action_cost: int
 
-to respect the rounded corners
+Auto-update label:
 
-🔴 Problem 4 — Your margins are too big
-_base_style.content_margin_left = 20
-...
+Label_ActionText.text = action_text
+Label_Cost.text = str(action_cost) + " Action"
 
-That’s why:
 
-hover only works in that space (before fix)
-layout feels “detached”
-✅ Better values
-= 12
+⚠️ 8. Important Constraints
+Must scale cleanly for different widths
+No hardcoded pixel positioning
+No clipping issues with rounded corners
+Diagonal must adapt to size dynamically
+Keep performance lightweight (no heavy shaders)
 
-or even:
 
-= 10
+🎨 Design Intent Reminder
 
-You want:
+This button should feel:
 
-tight composition
-not floating UI blocks
-🎯 What your final setup should be
-Root card
-clip_contents = true
-mouse_filter = Control.MOUSE_FILTER_PASS
-Remove completely
-❌ footer_panel
-❌ _footer.reparent(...)
-❌ extra StyleBox for footer
-Keep
-✔ gradient overlay
-✔ footer as simple VBox
-✔ padding via constants
-🧠 Key insight (this will save you hours later)
-
-Right now you're designing like:
-
-“I need another container to fix this visual problem”
-
-But in Godot UI, that leads to:
-
-stacking issues
-clipping bugs
-input bugs (like your hover issue)
-
-👉 Instead think:
-
-“Can I solve this with fewer layers?”
-
-💬 My recommendation (important for your project)
-
-You’re very close to a clean, scalable UI system, but:
-
-remove unnecessary containers
-let the card own the shape
-let content just sit inside it
-
-That’s how your design mockups are structured too.
+investigative
+cinematic
+clean but slightly stylized
+part of a serious detective interface, not a gamey UI
