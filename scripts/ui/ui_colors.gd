@@ -97,7 +97,6 @@ const POLAROID_BG: Color = Color(0.88, 0.86, 0.82)
 
 ## Dark text on the light polaroid card.
 const POLAROID_TEXT_TITLE: Color = Color(0.15, 0.14, 0.13)
-const POLAROID_TEXT_DESCRIPTION: Color = Color(0.30, 0.28, 0.26)
 
 ## Placeholder area when no evidence image exists.
 const POLAROID_IMAGE_PLACEHOLDER_BG: Color = Color(0.72, 0.70, 0.67)

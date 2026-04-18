@@ -34,7 +34,7 @@ func setup(ev: EvidenceData, handwriting_font: Font = null) -> void:
 
 	_name_label.text = ev.name
 	_name_label.add_theme_color_override("font_color", UIColors.POLAROID_TEXT_TITLE)
-	_name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
+	_name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_SECTION)
 	if handwriting_font:
 		_name_label.add_theme_font_override("font", handwriting_font)
 
