@@ -4,10 +4,14 @@ class_name ActionButtonBackground
 extends Control
 
 
+## Visual mode: 0 = normal (blue), 1 = completed (green), 2 = disabled (dimmed blue).
+enum ColorMode { NORMAL, COMPLETED, DISABLED }
+
 const RIGHT_SECTION_MAX_RATIO: float = 0.46
 const DIAGONAL_MAX_TILT: float = 12.0
 const LEFT_BASE_ALPHA: float = 0.46
 const RIGHT_BASE_ALPHA: float = 0.30
+const DISABLED_ALPHA_FACTOR: float = 0.55
 
 
 @export_range(0.0, 1.0, 0.01) var hover_intensity: float = 0.0:
@@ -18,6 +22,11 @@ const RIGHT_BASE_ALPHA: float = 0.30
 @export_range(0.0, 1000.0, 1.0) var right_section_width: float = 90.0:
 	set(value):
 		right_section_width = maxf(0.0, value)
+		queue_redraw()
+
+@export var color_mode: int = ColorMode.NORMAL:
+	set(value):
+		color_mode = value
 		queue_redraw()
 
 
@@ -63,13 +72,31 @@ func _draw() -> void:
 
 
 func _left_color() -> Color:
-	var left_color: Color = UIColors.BLUE.lerp(UIColors.BG_SURFACE, 0.55)
-	left_color.a = LEFT_BASE_ALPHA + (0.18 * hover_intensity)
+	var accent: Color = _accent_color()
+	var left_color: Color = accent.lerp(UIColors.BG_SURFACE, 0.55)
+	var alpha: float = LEFT_BASE_ALPHA + (0.18 * hover_intensity)
+	if color_mode == ColorMode.DISABLED:
+		alpha *= DISABLED_ALPHA_FACTOR
+	left_color.a = alpha
 	return left_color
 
 
 func _right_color() -> Color:
+	var accent: Color = _accent_color()
 	var right_color: Color = UIColors.BG_SURFACE.darkened(0.35)
-	right_color = right_color.lerp(UIColors.BLUE, 0.08)
-	right_color.a = RIGHT_BASE_ALPHA + (0.10 * hover_intensity)
+	right_color = right_color.lerp(accent, 0.08)
+	var alpha: float = RIGHT_BASE_ALPHA + (0.10 * hover_intensity)
+	if color_mode == ColorMode.DISABLED:
+		alpha *= DISABLED_ALPHA_FACTOR
+	right_color.a = alpha
 	return right_color
+
+
+func _accent_color() -> Color:
+	match color_mode:
+		ColorMode.COMPLETED:
+			return UIColors.GREEN.lerp(UIColors.TEXT_GREY, 0.3)
+		ColorMode.DISABLED:
+			return UIColors.BLUE.lerp(UIColors.TEXT_GREY, 0.4)
+		_:
+			return UIColors.BLUE

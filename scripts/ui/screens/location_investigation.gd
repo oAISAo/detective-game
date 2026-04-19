@@ -190,11 +190,10 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 		already_done = LocationInvestigationManager.ACTION_VISUAL_INSPECTION in actions
 
 		if already_done:
-			inspect_btn.set("action_text", "%s (done)" % inspect_text)
-			inspect_btn.set("disabled", true)
+			inspect_btn.set("completed", true)
 		elif not GameManager.has_actions_remaining():
 			inspect_btn.set("disabled", true)
-			inspect_btn.tooltip_text = "No actions remaining today. End the day to continue."
+			inspect_btn.tooltip_text = "No actions remaining. End the day to continue."
 		inspect_btn.connect("pressed", Callable(self, "_on_inspect_pressed").bind(obj.id))
 		action_list.add_child(inspect_btn)
 

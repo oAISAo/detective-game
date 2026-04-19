@@ -14,7 +14,7 @@ theme_override_constants/margin_bottom = 8
 
 [node name="Header" type="Label" parent="HeaderMargin"]
 layout_mode = 2
-text = "CLUES DISCOVERED"
+text = "EVIDENCE DISCOVERED"
 theme_type_variation = &"SectionHeader"
 
 [node name="EmptyLabel" type="Label" parent="."]
