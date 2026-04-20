@@ -19,7 +19,7 @@ class_name UIFonts
 const SIZE_PLACEHOLDER_INITIAL: int = 64
 
 ## Large display title used on the title screen.
-const SIZE_TITLE_SCREEN: int = 44
+const SIZE_TITLE_SCREEN: int = 40
 
 ## Large section title used in selector headers and placeholder initials.
 const SIZE_PANEL_HEADER: int = 30

@@ -30,11 +30,6 @@ const RIGHT_SECTION_EXTRA_WIDTH: float = 24.0
 const RIGHT_SECTION_MIN_WIDTH: float = 68.0
 const DISABLED_BORDER_BLUE_LERP: float = 0.55
 const DISABLED_GLOW_ALPHA: float = 0.08
-const TOOLTIP_CORNER_RADIUS: int = 8
-const TOOLTIP_BORDER_WIDTH: int = 2
-const TOOLTIP_PADDING: int = 14
-const TOOLTIP_SHADOW_SIZE: int = 8
-const TOOLTIP_HIDE_DELAY: float = 2.5
 
 static var _icon_font: FontVariation = null
 
@@ -44,8 +39,6 @@ var _is_disabled: bool = false
 var _is_completed: bool = false
 var _is_hovered: bool = false
 var _hover_tween: Tween
-var _click_tooltip: PanelContainer = null
-var _click_tooltip_tween: Tween = null
 
 @export var action_text: String = "Visual Inspection":
 	set(value):
@@ -124,7 +117,6 @@ func _gui_input(event: InputEvent) -> void:
 		return
 
 	if _is_disabled:
-		_show_click_tooltip()
 		accept_event()
 		return
 
@@ -142,7 +134,6 @@ func _on_mouse_entered() -> void:
 func _on_mouse_exited() -> void:
 	_is_hovered = false
 	_update_visual_state()
-	_hide_click_tooltip()
 
 
 func _refresh_labels() -> void:
@@ -293,82 +284,3 @@ func _get_icon_font() -> FontVariation:
 	_icon_font.base_font = base_font
 	_icon_font.opentype_features = {"liga": 1, "calt": 1}
 	return _icon_font
-
-
-## Overrides the default tooltip with a styled game tooltip panel.
-func _make_custom_tooltip(for_text: String) -> Control:
-	if for_text.is_empty():
-		return null
-	return _build_tooltip_panel(for_text)
-
-
-## Builds a styled tooltip panel matching the game's visual language.
-func _build_tooltip_panel(text: String) -> PanelContainer:
-	var panel: PanelContainer = PanelContainer.new()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = UIColors.BG_PANEL
-	style.set_border_width_all(TOOLTIP_BORDER_WIDTH)
-	style.border_color = UIColors.BLUE.lerp(UIColors.TEXT_GREY, 0.4)
-	style.border_color.a = 0.8
-	style.set_corner_radius_all(TOOLTIP_CORNER_RADIUS)
-	style.content_margin_left = float(TOOLTIP_PADDING)
-	style.content_margin_top = float(TOOLTIP_PADDING - 4)
-	style.content_margin_right = float(TOOLTIP_PADDING)
-	style.content_margin_bottom = float(TOOLTIP_PADDING - 4)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
-	style.shadow_size = TOOLTIP_SHADOW_SIZE
-	panel.add_theme_stylebox_override("panel", style)
-
-	var label: Label = Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", UIFonts.SIZE_CALLOUT)
-	label.add_theme_color_override("font_color", UIColors.TEXT_PRIMARY)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.custom_minimum_size.x = 180.0
-
-	panel.add_child(label)
-	return panel
-
-
-## Shows a click-triggered tooltip above the button.
-func _show_click_tooltip() -> void:
-	if tooltip_text.is_empty():
-		return
-
-	_hide_click_tooltip()
-
-	_click_tooltip = _build_tooltip_panel(tooltip_text)
-	_click_tooltip.z_index = 100
-
-	# Add to the scene tree first so layout computes
-	add_child(_click_tooltip)
-
-	# Position above the button, centered
-	await get_tree().process_frame
-	if not is_instance_valid(_click_tooltip):
-		return
-	var tip_size: Vector2 = _click_tooltip.get_combined_minimum_size()
-	_click_tooltip.position = Vector2(
-		(size.x - tip_size.x) * 0.5,
-		-tip_size.y - 8.0
-	)
-
-	# Fade in
-	_click_tooltip.modulate.a = 0.0
-	if _click_tooltip_tween:
-		_click_tooltip_tween.kill()
-	_click_tooltip_tween = create_tween()
-	_click_tooltip_tween.tween_property(_click_tooltip, "modulate:a", 1.0, 0.15)
-	_click_tooltip_tween.tween_interval(TOOLTIP_HIDE_DELAY)
-	_click_tooltip_tween.tween_property(_click_tooltip, "modulate:a", 0.0, 0.3)
-	_click_tooltip_tween.tween_callback(_hide_click_tooltip)
-
-
-## Hides the click-triggered tooltip immediately.
-func _hide_click_tooltip() -> void:
-	if _click_tooltip_tween:
-		_click_tooltip_tween.kill()
-		_click_tooltip_tween = null
-	if is_instance_valid(_click_tooltip):
-		_click_tooltip.queue_free()
-		_click_tooltip = null

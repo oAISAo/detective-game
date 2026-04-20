@@ -17,13 +17,6 @@ layout_mode = 2
 text = "EVIDENCE DISCOVERED"
 theme_type_variation = &"SectionHeader"
 
-[node name="EmptyLabel" type="Label" parent="."]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "No evidence recovered from this target yet."
-autowrap_mode = 3
-
 [node name="ClueScroll" type="ScrollContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
@@ -31,10 +24,18 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ClueGrid" type="GridContainer" parent="ClueScroll"]
+[node name="ClueListMargin" type="MarginContainer" parent="ClueScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="ClueGrid" type="GridContainer" parent="ClueScroll/ClueListMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 3
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
+columns = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 20

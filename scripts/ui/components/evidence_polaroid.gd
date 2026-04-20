@@ -6,10 +6,11 @@ extends PanelContainer
 
 
 const _CORNER_RADIUS: int = 6
-const _PADDING: int = 4
-const _BOTTOM_PADDING: int = 10
+const _PADDING: int = 10
+const _BOTTOM_PADDING: int = 6
 const _IMAGE_MIN_HEIGHT: int = 120
-const _VBOX_SEPARATION: int = 4
+const _SHADOW_SIZE: int = 8
+const _SHADOW_OFFSET: Vector2 = Vector2(2, 2)
 
 @onready var _image_clip: Control = %ImageClip
 @onready var _image_rect: TextureRect = %ImageRect
@@ -19,6 +20,7 @@ const _VBOX_SEPARATION: int = 4
 
 func _ready() -> void:
 	_apply_card_style()
+	resized.connect(_enforce_square_image)
 
 
 ## Populates the polaroid with evidence data. Call after adding to the scene tree.
@@ -34,7 +36,7 @@ func setup(ev: EvidenceData, handwriting_font: Font = null) -> void:
 
 	_name_label.text = ev.name
 	_name_label.add_theme_color_override("font_color", UIColors.POLAROID_TEXT_TITLE)
-	_name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_SECTION)
+	_name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_TITLE)
 	if handwriting_font:
 		_name_label.add_theme_font_override("font", handwriting_font)
 
@@ -50,4 +52,15 @@ func _apply_card_style() -> void:
 	style.content_margin_top = _PADDING
 	style.content_margin_right = _PADDING
 	style.content_margin_bottom = _BOTTOM_PADDING
+	style.shadow_color = UIColors.LOCATION_CARD_SHADOW
+	style.shadow_size = _SHADOW_SIZE
+	style.shadow_offset = _SHADOW_OFFSET
 	add_theme_stylebox_override("panel", style)
+
+
+## Keeps the image area square by setting min height to match inner width.
+func _enforce_square_image() -> void:
+	var inner_width: float = size.x - (_PADDING * 2)
+	if inner_width > 0.0:
+		_image_clip.custom_minimum_size.y = inner_width
+		_image_placeholder.custom_minimum_size.y = inner_width
