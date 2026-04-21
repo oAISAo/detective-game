@@ -190,13 +190,20 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 		already_done = LocationInvestigationManager.ACTION_VISUAL_INSPECTION in actions
 
 		if already_done:
-			inspect_btn.set("action_text", "%s (done)" % inspect_text)
-			inspect_btn.set("disabled", true)
+			inspect_btn.set("completed", true)
 		elif not GameManager.has_actions_remaining():
 			inspect_btn.set("disabled", true)
-			inspect_btn.tooltip_text = "No actions remaining today. End the day to continue."
 		inspect_btn.connect("pressed", Callable(self, "_on_inspect_pressed").bind(obj.id))
 		action_list.add_child(inspect_btn)
+
+		# Show "no actions" hint below the button when disabled
+		if not already_done and not GameManager.has_actions_remaining():
+			var hint_label: Label = Label.new()
+			hint_label.text = "No actions remaining. End the day to continue."
+			hint_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
+			hint_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+			hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			action_list.add_child(hint_label)
 
 
 ## Handles visual inspection action.
@@ -311,6 +318,10 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 					ev = CaseManager.get_evidence(lab_req.output_evidence_id)
 			if ev:
 				found_clues.append(ev)
+
+	# Don't show the clues section at all if nothing has been found
+	if found_clues.is_empty():
+		return
 
 	# Add spacing before clues section
 	var spacer: Control = Control.new()
