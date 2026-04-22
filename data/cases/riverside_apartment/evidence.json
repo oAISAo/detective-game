@@ -1,6 +1,30 @@
 {
 	"evidence": [
 		{
+			"id": "ev_autopsy_report",
+			"name": "Autopsy Report",
+			"image": "res://assets/placeholders/placeholder_evidence_autopsy_report.png",
+			"description": "Coroner's preliminary autopsy findings: Victim died from a stab wound to the chest. Estimated time of death approximately 21:00. Forensic findings indicate the wound was made with a single-edged blade approximately 15cm in length.",
+			"type": "DOCUMENT",
+			"location_found": "",
+			"discovered_day": 0,
+			"related_persons": [
+				"p_victim"
+			],
+			"tags": [
+				"autopsy",
+				"cause_of_death",
+				"forensic",
+				"time_of_death"
+			],
+			"weight": 0.9,
+			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
+			"legal_categories": [
+				"CONNECTION"
+			]
+		},
+		{
 			"id": "ev_knife",
 			"name": "Murder Weapon (Kitchen Knife)",
 			"image": "res://assets/placeholders/placeholder_evidence_kitchen_knife.png",
@@ -88,7 +112,7 @@
 			],
 			"weight": 0.2,
 			"importance_level": "SUPPORTING",
-			"discovery_method": "TOOL",
+			"discovery_method": "VISUAL",
 			"legal_categories": []
 		},
 		{
@@ -138,27 +162,6 @@
 			"legal_categories": [
 				"CONNECTION"
 			]
-		},
-		{
-			"id": "ev_victim_phone",
-			"name": "Victim's Phone",
-			"image": "res://assets/placeholders/placeholder_evidence_victim_phone.png",
-			"description": "Daniel's phone found on the table. Contains messages and call history.",
-			"type": "OBJECT",
-			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
-			"related_persons": [
-				"p_victim"
-			],
-			"tags": [
-				"crime_scene",
-				"digital",
-				"phone"
-			],
-			"weight": 0.5,
-			"importance_level": "SUPPORTING",
-			"discovery_method": "VISUAL",
-			"legal_categories": []
 		},
 		{
 			"id": "ev_julia_text_message",
@@ -409,51 +412,6 @@
 				"OPPORTUNITY"
 			],
 			"hint_text": "Check the building's elevator access records."
-		},
-		{
-			"id": "ev_sarah_testimony",
-			"name": "Sarah's Testimony",
-			"image": "res://assets/placeholders/placeholder_evidence_sarah_testimony.png",
-			"description": "Sarah Klein's initial statement: she heard an argument around 20:45 but claims she did not see anyone in the hallway.",
-			"type": "DOCUMENT",
-			"location_found": "loc_neighbor_apartment",
-			"discovered_day": 0,
-			"related_persons": [
-				"p_sarah"
-			],
-			"tags": [
-				"witness",
-				"testimony",
-				"timeline"
-			],
-			"weight": 0.5,
-			"importance_level": "SUPPORTING",
-			"discovery_method": "VISUAL",
-			"legal_categories": []
-		},
-		{
-			"id": "ev_sarah_second_testimony",
-			"name": "Sarah's Second Testimony",
-			"image": "res://assets/placeholders/placeholder_evidence_sarah_testimony_2.png",
-			"description": "Under pressure, Sarah admits hearing a female voice during the argument. She also remembers hearing quick footsteps in the hallway.",
-			"type": "DOCUMENT",
-			"location_found": "loc_neighbor_apartment",
-			"discovered_day": 0,
-			"related_persons": [
-				"p_sarah"
-			],
-			"tags": [
-				"witness",
-				"testimony",
-				"pressure",
-				"female_voice"
-			],
-			"weight": 0.6,
-			"importance_level": "SUPPORTING",
-			"discovery_method": "VISUAL",
-			"legal_categories": [
-				"CONNECTION"
-			]
 		},
 		{
 			"id": "ev_lucas_work_log",

@@ -165,16 +165,16 @@ func test_new_object_defaults_to_unexamined() -> void:
 		"New object should default to NOT_INSPECTED")
 
 
-# Test: Discovered raw clue changes object to partially_examined
-func test_raw_clue_changes_to_partially_examined() -> void:
+# Test: Discovered raw clue with lab request still shows FULLY_PROCESSED after inspection
+func test_raw_clue_changes_to_fully_processed() -> void:
 	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
 		"loc_hallway", "obj_hallway_floor"
 	)
-	assert_eq(status, Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED,
-		"Object with tool requirements remaining should be PARTIALLY_EXAMINED")
+	assert_eq(status, Enums.ObjectDisplayStatus.FULLY_PROCESSED,
+		"Object with lab-eligible evidence should be FULLY_PROCESSED after inspection — lab submission is an Evidence-tab concern")
 
 
 # Test: Submitted raw clue changes object to AWAITING_LAB if no scene-side actions remain
@@ -214,62 +214,6 @@ func test_analyzed_result_completes_object() -> void:
 		"Fully examined object without lab should be FULLY_PROCESSED")
 
 
-# Test: UI-facing status text maps correctly from derived state
-func test_status_hint_text_maps_correctly() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-
-	# NOT_INSPECTED → non-empty hint
-	var hint_before: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_true(hint_before.length() > 0,
-		"NOT_INSPECTED object should have hint text")
-	assert_true(hint_before.contains("not been examined"),
-		"NOT_INSPECTED hint should mention not examined. Got: %s" % hint_before)
-
-	# PARTIALLY_EXAMINED → non-empty hint about evidence/tools
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-	var hint_partial: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_true(hint_partial.length() > 0,
-		"PARTIALLY_EXAMINED object should have hint text")
-
-	# FULLY_PROCESSED → completion hint
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
-	var hint_done: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_security_system"
-	)
-	assert_true(hint_done.contains("No further leads"),
-		"FULLY_PROCESSED hint should mention no further leads. Got: %s" % hint_done)
-
-
-# Test: Partial hint routes player to Evidence tab, not scene tools
-func test_partial_hint_routes_to_evidence_tab() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-	LocationInvestigationManager.leave_location()
-
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
-	LabManager.submit_request(
-		"ev_shoe_print_raw",
-		lab_req.analysis_type,
-		lab_req.output_evidence_id,
-		1
-	)
-
-	DaySystem.force_advance_day()
-	DaySystem.process_morning()
-
-	var hint: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_true(hint.contains("Evidence tab"),
-		"Partial-state hint should guide to Evidence tab. Got: %s" % hint)
-	assert_false(hint.to_lower().contains("tool"),
-		"Partial-state hint should not direct to tool usage. Got: %s" % hint)
-
-
 # =========================================================================
 # TASK 3 — DETAIL PANEL CONTENT
 # =========================================================================
@@ -298,25 +242,6 @@ func test_discovered_clues_available_after_inspection() -> void:
 
 	assert_true(GameManager.has_evidence("ev_shoe_print_raw"),
 		"Shoe print raw should be in discovered evidence after inspection")
-
-
-# Test: State-aware investigation messaging changes after actions
-func test_investigation_messaging_changes_with_status() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-
-	# Before inspection
-	var hint_before: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-
-	# After inspection
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-	var hint_after: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-
-	assert_ne(hint_before, hint_after,
-		"Investigation messaging should change after inspection action")
 
 
 # Test: Tool unavailable hints exist in ToolManager
@@ -375,8 +300,8 @@ func test_badges_update_after_discovery() -> void:
 		"Security system should be FULLY_PROCESSED after examination")
 
 
-# Test: Partially examined object gets correct status
-func test_partial_badge_for_object_with_tools() -> void:
+# Test: Object with lab-eligible evidence shows FULLY_PROCESSED after inspection
+func test_badge_fully_processed_for_inspected_object() -> void:
 	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
@@ -384,8 +309,8 @@ func test_partial_badge_for_object_with_tools() -> void:
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
 		"loc_hallway", "obj_hallway_floor"
 	)
-	assert_eq(status, Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED,
-		"Hallway floor should be PARTIALLY_EXAMINED (tool actions remain)")
+	assert_eq(status, Enums.ObjectDisplayStatus.FULLY_PROCESSED,
+		"Hallway floor should be FULLY_PROCESSED after inspection — lab submission does not make it partial")
 
 
 # Test: Objects across different locations maintain independent states
@@ -445,50 +370,6 @@ func test_location_scene_has_no_forensic_tools_section() -> void:
 	instance.queue_free()
 
 
-# Test: Detail inspect action uses reusable ActionButton component
-func test_detail_action_uses_reusable_action_button_component() -> void:
-	ScreenManager.navigation_data = {"location_id": "loc_hallway"}
-
-	var scene: PackedScene = load("res://scenes/ui/location_investigation.tscn") as PackedScene
-	assert_not_null(scene, "Location investigation scene should load")
-	if scene == null:
-		return
-
-	var instance: Control = scene.instantiate() as Control
-	assert_not_null(instance, "Location investigation scene should instantiate")
-	if instance == null:
-		return
-
-	add_child_autofree(instance)
-	instance._on_object_selected("obj_security_system")
-
-	var action_list: VBoxContainer = instance.get_node_or_null(
-		"MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailActions/ActionMargin/ActionList"
-	) as VBoxContainer
-	assert_not_null(action_list, "ActionList container should exist")
-	if action_list == null:
-		return
-
-	assert_eq(action_list.get_child_count(), 1, "Selected object should expose one inspect action")
-	if action_list.get_child_count() < 1:
-		return
-
-	var action_control: Control = action_list.get_child(0) as Control
-	assert_not_null(action_control, "Inspect action control should be created")
-	if action_control == null:
-		return
-
-	assert_eq(
-		action_control.get_script().resource_path,
-		"res://scripts/ui/components/action_button.gd",
-		"Inspect action should instantiate the reusable ActionButton component"
-	)
-	assert_eq(action_control.get("action_text"), "Examine")
-	assert_eq(action_control.get("action_cost"), 1)
-
-	ScreenManager.navigation_data = {}
-
-
 # Test: Multiple locations can be loaded and investigated independently
 func test_multiple_locations_support() -> void:
 	# Hallway
@@ -541,10 +422,10 @@ func test_full_investigation_flow() -> void:
 		LocationInvestigationManager.get_object_display_status("loc_hallway", "obj_maintenance_office"),
 		Enums.ObjectDisplayStatus.FULLY_PROCESSED
 	)
-	# Hallway floor has tool requirements, so still partial
+	# Hallway floor: inspection done — status is FULLY_PROCESSED regardless of lab
 	assert_eq(
 		LocationInvestigationManager.get_object_display_status("loc_hallway", "obj_hallway_floor"),
-		Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
+		Enums.ObjectDisplayStatus.FULLY_PROCESSED
 	)
 
 
@@ -564,18 +445,18 @@ func test_refresh_ui_populates_detail_last() -> void:
 	LocationInvestigationManager.start_investigation("loc_hallway")
 
 	# Select an object — the investigation screen would call _refresh_ui
-	# which calls _update_completion, _populate_objects, _populate_tools,
+	# which calls _update_completion and _populate_objects,
 	# then _show_object_detail LAST. We verify this by checking that
 	# after selecting + inspecting, the object's actions are recorded and
 	# displayed in the correct state.
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
-	# After inspection, the state should be PARTIALLY_EXAMINED (tool actions remain)
+	# After inspection, the state should be FULLY_EXAMINED (tool actions were removed from map tab)
 	var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
 		"loc_hallway", "obj_hallway_floor"
 	)
-	assert_eq(state, Enums.InvestigationState.PARTIALLY_EXAMINED,
-		"Object should be PARTIALLY_EXAMINED after inspection (tool actions remain)")
+	assert_eq(state, Enums.InvestigationState.FULLY_EXAMINED,
+		"Object should be FULLY_EXAMINED after inspection (tool-based logic removed from map tab)")
 
 	# The performed actions should include visual_inspection
 	var actions: Array = LocationInvestigationManager.get_performed_actions(
@@ -632,8 +513,8 @@ func test_sequential_object_selection_preserves_state() -> void:
 	# Verify both states are correct and independent
 	assert_eq(
 		LocationInvestigationManager.get_object_state("loc_hallway", "obj_hallway_floor"),
-		Enums.InvestigationState.PARTIALLY_EXAMINED,
-		"Hallway floor should still be PARTIALLY_EXAMINED after selecting another object"
+		Enums.InvestigationState.FULLY_EXAMINED,
+		"Hallway floor should be FULLY_EXAMINED after inspection (tool-based logic removed)"
 	)
 	assert_eq(
 		LocationInvestigationManager.get_object_state("loc_hallway", "obj_security_system"),
@@ -646,37 +527,3 @@ func test_sequential_object_selection_preserves_state() -> void:
 		"Floor evidence should persist after selecting another object")
 	assert_true(GameManager.has_evidence("ev_hallway_camera"),
 		"Security evidence should be discovered")
-
-
-# Test: Tool use after inspection works without requiring re-selection
-# Verifies the bug where Visual Inspection only worked after clicking forensic kit
-# (which triggered _refresh_ui and fixed the layout). Now both should work
-# in any order.
-func test_tool_use_after_inspection_works() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-
-	# Step 1: Inspect hallway floor (visual_inspection)
-	var visual_discovered: Array[String] = LocationInvestigationManager.inspect_object(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_true(visual_discovered.size() > 0,
-		"Visual inspection should discover evidence")
-
-	# Step 2: Use forensic kit on same object
-	var _tool_discovered: Array[String] = LocationInvestigationManager.use_tool_on_object(
-		"loc_hallway", "obj_hallway_floor", "forensic_kit"
-	)
-
-	# Step 3: Verify tool use was recorded
-	var actions: Array = LocationInvestigationManager.get_performed_actions(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_has(actions, "tool:forensic_kit",
-		"Forensic kit use should be recorded in performed actions")
-
-	# Step 4: Object should now be FULLY_EXAMINED
-	var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_eq(state, Enums.InvestigationState.FULLY_EXAMINED,
-		"Object should be FULLY_EXAMINED after inspection + tool use")

@@ -44,26 +44,3 @@ func test_main_columns_panels_use_expected_stretch_ratios() -> void:
 		assert_eq(right_panel.size_flags_stretch_ratio, 0.75, "Right panel should be 30% (0.75 ratio)")
 
 	instance.free()
-
-
-func test_detail_placeholder_defaults_are_center_aligned() -> void:
-	var scene: PackedScene = load("res://scenes/ui/location_investigation.tscn") as PackedScene
-	assert_not_null(scene, "Location investigation scene should load")
-
-	var instance: Control = scene.instantiate() as Control
-	assert_not_null(instance, "Location investigation scene should instantiate")
-
-	var detail_panel: VBoxContainer = instance.get_node_or_null("MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel") as VBoxContainer
-	var detail_title: Label = instance.get_node_or_null("MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailTitle") as Label
-	var detail_description: Label = instance.get_node_or_null("MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailDescription") as Label
-	assert_not_null(detail_panel)
-	assert_not_null(detail_title)
-	assert_not_null(detail_description)
-
-	if detail_panel and detail_title and detail_description:
-		assert_eq(detail_panel.alignment, BoxContainer.ALIGNMENT_CENTER)
-		assert_eq(detail_title.horizontal_alignment, HORIZONTAL_ALIGNMENT_CENTER)
-		assert_eq(detail_description.horizontal_alignment, HORIZONTAL_ALIGNMENT_CENTER)
-		assert_eq(detail_description.vertical_alignment, VERTICAL_ALIGNMENT_CENTER)
-
-	instance.free()

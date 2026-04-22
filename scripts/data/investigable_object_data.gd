@@ -25,6 +25,11 @@ extends Resource
 ## Current investigation state of this object.
 @export var investigation_state: Enums.InvestigationState = Enums.InvestigationState.NOT_INSPECTED
 
+## Condition that must be met for this object to become visible.
+## Format: { "requires_evidence": ["ev_id1", "ev_id2"] }
+## Empty dictionary means always visible.
+@export var discovery_condition: Dictionary = {}
+
 
 ## Creates an InvestigableObjectData from a JSON dictionary.
 static func from_dict(data: Dictionary) -> InvestigableObjectData:
@@ -40,6 +45,7 @@ static func from_dict(data: Dictionary) -> InvestigableObjectData:
 		data.get("investigation_state", "NOT_INSPECTED"),
 		Enums.InvestigationState.NOT_INSPECTED
 	) as Enums.InvestigationState
+	res.discovery_condition = data.get("discovery_condition", {})
 	return res
 
 
@@ -63,4 +69,5 @@ func to_dict() -> Dictionary:
 		"tool_requirements": tool_requirements.duplicate(),
 		"evidence_results": evidence_results.duplicate(),
 		"investigation_state": EnumHelper.enum_to_string(Enums.InvestigationState, investigation_state),
+		"discovery_condition": discovery_condition.duplicate(),
 	}

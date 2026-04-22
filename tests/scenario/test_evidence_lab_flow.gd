@@ -296,25 +296,6 @@ func test_multiple_lab_requests_concurrent() -> void:
 
 
 # =========================================================================
-# Test 7: Hallway floor state is PARTIALLY_EXAMINED after inspection
-# =========================================================================
-
-func test_hallway_floor_partially_examined_with_unfulfilled_tool() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-
-	var state: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_eq(state, Enums.InvestigationState.PARTIALLY_EXAMINED,
-		"Hallway floor should be PARTIALLY_EXAMINED (forensic_kit tool not available)")
-
-	# But evidence was still discovered
-	assert_true(GameManager.has_evidence("ev_shoe_print_raw"),
-		"Shoe print raw should be discovered despite partial state")
-
-
-# =========================================================================
 # Test 8: Completion persists after leaving and returning
 # =========================================================================
 
@@ -453,3 +434,126 @@ func test_raw_evidence_shows_lab_status_without_results() -> void:
 	var should_show_status: bool = not ev.requires_lab_analysis and lab_req != null
 	assert_true(should_show_status,
 		"Raw evidence with lab request should show lab status row")
+
+
+# =========================================================================
+# Test 14: lab_transform field values on case data
+# =========================================================================
+
+func test_shoe_print_lab_request_is_upgrade_transform() -> void:
+	var req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
+	assert_not_null(req)
+	assert_eq(req.lab_transform, "upgrade",
+		"Shoe print lab request should use upgrade transform (raw replaced by analyzed)")
+
+
+func test_desk_fingerprint_lab_request_is_upgrade_transform() -> void:
+	var req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_desk_fingerprint_raw")
+	assert_not_null(req)
+	assert_eq(req.lab_transform, "upgrade",
+		"Desk fingerprint lab request should use upgrade transform")
+
+
+func test_wine_glasses_lab_request_is_derive_transform() -> void:
+	var req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_wine_glasses")
+	assert_not_null(req)
+	assert_eq(req.lab_transform, "derive",
+		"Wine glasses lab request should use derive transform (glasses stay; fingerprint added alongside)")
+
+
+# =========================================================================
+# Test 15: derive transform — input stays, output is added alongside
+# =========================================================================
+
+func test_derive_transform_keeps_input_evidence() -> void:
+	GameManager.discover_evidence("ev_wine_glasses")
+
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_wine_glasses")
+	LabManager.submit_request(
+		"ev_wine_glasses",
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	DaySystem.force_advance_day()
+	DaySystem.process_morning()
+
+	assert_true(GameManager.has_evidence("ev_wine_glasses"),
+		"Wine glasses (input) should remain in evidence collection after derive transform")
+
+
+func test_derive_transform_adds_output_evidence() -> void:
+	GameManager.discover_evidence("ev_wine_glasses")
+
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_wine_glasses")
+	LabManager.submit_request(
+		"ev_wine_glasses",
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	DaySystem.force_advance_day()
+	DaySystem.process_morning()
+
+	assert_true(GameManager.has_evidence("ev_julia_fingerprint_glass"),
+		"Julia's fingerprint (output) should be added to evidence collection after derive transform")
+
+
+func test_derive_transform_results_in_two_evidence_items() -> void:
+	GameManager.discover_evidence("ev_wine_glasses")
+
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_wine_glasses")
+	LabManager.submit_request(
+		"ev_wine_glasses",
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	DaySystem.force_advance_day()
+	DaySystem.process_morning()
+
+	var count: int = 0
+	for ev_id: String in GameManager.discovered_evidence:
+		if ev_id == "ev_wine_glasses" or ev_id == "ev_julia_fingerprint_glass":
+			count += 1
+	assert_eq(count, 2,
+		"Both the wine glasses and the derived fingerprint should be in the evidence collection")
+
+
+# =========================================================================
+# Test 16: derive transform carried through LabManager request dict
+# =========================================================================
+
+func test_derive_transform_stored_in_submitted_request() -> void:
+	GameManager.discover_evidence("ev_wine_glasses")
+
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_wine_glasses")
+	var result: Dictionary = LabManager.submit_request(
+		"ev_wine_glasses",
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	assert_false(result.is_empty(), "Submission should succeed")
+	assert_eq(result.get("lab_transform", ""), "derive",
+		"Submitted request dictionary should carry lab_transform = derive")
+
+
+func test_upgrade_transform_stored_in_submitted_request() -> void:
+	GameManager.discover_evidence("ev_shoe_print_raw")
+
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
+	var result: Dictionary = LabManager.submit_request(
+		"ev_shoe_print_raw",
+		lab_req.analysis_type,
+		lab_req.output_evidence_id,
+		1
+	)
+
+	assert_false(result.is_empty(), "Submission should succeed")
+	assert_eq(result.get("lab_transform", ""), "upgrade",
+		"Submitted request dictionary should carry lab_transform = upgrade")

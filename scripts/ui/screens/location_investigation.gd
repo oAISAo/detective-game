@@ -122,7 +122,7 @@ func _populate_objects() -> void:
 	spacer.custom_minimum_size.y = _OBJECT_LIST_TOP_PADDING
 	object_list.add_child(spacer)
 
-	for obj: InvestigableObjectData in _location.investigable_objects:
+	for obj: InvestigableObjectData in LocationInvestigationManager.get_visible_objects(_location):
 		var btn: Button = Button.new()
 		UIHelper.apply_list_button_style(btn, obj.id == _selected_object_id, HORIZONTAL_ALIGNMENT_LEFT)
 		btn.pressed.connect(_on_object_selected.bind(obj.id))
@@ -198,12 +198,17 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 
 		# Show "no actions" hint below the button when disabled
 		if not already_done and not GameManager.has_actions_remaining():
+			var margin_container: MarginContainer = MarginContainer.new()
+			margin_container.add_theme_constant_override("margin_top", 10)
+
 			var hint_label: Label = Label.new()
 			hint_label.text = "No actions remaining. End the day to continue."
 			hint_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
-			hint_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+			hint_label.add_theme_font_size_override("font_size", UIFonts.SIZE_CALLOUT)
 			hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			action_list.add_child(hint_label)
+
+			margin_container.add_child(hint_label)
+			action_list.add_child(margin_container)
 
 
 ## Handles visual inspection action.
@@ -306,18 +311,28 @@ func _build_scene_placeholder() -> void:
 func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 	_remove_clues_section()
 
-	# Collect discovered evidence for this object
+	# Collect discovered evidence for this object.
+	# For upgrade-type lab transforms the raw evidence ID is replaced at runtime, so
+	# we first check whether the upgraded output is discovered (taking priority), then
+	# fall back to the raw version, then fall back to the case-data record directly.
 	var found_clues: Array[EvidenceData] = []
 	for ev_id: String in obj.evidence_results:
-		if LocationInvestigationManager.is_evidence_discovered(ev_id):
-			# Resolve the actual evidence (raw or upgraded via lab)
-			var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-			if ev == null:
-				var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-				if lab_req != null:
-					ev = CaseManager.get_evidence(lab_req.output_evidence_id)
-			if ev:
-				found_clues.append(ev)
+		if not LocationInvestigationManager.is_evidence_discovered(ev_id):
+			continue
+
+		var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
+		var ev: EvidenceData
+
+		if lab_req != null and lab_req.lab_transform == "upgrade" \
+				and GameManager.has_evidence(lab_req.output_evidence_id):
+			# Raw evidence was upgraded — show the analyzed version on the card.
+			ev = CaseManager.get_evidence(lab_req.output_evidence_id)
+		else:
+			# Raw evidence still in inventory, or a "derive" transform (input stays).
+			ev = CaseManager.get_evidence(ev_id)
+
+		if ev:
+			found_clues.append(ev)
 
 	# Don't show the clues section at all if nothing has been found
 	if found_clues.is_empty():

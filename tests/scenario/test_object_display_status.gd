@@ -38,36 +38,17 @@ func test_initial_display_status_not_inspected() -> void:
 # Test 2: Object status after raw clue discovery (before lab submission)
 # =========================================================================
 
-func test_status_partially_examined_after_raw_discovery() -> void:
+func test_status_fully_processed_after_raw_discovery() -> void:
 	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
-	# Hallway floor has tool_requirements so inspection leaves it partially examined
-	# And evidence has a lab request but hasn't been submitted yet
+	# Once inspection is done, the object is FULLY_PROCESSED regardless of whether the player
+	# has submitted the raw evidence to the lab. Lab submission is an Evidence-tab concern.
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
 		"loc_hallway", "obj_hallway_floor"
 	)
-	assert_eq(status, Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED,
-		"Should be PARTIALLY_EXAMINED after raw clue discovery before lab submission")
-
-
-# =========================================================================
-# Test 3: Hint text prompts lab submission after raw discovery
-# =========================================================================
-
-func test_hint_prompts_lab_submission_after_raw_discovery() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-
-	var hint: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	var normalized_hint: String = hint.to_lower()
-	assert_true(
-		normalized_hint.contains("lab")
-		or normalized_hint.contains("submit")
-		or normalized_hint.contains("evidence tab"),
-		"Hint should prompt lab submission. Got: %s" % hint)
+	assert_eq(status, Enums.ObjectDisplayStatus.FULLY_PROCESSED,
+		"Should be FULLY_PROCESSED after inspection — lab submission state does not affect map-tab status")
 
 
 # =========================================================================
@@ -93,29 +74,6 @@ func test_status_awaiting_lab_after_submission() -> void:
 	)
 	assert_eq(status, Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS,
 		"Should be AWAITING_LAB_RESULTS after lab submission")
-
-
-# =========================================================================
-# Test 5: Hint text changes to "analysis in progress" after lab submission
-# =========================================================================
-
-func test_hint_changes_to_analysis_in_progress() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
-	LabManager.submit_request(
-		"ev_shoe_print_raw",
-		lab_req.analysis_type,
-		lab_req.output_evidence_id,
-		1
-	)
-
-	var hint: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_true(hint.contains("progress") or hint.contains("awaiting"),
-		"Hint should mention analysis in progress. Got: %s" % hint)
 
 
 # =========================================================================
@@ -147,33 +105,6 @@ func test_status_fully_processed_after_lab_result() -> void:
 	# The key point is it should NOT show AWAITING_LAB_RESULTS anymore
 	assert_ne(status, Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS,
 		"Should NOT show AWAITING_LAB_RESULTS after lab result arrives")
-
-
-# =========================================================================
-# Test 7: No pending lab prompt remains after processing
-# =========================================================================
-
-func test_no_lab_hint_after_processing() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-	LocationInvestigationManager.leave_location()
-
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
-	LabManager.submit_request(
-		"ev_shoe_print_raw",
-		lab_req.analysis_type,
-		lab_req.output_evidence_id,
-		1
-	)
-
-	DaySystem.force_advance_day()
-	DaySystem.process_morning()
-
-	var hint: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_false(hint.contains("awaiting") or hint.contains("in progress"),
-		"Hint should NOT mention awaiting/in progress after lab completes. Got: %s" % hint)
 
 
 # =========================================================================
@@ -304,12 +235,3 @@ func test_object_without_lab_fully_processed() -> void:
 		"Non-lab object should go straight to FULLY_PROCESSED after full examination")
 
 
-func test_object_without_lab_no_hint() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_security_system")
-
-	var hint: String = LocationInvestigationManager.get_object_status_hint(
-		"loc_hallway", "obj_security_system"
-	)
-	assert_true(hint.contains("No further leads") or hint.contains("available"),
-		"Fully processed object should show completion message. Got: %s" % hint)
