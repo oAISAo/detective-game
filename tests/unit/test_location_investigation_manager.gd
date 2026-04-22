@@ -287,13 +287,13 @@ func test_initial_state_not_inspected() -> void:
 	assert_eq(state, Enums.InvestigationState.NOT_INSPECTED)
 
 
-func test_visual_inspection_changes_state_to_partial() -> void:
+func test_visual_inspection_changes_state_to_fully_examined() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.inspect_object("loc_apt", "obj_glass")
 	var state: Enums.InvestigationState = _loc_inv_mgr.get_object_state("loc_apt", "obj_glass")
-	# obj_glass has visual_inspection + fingerprint_powder requirement = 2 actions
-	# after visual_inspection only, should be PARTIALLY_EXAMINED
-	assert_eq(state, Enums.InvestigationState.PARTIALLY_EXAMINED)
+	# In the map tab, tool requirements are ignored. Only visual_inspection matters.
+	# obj_glass has visual_inspection in available_actions, so after inspection it's FULLY_EXAMINED
+	assert_eq(state, Enums.InvestigationState.FULLY_EXAMINED)
 
 
 func test_full_examination_after_all_actions() -> void:
@@ -367,77 +367,6 @@ func test_inspect_invalid_object_returns_empty() -> void:
 	assert_push_error("Unknown object")
 
 
-# --- Tool Investigation Tests --- #
-
-func test_use_tool_discovers_evidence() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	var before: int = GameManager.actions_remaining
-	var discovered: Array[String] = _loc_inv_mgr.use_tool_on_object(
-		"loc_apt", "obj_glass", "fingerprint_powder"
-	)
-	assert_eq(discovered.size(), 1)
-	assert_has(discovered, "ev_prints")
-	assert_true(GameManager.has_evidence("ev_prints"))
-	assert_eq(GameManager.actions_remaining, before - 1, "Tool use should spend one action")
-
-
-func test_use_tool_emits_evidence_found() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	watch_signals(_loc_inv_mgr)
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	assert_signal_emitted_with_parameters(
-		_loc_inv_mgr, "evidence_found", ["ev_prints", "obj_glass", "fingerprint_powder"]
-	)
-
-
-func test_use_incompatible_tool_returns_empty() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	var before: int = GameManager.actions_remaining
-	var discovered: Array[String] = _loc_inv_mgr.use_tool_on_object(
-		"loc_apt", "obj_glass", "uv_light"
-	)
-	assert_eq(discovered.size(), 0, "Incompatible tool should reveal nothing")
-	assert_eq(GameManager.actions_remaining, before, "Incompatible tool attempts should not spend actions")
-	assert_push_warning("[LocationInvestigationManager] Tool 'UV Light' is not compatible with 'Wine Glass'")
-
-
-func test_use_tool_twice_returns_empty() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	var before: int = GameManager.actions_remaining
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	var second: Array[String] = _loc_inv_mgr.use_tool_on_object(
-		"loc_apt", "obj_glass", "fingerprint_powder"
-	)
-	assert_eq(second.size(), 0, "Second tool use should return nothing")
-	assert_eq(GameManager.actions_remaining, before - 1, "Repeated tool use should not spend another action")
-
-
-func test_use_tool_without_actions_returns_empty() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	GameManager.actions_remaining = 0
-	var discovered: Array[String] = _loc_inv_mgr.use_tool_on_object(
-		"loc_apt", "obj_glass", "fingerprint_powder"
-	)
-	assert_eq(discovered.size(), 0)
-	assert_false(GameManager.has_evidence("ev_prints"), "Tool use should not discover evidence with no actions")
-	assert_push_warning("[LocationInvestigationManager] No actions remaining for tool use.")
-
-
-func test_tool_advances_state_to_fully_examined() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	# Do visual inspection first (partial)
-	_loc_inv_mgr.inspect_object("loc_apt", "obj_glass")
-	assert_eq(
-		_loc_inv_mgr.get_object_state("loc_apt", "obj_glass"),
-		Enums.InvestigationState.PARTIALLY_EXAMINED
-	)
-	# Now use tool (should become fully examined)
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	assert_eq(
-		_loc_inv_mgr.get_object_state("loc_apt", "obj_glass"),
-		Enums.InvestigationState.FULLY_EXAMINED
-	)
-
 
 # --- Performed Actions Tests --- #
 
@@ -447,14 +376,6 @@ func test_performed_actions_tracked() -> void:
 	var actions: Array = _loc_inv_mgr.get_performed_actions("loc_apt", "obj_desk")
 	assert_eq(actions.size(), 1)
 	assert_has(actions, "visual_inspection")
-
-
-func test_tool_actions_tracked() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	var actions: Array = _loc_inv_mgr.get_performed_actions("loc_apt", "obj_glass")
-	assert_eq(actions.size(), 1)
-	assert_has(actions, "tool:fingerprint_powder")
 
 
 # --- Location Completion Tests --- #
@@ -472,14 +393,6 @@ func test_completion_increases_with_discovery() -> void:
 	var completion: Dictionary = _loc_inv_mgr.get_location_completion("loc_apt")
 	assert_eq(completion["found"], 1)
 	assert_eq(completion["total"], 3)
-
-
-func test_completion_full_when_all_found() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_counter", "chemical_test")
-	assert_true(_loc_inv_mgr.is_location_complete("loc_apt"))
 
 
 func test_is_location_complete_false_when_partial() -> void:
@@ -514,40 +427,12 @@ func test_location_card_status_active_visit_is_open() -> void:
 	)
 
 
-func test_location_card_status_when_complete_is_exhausted() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_counter", "chemical_test")
-	var status: int = _loc_inv_mgr.get_location_card_status("loc_apt")
-	assert_eq(status, LocationInvestigationManager.MapCardStatus.EXHAUSTED)
-	assert_eq(
-		_loc_inv_mgr.get_location_status("loc_apt"),
-		LocationInvestigationManager.LOCATION_STATUS_EXHAUSTED
-	)
-
-
 func test_examined_object_count() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
 	var counts: Dictionary = _loc_inv_mgr.get_examined_object_count("loc_apt")
 	assert_eq(counts["examined"], 1)
 	assert_eq(counts["total"], 3)
-
-
-func test_location_completed_signal() -> void:
-	_loc_inv_mgr.start_investigation("loc_apt")
-	GameManager.actions_remaining = 10
-	watch_signals(_loc_inv_mgr)
-	_loc_inv_mgr.inspect_object("loc_apt", "obj_desk")
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_glass", "fingerprint_powder")
-	# Inspect glass visually too to fully examine it
-	_loc_inv_mgr.inspect_object("loc_apt", "obj_glass")
-	# Inspect counter visually
-	_loc_inv_mgr.inspect_object("loc_apt", "obj_counter")
-	# Use tool on counter
-	_loc_inv_mgr.use_tool_on_object("loc_apt", "obj_counter", "chemical_test")
-	assert_signal_emitted(_loc_inv_mgr, "location_completed")
 
 
 # --- Debug Tools Tests --- #

@@ -334,9 +334,9 @@ func _dispatch_action(action_str: String, source_trigger_id: String) -> void:
 			NotificationManager.notify_story("New event: %s" % action_value)
 		ActionStringParser.ACT_UNLOCK_LOCATION:
 			GameManager.unlock_location(action_value)
-			var loc: LocationData = CaseManager.get_location(action_value)
-			var loc_name: String = loc.name if loc else action_value
-			NotificationManager.notify_story("New location available: %s" % loc_name)
+			# Notification is provided by the accompanying explicit "notify:" action in each
+			# trigger, so no automatic popup is emitted here. This prevents duplicate
+			# notifications when a trigger has both unlock_location and notify actions.
 		ActionStringParser.ACT_UNLOCK_INTERROGATION:
 			GameManager.unlock_interrogation(action_value)
 			var person: PersonData = CaseManager.get_person(action_value)

@@ -21,7 +21,6 @@ const INVESTIGATION_ERROR_MESSAGE_NO_ACTIONS: String = "You have no actions rema
 ## Canonical action identifiers used for tracking performed actions.
 const ACTION_VISUAL_INSPECTION: String = "visual_inspection"
 const ACTION_EXAMINE_DEVICE: String = "examine_device"
-const ACTION_TOOL_PREFIX: String = "tool:"
 
 ## Location-level status values for map-facing UI and logs.
 const LOCATION_STATUS_NEW: String = "new"
@@ -175,54 +174,6 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 	return discovered
 
 
-## Uses a tool on an object. Returns discovered evidence IDs.
-func use_tool_on_object(location_id: String, object_id: String, tool_id: String) -> Array[String]:
-	var object_data: InvestigableObjectData = _get_object(location_id, object_id)
-	if object_data == null:
-		return []
-
-	var tool_mgr: Node = get_node_or_null("/root/ToolManager")
-	if tool_mgr == null:
-		push_error("[LocationInvestigationManager] ToolManager not found.")
-		return []
-
-	var action_key: String = "%s:%s" % [location_id, object_id]
-	var tool_action: String = "%s%s" % [ACTION_TOOL_PREFIX, tool_id]
-	if tool_action in _performed_actions.get(action_key, []):
-		return []
-
-	# Validate tool compatibility
-	var error: String = tool_mgr.validate_tool_use(tool_id, object_data)
-	if not error.is_empty():
-		push_warning("[LocationInvestigationManager] %s" % error)
-		return []
-
-	if not _consume_investigation_action("tool use"):
-		return []
-
-	# Record the action
-	if action_key not in _performed_actions:
-		_performed_actions[action_key] = []
-	_performed_actions[action_key].append(tool_action)
-
-	# Use tool to reveal evidence (only TOOL/LAB discovery method)
-	var tool_results: Array[String] = tool_mgr.use_tool(tool_id, object_data)
-	var discovered: Array[String] = []
-	for ev_id: String in tool_results:
-		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-		if ev and ev.discovery_method not in [
-			Enums.DiscoveryMethod.TOOL, Enums.DiscoveryMethod.LAB
-		]:
-			continue
-		if GameManager.discover_evidence(ev_id):
-			discovered.append(ev_id)
-			evidence_found.emit(ev_id, object_id, tool_id)
-
-	# Update investigation state
-	_update_object_state(location_id, object_id, object_data)
-	return discovered
-
-
 ## Returns the current investigation state for an object.
 func get_object_state(location_id: String, object_id: String) -> Enums.InvestigationState:
 	if location_id not in _object_states:
@@ -263,13 +214,10 @@ func get_object_display_status(location_id: String, object_id: String) -> Enums.
 	if has_pending_lab:
 		return Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS
 
-	if has_lab_eligible and has_completed_lab and base_state == Enums.InvestigationState.FULLY_EXAMINED:
-		return Enums.ObjectDisplayStatus.FULLY_PROCESSED
-
+	# Map-tab objects have exactly one action. Once inspection is done, the object
+	# is always "Fully processed" regardless of whether the player has submitted
+	# lab evidence. Lab submission is an Evidence-tab concern, not a map-tab concern.
 	if base_state == Enums.InvestigationState.FULLY_EXAMINED:
-		if has_lab_eligible and not has_completed_lab:
-			# Lab eligible but not yet submitted — still partially examined from lab perspective
-			return Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
 		return Enums.ObjectDisplayStatus.FULLY_PROCESSED
 
 	return Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
@@ -306,9 +254,33 @@ func get_location_card_status(location_id: String) -> MapCardStatus:
 		return MapCardStatus.NEW
 	if has_pending_lab_at_location(location_id):
 		return MapCardStatus.OPEN
-	var completion: Dictionary = get_location_completion(location_id)
-	if completion["total"] > 0 and completion["found"] == completion["total"]:
+
+	var location: LocationData = CaseManager.get_location(location_id)
+	if location == null:
+		return MapCardStatus.NEW
+
+	# Calculate completion based on VISIBLE objects only for status determination
+	# This allows EXHAUSTED → NEW transition when hidden objects become visible
+	var visible_objects: Array[InvestigableObjectData] = get_visible_objects(location)
+	var visible_total: int = 0
+	var visible_found: int = 0
+
+	for obj: InvestigableObjectData in visible_objects:
+		visible_total += obj.evidence_results.size()
+		for ev_id: String in obj.evidence_results:
+			if is_evidence_discovered(ev_id):
+				visible_found += 1
+
+	# All visible evidence found = check for hidden objects
+	if visible_total > 0 and visible_found == visible_total:
+		# All visible targets inspected - check if there are uninspected hidden objects
+		var total_completion: Dictionary = get_location_completion(location_id)
+		if total_completion["total"] > total_completion["found"]:
+			# There are undiscovered hidden objects - show NEW to signal new content
+			return MapCardStatus.NEW
+		# No hidden objects and all evidence found
 		return MapCardStatus.EXHAUSTED
+
 	return MapCardStatus.OPEN
 
 
@@ -392,6 +364,18 @@ func get_examined_object_count(location_id: String) -> Dictionary:
 	return {"examined": examined, "total": total}
 
 
+## Returns an array of investigable objects that are currently visible at a location.
+## Objects are hidden if their discovery_condition requirements are not met.
+func get_visible_objects(location: LocationData) -> Array[InvestigableObjectData]:
+	if location == null:
+		return []
+	var visible: Array[InvestigableObjectData] = []
+	for obj: InvestigableObjectData in location.investigable_objects:
+		if _is_object_visible(obj):
+			visible.append(obj)
+	return visible
+
+
 # --- Debug Tools --- #
 
 ## Marks all objects at a location as fully examined and discovers all evidence.
@@ -418,6 +402,24 @@ func debug_reveal_all_evidence(location_id: String) -> void:
 
 
 # --- Internal --- #
+
+## Checks if an object should be visible based on its discovery_condition.
+## Returns true if the object has no condition or all required evidence is discovered.
+func _is_object_visible(obj: InvestigableObjectData) -> bool:
+	if obj.discovery_condition.is_empty():
+		return true
+
+	var requires_evidence: Array = obj.discovery_condition.get("requires_evidence", [])
+	if requires_evidence.is_empty():
+		return true
+
+	# All required evidence must be discovered for the object to be visible
+	for evidence_id: String in requires_evidence:
+		if not GameManager.has_evidence(evidence_id):
+			return false
+
+	return true
+
 
 ## Ensures a location's objects are initialized in the state tracker.
 func _ensure_location_initialized(location_id: String) -> void:
@@ -470,12 +472,6 @@ func _update_object_state(location_id: String, object_id: String, object_data: I
 	if has_inspectable:
 		total_actions += 1
 		if ACTION_VISUAL_INSPECTION in actions_done or ACTION_EXAMINE_DEVICE in actions_done:
-			completed_actions += 1
-
-	# Count tool-based actions
-	for tool_req: String in object_data.tool_requirements:
-		total_actions += 1
-		if "%s%s" % [ACTION_TOOL_PREFIX, tool_req] in actions_done:
 			completed_actions += 1
 
 	var old_state: Enums.InvestigationState = _object_states[location_id].get(

@@ -192,14 +192,17 @@ func _process_lab_completions() -> Array[Dictionary]:
 		var req: Dictionary = request as Dictionary
 		if req.get("completion_day", 0) <= GameManager.current_day:
 			completed.append(req)
-			# Auto-discover the output evidence, upgrading the raw version in place
+			# Deliver the output evidence.
+			# "upgrade" — raw input is replaced in-place by the analyzed version.
+			# "derive"  — physical input stays; output is added alongside it.
 			var output_id: String = req.get("output_evidence_id", "")
 			var input_id: String = req.get("input_evidence_id", "")
+			var transform: String = req.get("lab_transform", "upgrade")
 			if not output_id.is_empty():
-				if not input_id.is_empty():
-					GameManager.upgrade_evidence(input_id, output_id)
-				else:
+				if transform == "derive" or input_id.is_empty():
 					GameManager.discover_evidence(output_id)
+				else:
+					GameManager.upgrade_evidence(input_id, output_id)
 				# Notify the player about the lab result
 				var output_ev: EvidenceData = CaseManager.get_evidence(output_id)
 				var ev_name: String = output_ev.name if output_ev else output_id

@@ -47,16 +47,6 @@
 			"description": "The parking lot camera footage becomes available after visiting the parking lot."
 		},
 		{
-			"id": "dr_sarah_second_testimony",
-			"evidence_id": "ev_sarah_second_testimony",
-			"location_id": "loc_neighbor_apartment",
-			"conditions": [
-				"evidence_discovered:ev_sarah_testimony",
-				"evidence_discovered:ev_hallway_camera"
-			],
-			"description": "Sarah gives a more detailed testimony after being confronted with the hallway camera footage."
-		},
-		{
 			"id": "dr_shoe_print",
 			"evidence_id": "ev_shoe_print",
 			"location_id": "loc_hallway",

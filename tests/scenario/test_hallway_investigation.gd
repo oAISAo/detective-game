@@ -91,30 +91,6 @@ func test_hallway_floor_inspection_not_dead_end() -> void:
 
 
 # =========================================================================
-# Test 5: Hallway Floor state transitions correctly
-# =========================================================================
-
-func test_hallway_floor_state_transitions() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-
-	# Before inspection
-	var state_before: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_eq(state_before, Enums.InvestigationState.NOT_INSPECTED,
-		"Should start as NOT_INSPECTED")
-
-	# After visual inspection (has tool_requirements, so not fully done)
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-
-	var state_after: Enums.InvestigationState = LocationInvestigationManager.get_object_state(
-		"loc_hallway", "obj_hallway_floor"
-	)
-	assert_eq(state_after, Enums.InvestigationState.PARTIALLY_EXAMINED,
-		"Should be PARTIALLY_EXAMINED after visual inspection (tool actions remain)")
-
-
-# =========================================================================
 # Test 6: Security System examination discovers camera evidence
 # =========================================================================
 

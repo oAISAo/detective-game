@@ -77,6 +77,11 @@ func submit_request(
 	var request_id: String = "lab_%d" % _next_id
 	_next_id += 1
 
+	# Read lab_transform from the case template (defaults to "upgrade" for backwards
+	# compatibility when no template exists or the field is absent).
+	var template: LabRequestData = CaseManager.get_lab_request_for_evidence(input_evidence_id)
+	var lab_transform: String = template.lab_transform if template else "upgrade"
+
 	var request: Dictionary = {
 		"id": request_id,
 		"input_evidence_id": input_evidence_id,
@@ -84,6 +89,7 @@ func submit_request(
 		"day_submitted": GameManager.current_day,
 		"completion_day": GameManager.current_day + processing_days,
 		"output_evidence_id": output_evidence_id,
+		"lab_transform": lab_transform,
 		"status": "pending",
 	}
 
@@ -197,11 +203,12 @@ func complete_all_instantly() -> Array[Dictionary]:
 		_requests[request_id] = req
 		var output_id: String = req.get("output_evidence_id", "")
 		var input_id: String = req.get("input_evidence_id", "")
+		var transform: String = req.get("lab_transform", "upgrade")
 		if not output_id.is_empty():
-			if not input_id.is_empty():
-				GameManager.upgrade_evidence(input_id, output_id)
-			else:
+			if transform == "derive" or input_id.is_empty():
 				GameManager.discover_evidence(output_id)
+			else:
+				GameManager.upgrade_evidence(input_id, output_id)
 		completed.append(req.duplicate())
 		lab_completed.emit(request_id, output_id)
 

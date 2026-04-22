@@ -215,7 +215,7 @@ func test_riverside_locations_loaded() -> void:
 	if case_data == null:
 		fail_test("Case not loaded")
 		return
-	assert_eq(case_data.locations.size(), 5, "Should have 5 locations")
+	assert_eq(case_data.locations.size(), 4, "Should have 4 locations")
 	# Check that specific locations exist
 	var location_ids: Array[String] = []
 	for loc: LocationData in case_data.locations:
@@ -224,7 +224,6 @@ func test_riverside_locations_loaded() -> void:
 	assert_true("loc_hallway" in location_ids)
 	assert_true("loc_victim_office" in location_ids)
 	assert_true("loc_parking_lot" in location_ids)
-	assert_true("loc_neighbor_apartment" in location_ids)
 
 
 func test_riverside_evidence_loaded() -> void:

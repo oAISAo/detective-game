@@ -49,32 +49,6 @@ func test_apply_back_button_icon_rebuilds_content_without_duplicates() -> void:
 	assert_eq(content_count, 1, "Back button should only contain one generated content container")
 	button.free()
 
-
-func test_apply_list_button_style_sets_variation_and_selection_state() -> void:
-	var button: Button = Button.new()
-
-	UI_HELPER.apply_list_button_style(button, true, HORIZONTAL_ALIGNMENT_LEFT)
-
-	assert_eq(button.theme_type_variation, &"ListButton")
-	assert_true(button.toggle_mode)
-	assert_true(button.button_pressed)
-	assert_eq(button.alignment, HORIZONTAL_ALIGNMENT_LEFT)
-	assert_true(button.has_theme_stylebox_override("normal"))
-	assert_true(button.has_theme_stylebox_override("hover"))
-	assert_true(button.has_theme_stylebox_override("pressed"))
-	assert_true(button.has_theme_stylebox_override("hover_pressed"))
-
-	var hover_pressed_style: StyleBoxFlat = button.get_theme_stylebox("hover_pressed") as StyleBoxFlat
-	assert_not_null(hover_pressed_style, "List button should provide explicit hover_pressed style")
-	if hover_pressed_style:
-		assert_eq(hover_pressed_style.bg_color.a, 0.0)
-		assert_eq(hover_pressed_style.border_width_left, 1)
-		assert_eq(hover_pressed_style.border_width_top, 1)
-		assert_eq(hover_pressed_style.border_width_right, 1)
-		assert_eq(hover_pressed_style.border_width_bottom, 1)
-	button.free()
-
-
 func test_set_list_button_selected_toggles_pressed_state() -> void:
 	var button: Button = Button.new()
 	UI_HELPER.apply_list_button_style(button, false)

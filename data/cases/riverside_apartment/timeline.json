@@ -84,9 +84,7 @@
 				"p_victim",
 				"p_julia"
 			],
-			"supporting_evidence": [
-				"ev_sarah_testimony"
-			],
+			"supporting_evidence": [],
 			"certainty_level": "CLAIMED"
 		},
 		{
@@ -114,8 +112,7 @@
 				"p_julia"
 			],
 			"supporting_evidence": [
-				"ev_shoe_print",
-				"ev_sarah_second_testimony"
+				"ev_shoe_print"
 			],
 			"certainty_level": "LIKELY"
 		},
@@ -577,7 +574,8 @@
 			"analysis_type": "fingerprint_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
-			"output_evidence_id": "ev_julia_fingerprint_glass"
+			"output_evidence_id": "ev_julia_fingerprint_glass",
+			"lab_transform": "derive"
 		},
 		{
 			"id": "lab_fingerprint_desk",
@@ -585,7 +583,8 @@
 			"analysis_type": "fingerprint_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
-			"output_evidence_id": "ev_mark_fingerprint_desk"
+			"output_evidence_id": "ev_mark_fingerprint_desk",
+			"lab_transform": "upgrade"
 		},
 		{
 			"id": "lab_shoe_print",
@@ -593,7 +592,8 @@
 			"analysis_type": "footwear_analysis",
 			"day_submitted": 0,
 			"completion_day": 2,
-			"output_evidence_id": "ev_shoe_print"
+			"output_evidence_id": "ev_shoe_print",
+			"lab_transform": "upgrade"
 		}
 	],
 	"surveillance_requests": [

@@ -6,11 +6,11 @@
 			"trigger_day": 1,
 			"conditions": [],
 			"actions": [
-				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Sarah Klein is available for questioning.",
+				"discover_evidence:ev_autopsy_report",
+				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Sarah Klein is available for questioning. Coroner's report received: preliminary autopsy results",
 				"unlock_location:loc_victim_apartment",
 				"unlock_location:loc_hallway",
 				"unlock_location:loc_parking_lot",
-				"unlock_location:loc_neighbor_apartment",
 				"unlock_interrogation:p_sarah",
 			"unlock_interrogation:p_mark"
 			],
@@ -79,6 +79,30 @@
 			"actions": [
 				"unlock_location:loc_victim_office",
 				"notify:The call log reveals a business connection. Daniel's office is now available for investigation."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_bookshelf_unlock",
+			"trigger_type": "CONDITIONAL",
+			"trigger_day": -1,
+			"conditions": [
+				"evidence_discovered:ev_accounting_files"
+			],
+			"actions": [
+				"notify:New lead: the accounting irregularities suggest there may be more hidden at Daniel's office."
+			],
+			"result_events": []
+		},
+		{
+			"id": "trig_desk_drawer_unlock",
+			"trigger_type": "CONDITIONAL",
+			"trigger_day": -1,
+			"conditions": [
+				"evidence_discovered:ev_hidden_safe"
+			],
+			"actions": [
+				"notify:A key discovered in the safe may unlock something in the office desk."
 			],
 			"result_events": []
 		},

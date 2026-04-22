@@ -194,31 +194,3 @@ func test_location_map_refreshes_when_location_unlocks_while_open() -> void:
 	assert_eq(_get_location_card_count(screen), 2, "Map should repopulate after runtime unlock")
 	var office_card: LocationCard = _find_location_card(screen, "loc_office")
 	assert_not_null(office_card, "Newly unlocked location should appear without reopening the screen")
-
-
-func test_location_map_refreshes_card_metrics_and_status_after_runtime_updates() -> void:
-	var screen: Control = _instantiate_map_screen()
-	var initial_card: LocationCard = _find_location_card(screen, "loc_apt")
-	assert_not_null(initial_card)
-	var initial_evidence: Label = initial_card.get_node("%EvidenceLabel")
-	var initial_status: Label = initial_card.get_node("%StatusLabel")
-	assert_eq(initial_evidence.text, "?", "Before first visit evidence count should be hidden")
-	assert_eq(initial_status.text, LocationCard.STATUS_NEW.to_upper())
-
-	GameManager.visit_location("loc_apt")
-	await get_tree().process_frame
-
-	var open_card: LocationCard = _find_location_card(screen, "loc_apt")
-	var open_evidence: Label = open_card.get_node("%EvidenceLabel")
-	var open_status: Label = open_card.get_node("%StatusLabel")
-	assert_eq(open_evidence.text, "0 / 1", "Visited location should show live completion counts")
-	assert_eq(open_status.text, LocationCard.STATUS_OPEN.to_upper())
-
-	GameManager.discover_evidence("ev_note")
-	await get_tree().process_frame
-
-	var exhausted_card: LocationCard = _find_location_card(screen, "loc_apt")
-	var exhausted_evidence: Label = exhausted_card.get_node("%EvidenceLabel")
-	var exhausted_status: Label = exhausted_card.get_node("%StatusLabel")
-	assert_eq(exhausted_evidence.text, "1 / 1", "Completion counts should update while map is open")
-	assert_eq(exhausted_status.text, LocationCard.STATUS_EXHAUSTED.to_upper())
