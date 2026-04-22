@@ -233,7 +233,7 @@ LOCATIONS = {
                 {
                     "id": "obj_office_desk",
                     "name": "Office Desk",
-                    "description": "Daniel's office desk with his computer and correspondence.",
+                    "description": "A heavy oak desk with multiple drawers. One appears locked.",
                     "available_actions": ["visual_inspection", "examine_device"],
                     "tool_requirements": [],
                     "evidence_results": ["ev_daniel_email"],

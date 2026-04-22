@@ -2,7 +2,7 @@
 ## Reusable cinematic action button with diagonal split background.
 ## Supports three visual states:
 ##   - Normal: blue border, hover effects, clickable
-##   - Completed: green accent, check icon + "Done", not clickable
+##   - Completed: green accent, hourglass_check icon + "Done", not clickable
 ##   - Disabled (no actions): dimmed blue border, tooltip on hover/click
 class_name ActionButton
 extends PanelContainer
@@ -12,7 +12,7 @@ signal pressed
 
 const MATERIAL_ICON_FONT_PATH: String = "res://assets/fonts/MaterialSymbolsOutlined.ttf"
 const HOURGLASS_ICON_LIGATURE: String = "hourglass"
-const CHECK_ICON_LIGATURE: String = "check"
+const CHECK_ICON_LIGATURE: String = "hourglass_check"
 const COMPLETED_LABEL_TEXT: String = "Done"
 const CORNER_RADIUS: int = 10
 const BORDER_WIDTH: int = 2

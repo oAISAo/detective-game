@@ -39,7 +39,7 @@
         {
           "id": "obj_study_desk",
           "name": "Study Desk",
-          "description": "A wooden desk with some work papers and personal items. There are faint marks on the surface.",
+          "description": "A wooden desk with scattered work papers and personal items. Faint smudges are visible on the surface.",
           "available_actions": [
             "visual_inspection"
           ],
@@ -88,7 +88,7 @@
         {
           "id": "obj_security_system",
           "name": "Building Security System",
-          "description": "Security camera recordings and elevator access logs for the building.",
+          "description": "Security camera recordings and elevator access logs for the building. Could reveal movement through the premises.",
           "available_actions": [
             "examine_device"
           ],
@@ -102,7 +102,7 @@
         {
           "id": "obj_maintenance_office",
           "name": "Maintenance Office",
-          "description": "The building maintenance office. Work logs and key records are kept here.",
+          "description": "The building maintenance office. Work logs, access records, and spare keys are stored here.",
           "available_actions": [
             "visual_inspection"
           ],
@@ -139,14 +139,14 @@
     {
       "id": "loc_victim_office",
       "name": "Victim's Office",
-      "description": "Daniel Ross's office at his financial consulting firm. Contains business records, personal files, and a hidden safe.",
+      "description": "Daniel Ross's office at his financial consulting firm. A structured workspace with a desk, filing cabinet, and several locked drawers.",
       "searchable": true,
       "image": "res://assets/placeholders/placeholder_location_victim_office.png",
       "investigable_objects": [
         {
           "id": "obj_office_desk",
           "name": "Office Desk",
-          "description": "Daniel's office desk with his computer and correspondence.",
+          "description": "A heavy oak desk with multiple drawers. One drawer is firmly locked, showing signs of frequent use.",
           "available_actions": [
             "visual_inspection",
             "examine_device"
@@ -174,7 +174,7 @@
         {
           "id": "obj_bookshelf",
           "name": "Bookshelf",
-          "description": "A large bookshelf covering most of the back wall. Books on finance, law, and consulting. There appear to be some hidden compartments.",
+          "description": "A large bookshelf covering most of the back wall. Books on finance, law, and consulting. Some sections look recently disturbed, as if something is hidden behind them.",
           "available_actions": [
             "visual_inspection"
           ],
@@ -192,7 +192,7 @@
         {
           "id": "obj_desk_drawer",
           "name": "Desk Drawer",
-          "description": "A locked personal drawer in Daniel's desk. The key found in the hidden safe opens it. Daniel's personal journal may be inside.",
+          "description": "A locked personal drawer in Daniel's desk. Requires a key to open. Likely contains private belongings.",
           "available_actions": [
             "visual_inspection"
           ],
