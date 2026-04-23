@@ -31,6 +31,7 @@ func _ready() -> void:
 	mouse_exited.connect(_on_mouse_exited)
 	_apply_card_style()
 	resized.connect(_enforce_square_image)
+	_configure_mouse_filter_routing()
 
 
 ## Populates the polaroid with evidence data. Call after adding to the scene tree.
@@ -93,3 +94,18 @@ func _enforce_square_image() -> void:
 	if inner_width > 0.0:
 		_image_clip.custom_minimum_size.y = inner_width
 		_image_placeholder.custom_minimum_size.y = inner_width
+
+
+## Routes all mouse events through the card root so hover and click work uniformly
+## regardless of which child node the cursor is over.
+func _configure_mouse_filter_routing() -> void:
+	var vbox: Node = get_node_or_null("VBox")
+	if vbox:
+		_set_control_tree_mouse_filter(vbox)
+
+
+func _set_control_tree_mouse_filter(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child: Node in node.get_children():
+		_set_control_tree_mouse_filter(child)

@@ -7,9 +7,7 @@
    Notification: "New location unlocked: Victim's Office" comes before the Notification about new evidence discovered.
    EXPECTATION: the new location unlocked notification should come after the evidence discovered notification
 
-3. Evidence Cards should be clickable and the click should lead you to the evidence detail screen. It works, hover and click doesn't work on the image.
-
-4. I don't like how desk Drawer just appears after the safe has been found. When the Desk Drawer unlocks, instead of just appearing silently let's implement a Brief target reveal animation:
+3. I don't like how desk Drawer just appears after the safe has been found. When the Desk Drawer unlocks, instead of just appearing silently let's implement a Brief target reveal animation:
    Drawer fades/slides into list
    Subtle highlight pulse
    THIS IS DONE, but it's not looking great yet.
