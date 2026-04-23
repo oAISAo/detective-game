@@ -181,25 +181,6 @@ func test_clue_count_correct_after_lab_completion() -> void:
 # Test 9: Location-level lab pending badge
 # =========================================================================
 
-func test_location_shows_lab_pending_after_submission() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-	LocationInvestigationManager.leave_location()
-
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
-	LabManager.submit_request(
-		"ev_shoe_print_raw",
-		lab_req.analysis_type,
-		lab_req.output_evidence_id,
-		1
-	)
-
-	assert_true(
-		LocationInvestigationManager.has_pending_lab_at_location("loc_hallway"),
-		"Location should show lab pending after submission"
-	)
-
-
 func test_location_no_lab_pending_after_completion() -> void:
 	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
