@@ -31,6 +31,10 @@ var _selected_object_id: String = ""
 ## Stored callable for signal cleanup.
 var _back_pressed_cb: Callable
 
+## Object IDs visible in the last render of the target list.
+## Used to detect newly-unlocked conditional targets and animate their appearance.
+var _visible_object_ids: Array[String] = []
+
 const ACTION_BUTTON_SCENE: PackedScene = preload("res://scenes/ui/components/action_button.tscn")
 const CLUES_SECTION_SCENE: PackedScene = preload("res://scenes/ui/components/clues_section.tscn")
 const INSPECT_ACTION_COST: int = 1
@@ -40,6 +44,13 @@ const _PANEL_CORNER_RADIUS: int = 14
 const _OBJECT_LIST_TOP_PADDING: int = 6
 const _DETAIL_SECTION_SPACING: int = 18
 const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
+
+# Target reveal animation constants (for newly-unlocked conditional targets)
+const _REVEAL_SLIDE_DURATION: float = 0.35
+const _REVEAL_BUTTON_HEIGHT: float = 40.0
+const _REVEAL_PULSE_DURATION: float = 0.4
+const _REVEAL_PULSE_COLOR: Color = Color(0.8, 0.88, 1.0, 1.0)
+
 var _handwriting_font: Font = null
 
 
@@ -108,6 +119,9 @@ func _update_completion() -> void:
 ## buttons. Adding child controls to Buttons in Godot 4 breaks click detection over
 ## the text area. All visual info is encoded in the button text string instead.
 func _populate_objects() -> void:
+	# Capture the previously visible set before clearing, so we can detect new arrivals.
+	var prev_ids: Array[String] = _visible_object_ids.duplicate()
+
 	UIHelper.clear_children(object_list)
 
 	if _location.investigable_objects.is_empty():
@@ -115,6 +129,7 @@ func _populate_objects() -> void:
 		empty.text = "Nothing to investigate here."
 		empty.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		object_list.add_child(empty)
+		_visible_object_ids.clear()
 		return
 
 	# Top spacer so first item's selection shadow is visible
@@ -122,13 +137,50 @@ func _populate_objects() -> void:
 	spacer.custom_minimum_size.y = _OBJECT_LIST_TOP_PADDING
 	object_list.add_child(spacer)
 
+	var new_visible_ids: Array[String] = []
 	for obj: InvestigableObjectData in LocationInvestigationManager.get_visible_objects(_location):
+		new_visible_ids.append(obj.id)
+
 		var btn: Button = Button.new()
 		UIHelper.apply_list_button_style(btn, obj.id == _selected_object_id, HORIZONTAL_ALIGNMENT_LEFT)
 		btn.pressed.connect(_on_object_selected.bind(obj.id))
 		btn.text = "• %s" % [obj.name]
 
 		object_list.add_child(btn)
+
+		# Animate newly-unlocked conditional targets (not present in the previous render).
+		# Skip animation on first population (prev_ids is empty) — no prev state to compare.
+		if not prev_ids.is_empty() and obj.id not in prev_ids:
+			_animate_target_reveal(btn)
+
+	_visible_object_ids = new_visible_ids
+
+
+## Plays the reveal animation for a newly-unlocked conditional target button.
+## Phase 1: slide down + fade in (0.35s). Phase 2: soft blue highlight pulse (0.4s).
+func _animate_target_reveal(btn: Button) -> void:
+	# Start fully transparent and collapsed to zero height
+	btn.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	btn.custom_minimum_size.y = 0.0
+
+	var tween: Tween = btn.create_tween()
+	tween.set_parallel(true)
+
+	# Phase 1: slide into full height and fade in simultaneously
+	tween.tween_property(btn, "custom_minimum_size:y", _REVEAL_BUTTON_HEIGHT, _REVEAL_SLIDE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+	tween.tween_property(btn, "modulate:a", 1.0, _REVEAL_SLIDE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+
+	# Phase 2: after slide, briefly tint blue then return to white (highlight pulse)
+	tween.set_parallel(false)
+	tween.tween_interval(_REVEAL_SLIDE_DURATION)
+	# Reset height constraint so the button's natural layout size takes over
+	tween.tween_callback(func() -> void: btn.custom_minimum_size.y = 0.0)
+	tween.tween_property(btn, "modulate", _REVEAL_PULSE_COLOR, _REVEAL_PULSE_DURATION * 0.5) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(btn, "modulate", Color.WHITE, _REVEAL_PULSE_DURATION * 0.5) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 
 
 ## Handles object selection from the list.
@@ -206,6 +258,11 @@ func _populate_action_buttons(obj: InvestigableObjectData) -> void:
 			hint_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 			hint_label.add_theme_font_size_override("font_size", UIFonts.SIZE_CALLOUT)
 			hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+			# Synthesise italic using FontVariation (Inter has no italic variant in assets)
+			var italic_variation: FontVariation = FontVariation.new()
+			italic_variation.variation_transform.x.y = 0.2
+			hint_label.add_theme_font_override("font", italic_variation)
 
 			margin_container.add_child(hint_label)
 			action_list.add_child(margin_container)
@@ -348,6 +405,12 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 	var section: CluesSection = CLUES_SECTION_SCENE.instantiate() as CluesSection
 	_target_state.add_child(section)
 	section.populate(found_clues, _handwriting_font)
+	section.evidence_card_pressed.connect(_on_evidence_card_pressed)
+
+
+## Navigates to the evidence detail screen when a polaroid card is clicked.
+func _on_evidence_card_pressed(evidence_id: String) -> void:
+	ScreenManager.navigate_to("evidence_detail", {"evidence_id": evidence_id})
 
 
 ## Loads the handwriting font used for polaroid clue labels.

@@ -183,42 +183,35 @@ func get_object_state(location_id: String, object_id: String) -> Enums.Investiga
 
 ## Returns the derived display status for an object, combining investigation state with lab lifecycle.
 ## This is used by UI to show whether an object still has pending lab work.
+## Priority rule: FULLY_EXAMINED always maps to FULLY_PROCESSED. The map tab has exactly one
+## action per object — once examined, it's done regardless of lab submission state.
+## AWAITING_LAB_RESULTS can only apply to PARTIALLY_EXAMINED objects (future use).
 func get_object_display_status(location_id: String, object_id: String) -> Enums.ObjectDisplayStatus:
 	var base_state: Enums.InvestigationState = get_object_state(location_id, object_id)
 
 	if base_state == Enums.InvestigationState.NOT_INSPECTED:
 		return Enums.ObjectDisplayStatus.NOT_INSPECTED
 
-	# Check if any evidence from this object is pending in the lab
+	# Map-tab objects have exactly one action. Once the inspection is done, the object
+	# is always "Fully processed" — lab submission is an Evidence-tab concern.
+	# This check must come before the pending-lab check so FULLY_EXAMINED objects
+	# are never incorrectly demoted to AWAITING_LAB_RESULTS.
+	if base_state == Enums.InvestigationState.FULLY_EXAMINED:
+		return Enums.ObjectDisplayStatus.FULLY_PROCESSED
+
+	# For any non-fully-examined object, check if evidence is pending in the lab.
+	# This path is reserved for PARTIALLY_EXAMINED objects (future multi-step objects).
 	var object_data: InvestigableObjectData = _get_object(location_id, object_id)
 	if object_data == null:
 		return Enums.ObjectDisplayStatus.NOT_INSPECTED
-
-	var has_pending_lab: bool = false
-	var has_completed_lab: bool = false
-	var has_lab_eligible: bool = false
 
 	for ev_id: String in object_data.evidence_results:
 		var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
 		if lab_req == null:
 			continue
-		has_lab_eligible = true
 		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-		if ev == null:
-			continue
-		if ev.lab_status == Enums.LabStatus.PROCESSING:
-			has_pending_lab = true
-		elif ev.lab_status == Enums.LabStatus.COMPLETED:
-			has_completed_lab = true
-
-	if has_pending_lab:
-		return Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS
-
-	# Map-tab objects have exactly one action. Once inspection is done, the object
-	# is always "Fully processed" regardless of whether the player has submitted
-	# lab evidence. Lab submission is an Evidence-tab concern, not a map-tab concern.
-	if base_state == Enums.InvestigationState.FULLY_EXAMINED:
-		return Enums.ObjectDisplayStatus.FULLY_PROCESSED
+		if ev != null and ev.lab_status == Enums.LabStatus.PROCESSING:
+			return Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS
 
 	return Enums.ObjectDisplayStatus.PARTIALLY_EXAMINED
 

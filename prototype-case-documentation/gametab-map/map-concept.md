@@ -106,7 +106,11 @@ When a target is selected:
    - Costs 1 action
    - Shows "completed" state (greyed/checkmark) if already examined
    - Shows "disabled" if no actions remaining
+   - When disabled, a hint text reads *"No actions remaining. End the day to continue."* in italic
 5. **Discovered clues** — Polaroid-style grid of evidence found from this target
+   - Each polaroid card is **clickable** — clicking navigates to the evidence detail screen for that piece of evidence
+   - Polaroid hover: subtle dim effect on mouse-over to signal interactivity
+   - All polaroids in a row are the same size regardless of whether the evidence name is one or two lines; the name area is always sized for two lines with the text centered vertically
 
 ---
 
@@ -120,10 +124,11 @@ When a target is selected:
 5. Player clicks the action button (costs 1 action)
 6. `LocationInvestigationManager.inspect_object()` is called
 7. Evidence matching the target's `evidence_results` is discovered
-8. Notification popup shows each discovered evidence item
-9. Target state updates: NOT_INSPECTED → FULLY_PROCESSED
-10. Discovered clues appear as polaroids below the action button
-11. Player can select another target or go back to the map
+8. Notification popup shows each discovered evidence item **first**
+9. Any conditional triggers (e.g. new location unlocked) fire their notifications **after** the evidence notification — ensuring evidence is always acknowledged before follow-up events
+10. Target state updates: NOT_INSPECTED → FULLY_PROCESSED
+11. Discovered clues appear as polaroids below the action button
+12. Player can select another target or go back to the map
 
 ### Action Button
 Each target has exactly one action button:
@@ -154,7 +159,7 @@ Some targets only become visible after specific evidence is discovered elsewhere
 ### How It Works
 - Targets can have a `discovery_condition` field: `{ "requires_evidence": ["ev_some_evidence"] }`
 - Targets with unmet conditions are **completely hidden** — not shown in the target list, not greyed out, no hints
-- When the condition is met, the target appears in the list immediately
+- When the condition is met, the target appears in the list with a **brief reveal animation**: it slides down and fades in (0.35s), then pulses with a soft blue highlight (0.4s) to draw the player's attention
 - A notification fires: *"New lead: [contextual message suggesting the player revisit the location]"*
 - The location card status transitions from EXHAUSTED → NEW if applicable
 
@@ -269,7 +274,7 @@ The office unlocks when the player discovers evidence of Daniel's business conne
 |---------------|-------|-------|
 | `NOT_INSPECTED` | "Not inspected" | Amber |
 | `FULLY_PROCESSED` | "Fully processed" | Grey |
-
+**Lab submission does not affect map-tab status.** Once a target is examined (FULLY_EXAMINED), its display status is always FULLY_PROCESSED — even if the player has submitted the raw evidence to the lab. Lab submission is an Evidence-tab concern. `AWAITING_LAB_RESULTS` is reserved for hypothetical future multi-step objects.
 ---
 
 ## Lab Integration

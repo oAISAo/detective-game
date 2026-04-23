@@ -52,10 +52,14 @@ func test_status_fully_processed_after_raw_discovery() -> void:
 
 
 # =========================================================================
-# Test 4: Object status after lab submission shows AWAITING_LAB_RESULTS
+# Test 4: Object status stays FULLY_PROCESSED even after lab submission
+# Regression test for bug where AWAITING_LAB_RESULTS overrode FULLY_EXAMINED.
 # =========================================================================
 
-func test_status_awaiting_lab_after_submission() -> void:
+func test_status_stays_fully_processed_after_lab_submission() -> void:
+	# Once an object is fully examined (map-tab's one action done), its display
+	# status must remain FULLY_PROCESSED regardless of whether the player has
+	# submitted the raw evidence to the lab. Lab state is an Evidence-tab concern.
 	LocationInvestigationManager.start_investigation("loc_hallway")
 	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
 
@@ -72,8 +76,8 @@ func test_status_awaiting_lab_after_submission() -> void:
 	var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
 		"loc_hallway", "obj_hallway_floor"
 	)
-	assert_eq(status, Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS,
-		"Should be AWAITING_LAB_RESULTS after lab submission")
+	assert_eq(status, Enums.ObjectDisplayStatus.FULLY_PROCESSED,
+		"FULLY_EXAMINED objects must show FULLY_PROCESSED even when evidence is sent to the lab")
 
 
 # =========================================================================

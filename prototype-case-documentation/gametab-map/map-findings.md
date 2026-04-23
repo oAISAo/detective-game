@@ -7,14 +7,9 @@
    Notification: "New location unlocked: Victim's Office" comes before the Notification about new evidence discovered.
    EXPECTATION: the new location unlocked notification should come after the evidence discovered notification
 
-3. The text "No actions remaining..." below the action button should have italic font please
+3. Evidence Cards should be clickable and the click should lead you to the evidence detail screen. It works, hover and click doesn't work on the image.
 
-4. Map Happy Flow Step 6
-   I sent the Shoe Print to the lab and then came to check the Hallway Flor and the Status is "Awaiting lab results"
-   EXPECTATION: Hallway Floor Status shows as "Fully processed"
-
-5. Evidence Cards should be clickable and the click should lead you to the evidence detail screen
-
-6. I don't like how desk Drawer just appears after the safe has been found. When the Desk Drawer unlocks, instead of just appearing silently let's implement a Brief target reveal animation:
+4. I don't like how desk Drawer just appears after the safe has been found. When the Desk Drawer unlocks, instead of just appearing silently let's implement a Brief target reveal animation:
    Drawer fades/slides into list
    Subtle highlight pulse
+   THIS IS DONE, but it's not looking great yet.

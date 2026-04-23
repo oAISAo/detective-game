@@ -1,9 +1,12 @@
 ## CluesSection.gd
 ## Displays discovered clues for an investigable object as a grid of polaroid cards.
 ## Shows a header, then either an empty-state message or a scrollable grid of polaroids.
+## Emits evidence_card_pressed(evidence_id) when a polaroid is clicked.
 class_name CluesSection
 extends VBoxContainer
 
+
+signal evidence_card_pressed(evidence_id: String)
 
 const _GRID_COLUMNS: int = 2
 const _GRID_SEPARATION: int = 10
@@ -27,3 +30,8 @@ func populate(clues: Array[EvidenceData], handwriting_font: Font = null) -> void
 		var card: EvidencePolaroid = POLAROID_SCENE.instantiate() as EvidencePolaroid
 		_grid.add_child(card)
 		card.setup(ev, handwriting_font)
+		card.card_pressed.connect(_on_polaroid_pressed)
+
+
+func _on_polaroid_pressed(evidence_id: String) -> void:
+	evidence_card_pressed.emit(evidence_id)
