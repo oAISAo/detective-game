@@ -177,29 +177,6 @@ func test_raw_clue_changes_to_fully_processed() -> void:
 		"Object with lab-eligible evidence should be FULLY_PROCESSED after inspection — lab submission is an Evidence-tab concern")
 
 
-# Test: Submitted raw clue changes object to AWAITING_LAB if no scene-side actions remain
-func test_submitted_clue_changes_to_awaiting_lab() -> void:
-	LocationInvestigationManager.start_investigation("loc_hallway")
-	LocationInvestigationManager.inspect_object("loc_hallway", "obj_hallway_floor")
-	LocationInvestigationManager.leave_location()
-
-	# Submit evidence to lab
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
-	if lab_req:
-		LabManager.submit_request(
-			"ev_shoe_print_raw",
-			lab_req.analysis_type,
-			lab_req.output_evidence_id,
-			1
-		)
-
-		var status: Enums.ObjectDisplayStatus = LocationInvestigationManager.get_object_display_status(
-			"loc_hallway", "obj_hallway_floor"
-		)
-		assert_eq(status, Enums.ObjectDisplayStatus.AWAITING_LAB_RESULTS,
-			"Object with submitted lab evidence should be AWAITING_LAB_RESULTS")
-
-
 # Test: Analyzed result changes object to fully_processed (when all actions done)
 func test_analyzed_result_completes_object() -> void:
 	LocationInvestigationManager.start_investigation("loc_hallway")

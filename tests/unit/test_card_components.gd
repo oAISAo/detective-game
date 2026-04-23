@@ -114,6 +114,7 @@ var _test_case_data: Dictionary = {
 var _evidence_card_scene: PackedScene = preload("res://scenes/ui/components/evidence_card.tscn")
 var _suspect_card_scene: PackedScene = preload("res://scenes/ui/components/suspect_card.tscn")
 var _location_card_scene: PackedScene = preload("res://scenes/ui/components/location_card.tscn")
+var _evidence_polaroid_scene: PackedScene = preload("res://scenes/ui/components/evidence_polaroid.tscn")
 
 
 # --- Setup / Teardown --- #
@@ -592,3 +593,31 @@ func _disabled_test_location_card_emits_signal() -> void:
 	watch_signals(card)
 	card._on_pressed()
 	assert_signal_emitted_with_parameters(card, "card_pressed", ["loc_apartment"])
+
+
+# ============================================================
+# EvidencePolaroid Tests
+# ============================================================
+
+func test_evidence_polaroid_hover_includes_image_region() -> void:
+	var polaroid: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(polaroid)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_photo")
+	polaroid.setup(ev)
+
+	var vbox: Control = polaroid.get_node("VBox")
+	var image_clip: Control = polaroid.get_node("%ImageClip")
+	var image_rect: TextureRect = polaroid.get_node("%ImageRect")
+	var image_placeholder: ColorRect = polaroid.get_node("%ImagePlaceholder")
+	var name_label: Label = polaroid.get_node("%NameLabel")
+
+	assert_eq(vbox.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"VBox should ignore mouse so card root receives hover and click events")
+	assert_eq(image_clip.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"ImageClip should ignore mouse so hovering over the image area still triggers card hover")
+	assert_eq(image_rect.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"ImageRect should ignore mouse so clicking the image routes to the card")
+	assert_eq(image_placeholder.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"ImagePlaceholder should ignore mouse so empty-image hover keeps card highlight active")
+	assert_eq(name_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"NameLabel should ignore mouse so clicking the label name routes to the card")

@@ -123,8 +123,12 @@ func setup(location: LocationData) -> void:
 
 	_set_location_image(location.image, display_name)
 
+	var display_description: String = location.description.strip_edges()
+	if display_description.is_empty():
+		display_description = ""
+	
 	# Description — readable primary body copy on the dark card footer.
-	_description_label.text = _get_short_description(location)
+	_description_label.text = display_description
 	_description_label.add_theme_color_override("font_color", TEXT_COLOR_PRIMARY)
 	_description_label.add_theme_font_size_override("font_size", FONT_SIZE_BODY)
 
@@ -455,16 +459,6 @@ func _animate_hover(hovered: bool) -> void:
 
 
 # --- Helpers ---
-
-static func _get_short_description(loc: LocationData) -> String:
-	if loc.description.is_empty():
-		return ""
-	var dot_idx: int = loc.description.find(".")
-	if dot_idx >= 0 and dot_idx < 120:
-		return loc.description.substr(0, dot_idx + 1)
-	if loc.description.length() > 120:
-		return loc.description.substr(0, 117) + "..."
-	return loc.description
 
 
 func _on_pressed() -> void:

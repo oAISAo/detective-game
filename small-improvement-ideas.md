@@ -14,3 +14,6 @@ NAVIGATION BAR:
 STORY:
 - Person Status: witness, suspect, victim connection? Julia should just be a connection in the beginning and not a suspect yet, or maybe she could go from "wife" to "suspect". And  
 - Fingerprints: the player should not have Julia's fingerprints yet until she's a suspect (see evidence suggestion)
+
+SOUNDS:
+- when a new location target appears
