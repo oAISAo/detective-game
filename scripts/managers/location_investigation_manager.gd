@@ -165,6 +165,11 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 			Enums.DiscoveryMethod.VISUAL, Enums.DiscoveryMethod.COMPARISON
 		]:
 			continue
+		# Notify before discover_evidence emits the evidence_discovered signal.
+		# This guarantees the "Evidence Found" notification is queued before any
+		# conditional trigger (e.g. location unlock) appends its own notification.
+		if ev and not GameManager.has_evidence(ev_id):
+			NotificationManager.notify_evidence(ev.name)
 		if GameManager.discover_evidence(ev_id):
 			discovered.append(ev_id)
 			evidence_found.emit(ev_id, object_id, "visual_inspection")

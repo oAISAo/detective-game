@@ -455,6 +455,48 @@ func test_step_8_office_unlock_fires_location_unlocked_once() -> void:
 		"location_unlocked should fire exactly once when the office is unlocked via call log")
 
 
+func test_step_8_evidence_notification_precedes_location_unlock_notification() -> void:
+	# Regression: previously the "New location unlocked" notification (fired by the
+	# conditional trigger trig_unlock_office) appeared before the "Evidence Found"
+	# notification for ev_mark_call_log, because the trigger evaluated synchronously
+	# inside GameManager.discover_evidence() before the UI had a chance to notify.
+	# Fix: LocationInvestigationManager now calls NotificationManager.notify_evidence()
+	# before calling discover_evidence(), guaranteeing the correct order.
+
+	var call_log_ev: EvidenceData = CaseManager.get_evidence("ev_mark_call_log")
+	assert_not_null(call_log_ev, "ev_mark_call_log must exist in the loaded case")
+
+	LocationInvestigationManager.start_investigation("loc_victim_apartment")
+	LocationInvestigationManager.inspect_object("loc_victim_apartment", "obj_kitchen")
+	LocationInvestigationManager.inspect_object("loc_victim_apartment", "obj_living_room")
+	LocationInvestigationManager.inspect_object("loc_victim_apartment", "obj_victim_phone")
+
+	var notifications: Array[Dictionary] = NotificationManager.get_all()
+	assert_true(notifications.size() >= 2,
+		"Should have at least two notifications: evidence found + location unlock")
+
+	# Find the call log EVIDENCE notification and the office-unlock STORY notification
+	var call_log_evidence_index: int = -1
+	var location_unlock_index: int = -1
+	for i: int in range(notifications.size()):
+		var notif: Dictionary = notifications[i]
+		if notif.get("type") == NotificationManager.NotificationType.EVIDENCE \
+				and notif.get("message", "") == call_log_ev.name:
+			call_log_evidence_index = i
+		if notif.get("type") == NotificationManager.NotificationType.STORY:
+			var msg: String = notif.get("message", "")
+			if "call log" in msg.to_lower() or "office" in msg.to_lower():
+				if location_unlock_index == -1:
+					location_unlock_index = i
+
+	assert_ne(call_log_evidence_index, -1,
+		"Should have an EVIDENCE notification for ev_mark_call_log")
+	assert_ne(location_unlock_index, -1,
+		"Should have a STORY notification for the Victim's Office location unlock")
+	assert_lt(call_log_evidence_index, location_unlock_index,
+		"Evidence Found notification must appear before the New Location Unlocked notification")
+
+
 # =========================================================================
 # STEP 9: Go Back to Map
 # =========================================================================

@@ -274,19 +274,7 @@ func _on_inspect_pressed(object_id: String) -> void:
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(_location.id, object_id)
 	if discovered.is_empty() and actions_before == GameManager.actions_remaining and not GameManager.has_actions_remaining():
 		NotificationManager.notify("No Actions", LocationInvestigationManager.INVESTIGATION_ERROR_MESSAGE_NO_ACTIONS)
-	_show_discovery_feedback(discovered)
 	_refresh_ui()
-
-
-## Shows feedback when evidence is discovered.
-func _show_discovery_feedback(evidence_ids: Array[String]) -> void:
-	if evidence_ids.is_empty():
-		return
-
-	for ev_id: String in evidence_ids:
-		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-		if ev:
-			NotificationManager.notify_evidence(ev.name)
 
 
 ## Refreshes the entire UI after state changes.
