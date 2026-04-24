@@ -1,3 +1,7 @@
+Please use relevant skill files located in: .agents/skills
+Codex will review your output once you are done.
+
+
 Copy output of tests:
 
 /Applications/Godot.app/Contents/MacOS/Godot \
