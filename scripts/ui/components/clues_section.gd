@@ -18,7 +18,7 @@ const POLAROID_SCENE: PackedScene = preload("res://scenes/ui/components/evidence
 
 
 func _ready() -> void:
-	pass
+	_scroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 
 
 ## Populates the section with discovered clues.

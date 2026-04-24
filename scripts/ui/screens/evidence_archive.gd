@@ -29,6 +29,8 @@ var _on_evidence_unpinned_cb: Callable
 
 func _ready() -> void:
 	UIHelper.apply_back_button_icon(back_button, "Back")
+	$MarginContainer/VBoxContainer/EvidenceContent/CardScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
+	$MarginContainer/VBoxContainer/TestimonyContent/TestimonyScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 	back_button.pressed.connect(_on_back_pressed)
 	tab_evidence_button.pressed.connect(_on_tab_evidence)
 	tab_testimony_button.pressed.connect(_on_tab_testimony)

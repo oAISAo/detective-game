@@ -90,6 +90,7 @@ size_flags_vertical = 3
 [node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent"]
 layout_mode = 2
 size_flags_vertical = 3
+vertical_scroll_mode = 2
 
 [node name="EvidenceGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/CardScroll"]
 unique_name_in_owner = true
@@ -108,6 +109,7 @@ size_flags_vertical = 3
 [node name="TestimonyScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TestimonyContent"]
 layout_mode = 2
 size_flags_vertical = 3
+vertical_scroll_mode = 2
 
 [node name="TestimonyList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TestimonyContent/TestimonyScroll"]
 unique_name_in_owner = true

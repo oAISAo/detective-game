@@ -12,6 +12,7 @@ const SuspectCardScene: PackedScene = preload("res://scenes/ui/components/suspec
 
 
 func _ready() -> void:
+	$MarginContainer/VBoxContainer/SuspectScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_on_back_pressed)
 	_populate_suspects()

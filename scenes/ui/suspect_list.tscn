@@ -46,6 +46,7 @@ theme_type_variation = &"PanelHeader"
 [node name="SuspectScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+vertical_scroll_mode = 2
 
 [node name="SuspectGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/SuspectScroll"]
 unique_name_in_owner = true

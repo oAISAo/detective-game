@@ -23,6 +23,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
 
 [node name="ClueListMargin" type="MarginContainer" parent="ClueScroll"]
 layout_mode = 2

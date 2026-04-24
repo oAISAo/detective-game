@@ -46,10 +46,9 @@ const _DETAIL_SECTION_SPACING: int = 18
 const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
 
 # Target reveal animation constants (for newly-unlocked conditional targets)
-const _REVEAL_SLIDE_DURATION: float = 0.35
+const _REVEAL_SLIDE_DURATION: float = 0.4
 const _REVEAL_BUTTON_HEIGHT: float = 40.0
-const _REVEAL_PULSE_DURATION: float = 0.4
-const _REVEAL_PULSE_COLOR: Color = Color(0.8, 0.88, 1.0, 1.0)
+const _REVEAL_PULSE_DURATION: float = 0.8
 
 var _handwriting_font: Font = null
 
@@ -157,30 +156,27 @@ func _populate_objects() -> void:
 
 
 ## Plays the reveal animation for a newly-unlocked conditional target button.
-## Phase 1: slide down + fade in (0.35s). Phase 2: soft blue highlight pulse (0.4s).
+## Phase 1: slide down + fade in (0.4s) smoothly. Phase 2: blue highlight pulse fading out (0.8s).
 func _animate_target_reveal(btn: Button) -> void:
-	# Start fully transparent and collapsed to zero height
-	btn.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	# Start fully transparent blue and collapsed to zero height
+	# This prevents harsh color interpolation from white to blue while fading in
+	btn.modulate = Color(UIColors.BLUE, 0.0)
 	btn.custom_minimum_size.y = 0.0
 
 	var tween: Tween = btn.create_tween()
-	tween.set_parallel(true)
 
-	# Phase 1: slide into full height and fade in simultaneously
+	# Phase 1: Slide into full height smoothly and fade in to Blue
 	tween.tween_property(btn, "custom_minimum_size:y", _REVEAL_BUTTON_HEIGHT, _REVEAL_SLIDE_DURATION) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
-	tween.tween_property(btn, "modulate:a", 1.0, _REVEAL_SLIDE_DURATION) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.parallel().tween_property(btn, "modulate", UIColors.BLUE, _REVEAL_SLIDE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
-	# Phase 2: after slide, briefly tint blue then return to white (highlight pulse)
-	tween.set_parallel(false)
-	tween.tween_interval(_REVEAL_SLIDE_DURATION)
-	# Reset height constraint so the button's natural layout size takes over
-	tween.tween_callback(func() -> void: btn.custom_minimum_size.y = 0.0)
-	tween.tween_property(btn, "modulate", _REVEAL_PULSE_COLOR, _REVEAL_PULSE_DURATION * 0.5) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	tween.tween_property(btn, "modulate", Color.WHITE, _REVEAL_PULSE_DURATION * 0.5) \
-		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+	# Phase 2: Fade the blue glow back to white instantly after sliding finished
+	# Using sequentially appended tween + parallel callback (triggers exactly at start of Phase 2)
+	# EASE_OUT is critical here: EASE_IN_OUT creates a slow flat start that looks like a pause!
+	tween.tween_property(btn, "modulate", Color.WHITE, _REVEAL_PULSE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.parallel().tween_callback(func() -> void: btn.custom_minimum_size.y = 0.0)
 
 
 ## Handles object selection from the list.
