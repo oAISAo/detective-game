@@ -18,9 +18,7 @@ extends Control
 @onready var detail_actions: VBoxContainer = %DetailActions
 @onready var action_list: VBoxContainer = %ActionList
 @onready var back_button: Button = %BackButton
-@onready var _left_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/LeftPanel
 @onready var _center_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/CenterPanel
-@onready var _right_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/RightPanel
 
 ## The location being investigated.
 var _location: LocationData = null
@@ -57,7 +55,6 @@ func _ready() -> void:
 	_back_pressed_cb = _on_back_pressed
 	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_back_pressed_cb)
-	_apply_panel_styles()
 	_apply_scene_image_clip()
 	_handwriting_font = _load_handwriting_font()
 
@@ -411,26 +408,19 @@ func _on_back_pressed() -> void:
 	ScreenManager.navigate_back()
 
 
-## Applies border and padding overrides to the three main panels.
-func _apply_panel_styles() -> void:
-	for panel: PanelContainer in [_left_panel, _center_panel, _right_panel]:
-		var style: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate(true) as StyleBoxFlat
-		style.border_width_left = _PANEL_BORDER_WIDTH
-		style.border_width_top = _PANEL_BORDER_WIDTH
-		style.border_width_right = _PANEL_BORDER_WIDTH
-		style.border_width_bottom = _PANEL_BORDER_WIDTH
-		style.border_color = _PANEL_BORDER_COLOR
-		if panel == _center_panel:
-			style.content_margin_left = float(_PANEL_BORDER_WIDTH)
-			style.content_margin_top = float(_PANEL_BORDER_WIDTH)
-			style.content_margin_right = float(_PANEL_BORDER_WIDTH)
-			style.content_margin_bottom = float(_PANEL_BORDER_WIDTH)
-		panel.add_theme_stylebox_override("panel", style)
-
-
 ## Clips the center panel's image to the inner rounded shape.
 func _apply_scene_image_clip() -> void:
 	var center_vbox: VBoxContainer = _center_panel.get_node("CenterVBox") as VBoxContainer
+
+	# Remove the default theme margins from the center panel so the clip area reaches the border
+	var base_style: StyleBox = _center_panel.get_theme_stylebox("panel")
+	if base_style != null:
+		var new_base: StyleBox = base_style.duplicate()
+		new_base.content_margin_left = float(_PANEL_BORDER_WIDTH)
+		new_base.content_margin_top = float(_PANEL_BORDER_WIDTH)
+		new_base.content_margin_right = float(_PANEL_BORDER_WIDTH)
+		new_base.content_margin_bottom = float(_PANEL_BORDER_WIDTH)
+		_center_panel.add_theme_stylebox_override("panel", new_base)
 
 	var inner_radius: int = _PANEL_CORNER_RADIUS - _PANEL_BORDER_WIDTH
 	var clip_style := StyleBoxFlat.new()
