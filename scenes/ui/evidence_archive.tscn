@@ -50,14 +50,7 @@ theme_override_constants/separation = 16
 
 [node name="ToolBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="FilterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/ToolBar"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(120, 0)
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.4
+theme_override_constants/separation = 16
 
 [node name="SearchBox" type="LineEdit" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/ToolBar"]
 unique_name_in_owner = true
@@ -65,6 +58,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Search evidence..."
 clear_button_enabled = true
+
+[node name="FilterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/ToolBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
 
 [node name="PinnedBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 unique_name_in_owner = true
