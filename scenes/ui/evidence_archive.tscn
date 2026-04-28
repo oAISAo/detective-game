@@ -18,99 +18,277 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
 
-[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="MainColumns" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
 
-[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
-unique_name_in_owner = true
+[node name="LeftPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
 layout_mode = 2
-text = "← Back"
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+theme_type_variation = &"SurfacePanel"
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+[node name="LeftVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ObjectsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
+layout_mode = 2
+text = "EVIDENCE ARCHIVE"
+theme_type_variation = &"SectionHeader"
+theme_override_constants/separation = 16
+
+[node name="ToolBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SearchBox" type="LineEdit" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/ToolBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Evidence Archive"
-horizontal_alignment = 1
-theme_type_variation = &"PanelHeader"
-
-[node name="ToolBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="FilterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/ToolBar"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-
-[node name="SearchBox" type="LineEdit" parent="MarginContainer/VBoxContainer/ToolBar"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
+theme_type_variation = &"GameSearchInput"
 placeholder_text = "Search evidence..."
 clear_button_enabled = true
 
-[node name="TabSeparator" type="VSeparator" parent="MarginContainer/VBoxContainer/ToolBar"]
-layout_mode = 2
-
-[node name="TabEvidenceButton" type="Button" parent="MarginContainer/VBoxContainer/ToolBar"]
+[node name="FilterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/ToolBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Evidence"
+custom_minimum_size = Vector2(120, 0)
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+theme_type_variation = &"GameFilterDropdown"
 
-[node name="TabTestimonyButton" type="Button" parent="MarginContainer/VBoxContainer/ToolBar"]
+[node name="PinnedBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Testimony"
-
-[node name="PinnedBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PinnedLabel" type="Label" parent="MarginContainer/VBoxContainer/PinnedBar"]
+[node name="PinnedLabel" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/PinnedBar"]
 layout_mode = 2
 text = "PINNED"
 theme_type_variation = &"SectionHeader"
 
-[node name="EvidenceContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="EvidenceContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/EvidenceContent"]
+[node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/EvidenceContent"]
 layout_mode = 2
 size_flags_vertical = 3
+vertical_scroll_mode = 2
 
-[node name="EvidenceGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/EvidenceContent/CardScroll"]
+[node name="GridMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/EvidenceContent/CardScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="EvidenceGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/EvidenceContent/CardScroll/GridMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 2
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
+columns = 3
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 20
 
-[node name="TestimonyContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="TestimonyContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TestimonyScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TestimonyContent"]
+[node name="TestimonyScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/TestimonyContent"]
 layout_mode = 2
 size_flags_vertical = 3
+vertical_scroll_mode = 2
 
-[node name="TestimonyList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TestimonyContent/TestimonyScroll"]
+[node name="TestimonyList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/TestimonyContent/TestimonyScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
+
+[node name="RightPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.6
+theme_type_variation = &"SurfacePanel"
+
+[node name="RightVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RightHeader" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+layout_mode = 2
+
+[node name="PlaceholderTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Select an evidence"
+horizontal_alignment = 1
+theme_type_variation = &"PanelHeader"
+
+[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Evidence Detail"
+theme_type_variation = &"PanelHeader"
+
+[node name="PinButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📌 Pin"
+
+[node name="SendToBoardButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📋 Send to Board"
+
+[node name="DetailPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 300
+
+[node name="MainScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MainContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="EvidenceImage" type="TextureRect" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 250)
+expand_mode = 3
+stretch_mode = 5
+
+[node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = "No description available."
+
+[node name="InfoSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+layout_mode = 2
+
+[node name="InfoHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/InfoSection"]
+layout_mode = 2
+text = "Details"
+theme_type_variation = &"SectionHeader"
+
+[node name="InfoGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/InfoSection"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 8
+
+[node name="TagsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+layout_mode = 2
+
+[node name="TagsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/TagsSection"]
+layout_mode = 2
+text = "Tags"
+theme_type_variation = &"SectionHeader"
+
+[node name="TagsContainer" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/TagsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CompareSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CompareButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+text = "🔍 Compare Evidence"
+
+[node name="ComparisonPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"SurfacePanel"
+
+[node name="ComparisonScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+
+[node name="ComparisonList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel/ComparisonScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RelationshipsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 0)
+
+[node name="RelationshipsContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="PersonsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+layout_mode = 2
+
+[node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
+layout_mode = 2
+text = "Related Persons"
+theme_type_variation = &"SectionHeader"
+
+[node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatementsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+layout_mode = 2
+
+[node name="StatementsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+layout_mode = 2
+text = "Referenced Statements"
+theme_type_variation = &"SectionHeader"
+
+[node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LegalSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+layout_mode = 2
+
+[node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
+layout_mode = 2
+text = "Legal Categories"
+theme_type_variation = &"SectionHeader"
+
+[node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
+unique_name_in_owner = true
+layout_mode = 2

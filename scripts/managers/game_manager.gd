@@ -71,6 +71,9 @@ var actions_remaining: int = ACTIONS_PER_DAY
 ## IDs of all evidence the player has discovered.
 var discovered_evidence: Array[String] = []
 
+## Maps evidence_id → current_day at the moment of discovery (runtime state, not from JSON).
+var _evidence_discovery_days: Dictionary = {}
+
 ## IDs of all insights the player has created.
 var discovered_insights: Array[String] = []
 
@@ -145,6 +148,7 @@ func new_game() -> void:
 	current_phase = Enums.DayPhase.MORNING
 	actions_remaining = ACTIONS_PER_DAY
 	discovered_evidence.clear()
+	_evidence_discovery_days.clear()
 	discovered_insights.clear()
 	visited_locations.clear()
 	unlocked_locations.clear()
@@ -175,6 +179,7 @@ func discover_evidence(evidence_id: String) -> bool:
 	if evidence_id in discovered_evidence:
 		return false
 	discovered_evidence.append(evidence_id)
+	_evidence_discovery_days[evidence_id] = current_day
 	evidence_discovered.emit(evidence_id)
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
 	var ev_name: String = ev.name if ev else evidence_id
@@ -185,6 +190,11 @@ func discover_evidence(evidence_id: String) -> bool:
 ## Returns true if the given evidence has been discovered.
 func has_evidence(evidence_id: String) -> bool:
 	return evidence_id in discovered_evidence
+
+
+## Returns the day on which the evidence was discovered, or 0 if unknown.
+func get_evidence_discovery_day(evidence_id: String) -> int:
+	return _evidence_discovery_days.get(evidence_id, 0)
 
 
 ## Upgrades raw evidence to its analyzed version (replaces in place).
@@ -437,6 +447,7 @@ func serialize() -> Dictionary:
 		"current_phase": current_phase,
 		"actions_remaining": actions_remaining,
 		"discovered_evidence": discovered_evidence.duplicate(),
+		"evidence_discovery_days": _evidence_discovery_days.duplicate(),
 		"discovered_insights": discovered_insights.duplicate(),
 		"visited_locations": visited_locations.duplicate(),
 		"unlocked_locations": unlocked_locations.duplicate(),
@@ -478,6 +489,7 @@ func deserialize(data: Dictionary) -> void:
 	current_phase = data.get("current_phase", Enums.DayPhase.MORNING) as Enums.DayPhase
 	actions_remaining = data.get("actions_remaining", ACTIONS_PER_DAY)
 	discovered_evidence.assign(data.get("discovered_evidence", []))
+	_evidence_discovery_days = data.get("evidence_discovery_days", {}).duplicate()
 	discovered_insights.assign(data.get("discovered_insights", []))
 	visited_locations.assign(data.get("visited_locations", []))
 	unlocked_locations.assign(data.get("unlocked_locations", []))

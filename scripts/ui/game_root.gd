@@ -199,7 +199,8 @@ func _build_nav_items() -> void:
 		active_style.border_width_right = 1
 		active_style.border_width_bottom = 1
 		active_style.border_color = NAV_ACTIVE_BORDER
-		btn.add_theme_stylebox_override("disabled", active_style)
+		# We no longer apply active_style to "disabled" because we want the active tab to remain clickable when on a subscreen.
+		# Styles are swapped dynamically in _update_nav_highlight().
 
 		# -----------------------------
 		# Content layer
@@ -352,6 +353,9 @@ func _build_nav_items() -> void:
 		# -----------------------------
 		_nav_items[screen_id] = {
 			"button": btn,
+			"normal_style": normal_style,
+			"hover_style": hover_style,
+			"active_style": active_style,
 			"icon": icon_label,
 			"icon_glow": icon_glow,
 			"icon_stack": icon_stack,
@@ -376,9 +380,10 @@ func _on_nav_hover(screen_id: String, hovered: bool) -> void:
 		return
 
 	var item: Dictionary = _nav_items[screen_id]
-	var is_active := ScreenManager.current_screen == screen_id
+	var active_tab := _get_active_nav_tab(ScreenManager.current_screen)
+	var is_active := (active_tab == screen_id)
 
-	# Active item should not track hover state
+	# Active item should not track hover state visually (glows, text bumps, etc.)
 	item["_hovered"] = hovered and not is_active
 
 	_apply_nav_item_state(screen_id, item["_hovered"], is_active)
@@ -492,12 +497,25 @@ func _apply_nav_item_state(screen_id: String, hovered: bool, active: bool) -> vo
 	item["_tween"] = tw
 
 
+## Maps sub-screens to their parent navigation tabs to keep the navbar highlighted.
+func _get_active_nav_tab(screen_id: String) -> String:
+	var tab_mapping: Dictionary = {
+		"location_investigation": "location_map",
+		"interrogation": "suspect_list",
+		"theory_builder": "detective_board",
+	}
+	if tab_mapping.has(screen_id):
+		return tab_mapping[screen_id]
+	return screen_id
+
+
 ## Refreshes all nav item visual states.
 func _refresh_nav_items() -> void:
+	var active_tab: String = _get_active_nav_tab(ScreenManager.current_screen)
 	for screen_id: String in _nav_items.keys():
 		var item: Dictionary = _nav_items[screen_id]
 		var hovered: bool = item.get("_hovered", false)
-		var active := ScreenManager.current_screen == screen_id
+		var active: bool = (active_tab == screen_id)
 		_apply_nav_item_state(screen_id, hovered, active)
 
 
@@ -700,18 +718,28 @@ func _update_notification_button() -> void:
 ## Highlights the active nav button based on current screen.
 func _update_nav_highlight() -> void:
 	var current: String = ScreenManager.current_screen
+	var active_tab: String = _get_active_nav_tab(current)
 
 	for screen_id: String in _nav_items.keys():
 		var item: Dictionary = _nav_items[screen_id]
-		var is_active: bool = (screen_id == current)
+		var is_active_tab: bool = (screen_id == active_tab)
+		var is_exact_screen: bool = (screen_id == current)
 		var btn: Button = item["button"]
 
-		# Disable active tab so it behaves like a selected nav item
-		btn.disabled = is_active
-		btn.mouse_default_cursor_shape = Control.CURSOR_ARROW if is_active else Control.CURSOR_POINTING_HAND
+		# Swap the normal and hover styles to simulate an active visual state without disabling input.
+		if is_active_tab:
+			btn.add_theme_stylebox_override("normal", item["active_style"])
+			btn.add_theme_stylebox_override("hover", item["active_style"])
+		else:
+			btn.add_theme_stylebox_override("normal", item["normal_style"])
+			btn.add_theme_stylebox_override("hover", item["hover_style"])
 
-		# Active item should never retain hover state
-		if is_active:
+		# Never disable the button so that clicking an active tab works (e.g. to escape a sub-screen)
+		btn.disabled = false
+		btn.mouse_default_cursor_shape = Control.CURSOR_ARROW if is_exact_screen else Control.CURSOR_POINTING_HAND
+
+		# Active item should never retain hover state, even if it's clickable
+		if is_active_tab:
 			item["_hovered"] = false
 
 

@@ -11,9 +11,13 @@ EVIDENCE:
 NAVIGATION BAR:
 - Day phases: after player runs out of actions the day (sun) should change to night (moon), in the morning during the daily briefing the icon should be sunrise
 
+DESK:
+- The Warrant sumbission could live on the Desk tab as a more formal "paperwork" action.
+
 STORY:
 - Person Status: witness, suspect, victim connection? Julia should just be a connection in the beginning and not a suspect yet, or maybe she could go from "wife" to "suspect". And  
 - Fingerprints: the player should not have Julia's fingerprints yet until she's a suspect (see evidence suggestion)
 
 SOUNDS:
 - when a new location target appears
+- 

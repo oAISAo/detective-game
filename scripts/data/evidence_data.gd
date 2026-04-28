@@ -19,9 +19,6 @@ extends Resource
 ## ID of the location where this evidence was found.
 @export var location_found: String = ""
 
-## The day this evidence was (or can be) discovered.
-@export var discovered_day: int = 0
-
 ## IDs of persons related to this evidence.
 @export var related_persons: Array[String] = []
 
@@ -52,6 +49,9 @@ extends Resource
 ## Optional hint text for the progressive hint system. If empty, a generic hint is generated.
 @export var hint_text: String = ""
 
+## IDs of statements potentially relevant to this evidence item.
+@export var linked_statements: Array[String] = []
+
 ## Legal categories this evidence supports (PRESENCE, MOTIVE, etc.).
 var legal_categories: Array[int] = []  # Enums.LegalCategory values
 
@@ -68,7 +68,6 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 		Enums.EvidenceType.OBJECT
 	) as Enums.EvidenceType
 	res.location_found = data.get("location_found", "")
-	res.discovered_day = int(data.get("discovered_day", 0))
 	res.related_persons.assign(data.get("related_persons", []))
 	res.tags.assign(data.get("tags", []))
 	res.lab_status = EnumHelper.parse_enum(
@@ -91,6 +90,7 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 		Enums.DiscoveryMethod.VISUAL
 	) as Enums.DiscoveryMethod
 	res.hint_text = data.get("hint_text", "")
+	res.linked_statements.assign(data.get("linked_statements", []))
 	res.legal_categories = EnumHelper.parse_enum_array(
 		Enums.LegalCategory,
 		data.get("legal_categories", [])
@@ -118,7 +118,6 @@ func to_dict() -> Dictionary:
 		"description": description,
 		"type": EnumHelper.enum_to_string(Enums.EvidenceType, type),
 		"location_found": location_found,
-		"discovered_day": discovered_day,
 		"related_persons": related_persons.duplicate(),
 		"tags": tags.duplicate(),
 		"lab_status": EnumHelper.enum_to_string(Enums.LabStatus, lab_status),
@@ -129,5 +128,6 @@ func to_dict() -> Dictionary:
 		"importance_level": EnumHelper.enum_to_string(Enums.ImportanceLevel, importance_level),
 		"discovery_method": EnumHelper.enum_to_string(Enums.DiscoveryMethod, discovery_method),
 		"hint_text": hint_text,
+		"linked_statements": linked_statements.duplicate(),
 		"legal_categories": EnumHelper.enum_array_to_strings(Enums.LegalCategory, legal_categories),
 	}

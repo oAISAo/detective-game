@@ -13,7 +13,6 @@ const _PADDING: int = 10
 const _BOTTOM_PADDING: int = 6
 const _IMAGE_MIN_HEIGHT: int = 120
 const _SHADOW_SIZE: int = 8
-const _SHADOW_OFFSET: Vector2 = Vector2(2, 2)
 const _HOVER_DIMNESS: float = 0.88
 
 @onready var _image_clip: Control = %ImageClip
@@ -51,6 +50,13 @@ func setup(ev: EvidenceData, handwriting_font: Font = null) -> void:
 	_name_label.add_theme_font_size_override("font_size", UIFonts.SIZE_TITLE)
 	if handwriting_font:
 		_name_label.add_theme_font_override("font", handwriting_font)
+		
+	# Force label to exactly two lines of height so 1-line vs 2-line names don't change polaroid size
+	var line_height: float = _name_label.get_theme_font("font").get_height(UIFonts.SIZE_TITLE)
+	var line_spacing: int = _name_label.get_theme_constant("line_spacing")
+	_name_label.custom_minimum_size.y = (line_height * 2) + line_spacing
+	_name_label.lines_skipped = 0
+	_name_label.max_lines_visible = 2
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -84,7 +90,6 @@ func _apply_card_style() -> void:
 	style.content_margin_bottom = _BOTTOM_PADDING
 	style.shadow_color = UIColors.LOCATION_CARD_SHADOW
 	style.shadow_size = _SHADOW_SIZE
-	style.shadow_offset = _SHADOW_OFFSET
 	add_theme_stylebox_override("panel", style)
 
 

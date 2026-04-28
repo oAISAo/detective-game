@@ -7,7 +7,6 @@
 			"description": "Coroner's preliminary autopsy findings: Victim died from a stab wound to the chest. Estimated time of death approximately 21:00. Forensic findings indicate the wound was made with a single-edged blade approximately 15cm in length.",
 			"type": "DOCUMENT",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim"
 			],
@@ -22,7 +21,8 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
-			]
+			],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_knife",
@@ -31,7 +31,6 @@
 			"description": "A bloody kitchen knife found in the victim's kitchen sink. Blood matches the victim.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim"
 			],
@@ -45,7 +44,8 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
-			]
+			],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_wine_glasses",
@@ -54,7 +54,6 @@
 			"description": "Two wine glasses on the living room table. Indicates the victim had company before the murder.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"crime_scene",
@@ -66,6 +65,10 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint"
 			]
 		},
 		{
@@ -75,7 +78,6 @@
 			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints. Contradicts her statement that she was not at the apartment that night.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -94,7 +96,11 @@
 				"PRESENCE",
 				"CONNECTION"
 			],
-			"hint_text": "Have the wine glasses analyzed for fingerprints at the lab."
+			"hint_text": "Have the wine glasses analyzed for fingerprints at the lab.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint"
+			]
 		},
 		{
 			"id": "ev_desk_fingerprint_raw",
@@ -103,7 +109,6 @@
 			"description": "A clear fingerprint found on the victim's desk. Needs lab analysis to identify the owner.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"forensic",
@@ -113,7 +118,8 @@
 			"weight": 0.2,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_mark_fingerprint_desk",
@@ -122,7 +128,6 @@
 			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints. Confirms his earlier visit.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark"
 			],
@@ -137,6 +142,10 @@
 			"lab_result_text": "Fingerprint matched to Mark Bennett.",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_mark_visit",
+				"stmt_mark_daniel_requested"
 			]
 		},
 		{
@@ -146,7 +155,6 @@
 			"description": "A broken picture frame on the floor. The photo shows Daniel and Julia together. Suggests an argument took place.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_julia"
@@ -161,6 +169,11 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
+			],
+			"linked_statements": [
+				"stmt_mark_argument",
+				"stmt_sarah_heard_argument",
+				"stmt_julia_initial"
 			]
 		},
 		{
@@ -170,7 +183,6 @@
 			"description": "A text message from Julia to Daniel at 20:40: \"Are you home? We need to talk.\"",
 			"type": "DIGITAL",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia",
 				"p_victim"
@@ -187,7 +199,12 @@
 				"PRESENCE",
 				"CONNECTION"
 			],
-			"hint_text": "Check the victim's phone for recent messages."
+			"hint_text": "Check the victim's phone for recent messages.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator"
+			]
 		},
 		{
 			"id": "ev_deleted_messages",
@@ -196,7 +213,6 @@
 			"description": "Recovered deleted messages between Daniel and Julia showing a heated argument about money. Unlocked via phone search warrant.",
 			"type": "DIGITAL",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_julia"
@@ -214,7 +230,12 @@
 				"MOTIVE",
 				"CONNECTION"
 			],
-			"hint_text": "A warrant to search Julia's phone may reveal deleted messages."
+			"hint_text": "A warrant to search Julia's phone may reveal deleted messages.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_elevator",
+				"stmt_julia_confession"
+			]
 		},
 		{
 			"id": "ev_mark_call_log",
@@ -223,7 +244,6 @@
 			"description": "Phone call log showing multiple calls between Mark and Daniel about financial issues in the days before the murder.",
 			"type": "DIGITAL",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark",
 				"p_victim"
@@ -240,6 +260,12 @@
 			"legal_categories": [
 				"MOTIVE",
 				"CONNECTION"
+			],
+			"linked_statements": [
+				"stmt_mark_visit",
+				"stmt_mark_daniel_requested",
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission"
 			]
 		},
 		{
@@ -249,7 +275,6 @@
 			"description": "An email from Daniel to Mark. Subject: \"We need to fix this before tomorrow.\" References financial irregularities.",
 			"type": "DIGITAL",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_mark"
@@ -266,6 +291,11 @@
 			"legal_categories": [
 				"MOTIVE",
 				"CONNECTION"
+			],
+			"linked_statements": [
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission"
 			]
 		},
 		{
@@ -275,7 +305,6 @@
 			"description": "Records showing money moved from the company account to an unknown destination. Suggests embezzlement.",
 			"type": "FINANCIAL",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark"
 			],
@@ -290,7 +319,12 @@
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Check the file cabinet in Daniel's office for financial records."
+			"hint_text": "Check the file cabinet in Daniel's office for financial records.",
+			"linked_statements": [
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission"
+			]
 		},
 		{
 			"id": "ev_accounting_files",
@@ -299,7 +333,6 @@
 			"description": "Detailed accounting files showing a pattern of embezzlement from the company. Found in the victim's office.",
 			"type": "FINANCIAL",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark",
 				"p_victim"
@@ -314,6 +347,11 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
+			],
+			"linked_statements": [
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission"
 			]
 		},
 		{
@@ -323,7 +361,6 @@
 			"description": "Julia's personal financial records showing large debts. Provides additional financial motive.",
 			"type": "FINANCIAL",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -337,6 +374,11 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
+			],
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_mark_julia_knew",
+				"stmt_julia_confession"
 			]
 		},
 		{
@@ -346,7 +388,6 @@
 			"description": "Security camera footage from the parking lot showing Mark Bennett leaving the building at 20:40.",
 			"type": "RECORDING",
 			"location_found": "loc_parking_lot",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark"
 			],
@@ -362,7 +403,12 @@
 			"legal_categories": [
 				"PRESENCE"
 			],
-			"hint_text": "Check the security camera in the parking lot."
+			"hint_text": "Check the security camera in the parking lot.",
+			"linked_statements": [
+				"stmt_mark_departure_time",
+				"stmt_mark_corrected_departure",
+				"stmt_mark_lied_to_hide_argument"
+			]
 		},
 		{
 			"id": "ev_hallway_camera",
@@ -371,7 +417,6 @@
 			"description": "Security camera footage showing someone entering the apartment at approximately 20:50. The figure's height roughly matches Julia Ross.",
 			"type": "RECORDING",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -385,6 +430,12 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator",
+				"stmt_sarah_confronted"
 			]
 		},
 		{
@@ -394,7 +445,6 @@
 			"description": "Building elevator access logs showing Julia Ross's key card was used at 20:48 on the night of the murder.",
 			"type": "DOCUMENT",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -411,7 +461,13 @@
 				"PRESENCE",
 				"OPPORTUNITY"
 			],
-			"hint_text": "Check the building's elevator access records."
+			"hint_text": "Check the building's elevator access records.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator",
+				"stmt_lucas_initial"
+			]
 		},
 		{
 			"id": "ev_lucas_work_log",
@@ -420,7 +476,6 @@
 			"description": "Maintenance work log showing Lucas Weber was working until 20:00, contradicting his claim of finishing at 19:00. However, he was in a different part of the building.",
 			"type": "DOCUMENT",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_lucas"
 			],
@@ -434,6 +489,10 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_lucas_initial",
+				"stmt_lucas_heard_argument"
 			]
 		},
 		{
@@ -443,7 +502,6 @@
 			"description": "A shoe print found in the hallway near the victim's apartment. Needs lab analysis to determine the shoe type and size.",
 			"type": "FORENSIC",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"forensic",
@@ -453,7 +511,8 @@
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_shoe_print",
@@ -462,7 +521,6 @@
 			"description": "A shoe print found in the hallway near the victim's apartment. Lab analysis matches Julia Ross's shoes.",
 			"type": "FORENSIC",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -479,7 +537,13 @@
 			"legal_categories": [
 				"PRESENCE"
 			],
-			"hint_text": "Examine the hallway floor for footprints."
+			"hint_text": "Examine the hallway floor for footprints.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator",
+				"stmt_sarah_footsteps"
+			]
 		},
 		{
 			"id": "ev_julia_shoes",
@@ -488,7 +552,6 @@
 			"description": "Julia's shoes obtained via search warrant. The soles match the hallway shoe print exactly.",
 			"type": "OBJECT",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -505,7 +568,12 @@
 				"PRESENCE",
 				"CONNECTION"
 			],
-			"hint_text": "A search warrant for Julia's residence may yield matching shoes."
+			"hint_text": "A search warrant for Julia's residence may yield matching shoes.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator"
+			]
 		},
 		{
 			"id": "ev_wine_bottle",
@@ -514,7 +582,6 @@
 			"description": "A recently opened bottle of wine on the table. Confirms the victim was sharing drinks with someone.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"crime_scene",
@@ -523,7 +590,8 @@
 			"weight": 0.2,
 			"importance_level": "OPTIONAL",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_knife_block",
@@ -532,7 +600,6 @@
 			"description": "A knife block on the kitchen counter with one knife missing. The missing knife matches the murder weapon.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"crime_scene",
@@ -541,7 +608,8 @@
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_hidden_safe",
@@ -550,7 +618,6 @@
 			"description": "A hidden safe found in Daniel's office containing documents about the embezzlement scheme. Reveals the full extent of Mark's financial crimes and Daniel's plan to expose him.",
 			"type": "DOCUMENT",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark",
 				"p_victim"
@@ -567,7 +634,12 @@
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments."
+			"hint_text": "Look carefully around Daniel's office \u2014 there may be hidden compartments.",
+			"linked_statements": [
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission",
+				"stmt_mark_final_lock"
+			]
 		},
 		{
 			"id": "ev_personal_journal",
@@ -576,7 +648,6 @@
 			"description": "Daniel's personal journal found in his office. Recent entries mention confronting both Mark about the embezzlement and Julia about their marriage. The last entry reads: \"I have to tell Julia everything tomorrow.\"",
 			"type": "DOCUMENT",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_mark",
@@ -595,7 +666,12 @@
 				"MOTIVE",
 				"CONNECTION"
 			],
-			"hint_text": "Daniel may have kept personal notes at his office."
+			"hint_text": "Daniel may have kept personal notes at his office.",
+			"linked_statements": [
+				"stmt_mark_deeper_admission",
+				"stmt_mark_julia_knew",
+				"stmt_julia_confession"
+			]
 		}
 	]
 }

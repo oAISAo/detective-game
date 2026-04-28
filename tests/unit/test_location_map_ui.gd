@@ -138,7 +138,7 @@ func _find_location_card(screen: Control, location_id: String) -> LocationCard:
 
 func test_location_map_scroll_content_has_shadow_padding() -> void:
 	var screen: Control = _instantiate_map_screen()
-	var scroll: ScrollContainer = screen.get_node("MarginContainer/VBoxContainer/LocationScroll")
+	var scroll: ScrollContainer = screen.get_node("MarginContainer/LocationScroll")
 	var content_margin: MarginContainer = scroll.get_node("ScrollContentMargin")
 	var grid: HFlowContainer = screen.get_node("%LocationGrid")
 	assert_eq(grid.get_parent(), content_margin,

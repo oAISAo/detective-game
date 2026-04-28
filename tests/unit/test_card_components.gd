@@ -1,5 +1,5 @@
 ## test_card_components.gd
-## Unit tests for card UI components: EvidenceCard, SuspectCard, LocationCard.
+## Unit tests for card UI components: EvidencePolaroid, SuspectCard, LocationCard.
 ## Verifies setup, state display, and signal wiring for Phase D6/D7 cards.
 extends GutTest
 
@@ -111,7 +111,6 @@ var _test_case_data: Dictionary = {
 }
 
 # Use preload to get PackedScenes — avoids class_name resolution issues in headless mode
-var _evidence_card_scene: PackedScene = preload("res://scenes/ui/components/evidence_card.tscn")
 var _suspect_card_scene: PackedScene = preload("res://scenes/ui/components/suspect_card.tscn")
 var _location_card_scene: PackedScene = preload("res://scenes/ui/components/location_card.tscn")
 var _evidence_polaroid_scene: PackedScene = preload("res://scenes/ui/components/evidence_polaroid.tscn")
@@ -143,93 +142,26 @@ func after_all() -> void:
 
 
 # ============================================================
-# EvidenceCard Tests
+# EvidencePolaroid Tests (EvidenceCard was retired — EvidencePolaroid is canonical)
 # ============================================================
 
-func test_evidence_card_setup_populates_name() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
+func test_evidence_polaroid_setup_populates_name() -> void:
+	var card: Node = _evidence_polaroid_scene.instantiate()
 	add_child_autofree(card)
 	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
 	card.setup(ev)
-	assert_eq(card.get_evidence_id(), "ev_fingerprint", "Card should store evidence ID")
 	var name_label: Label = card.get_node("%NameLabel")
-	assert_eq(name_label.text, "Fingerprint on Glass", "Card should display evidence name")
+	assert_eq(name_label.text, "Fingerprint on Glass", "Polaroid should display evidence name")
 
 
-func test_evidence_card_setup_populates_type_badge() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
-	card.setup(ev)
-	var type_badge: Label = card.get_node("%TypeBadge")
-	assert_eq(type_badge.text, "Forensic", "Card should display evidence type")
-
-
-func test_evidence_card_setup_populates_description() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
-	card.setup(ev)
-	var desc_label: Label = card.get_node("%DescriptionLabel")
-	assert_true(desc_label.text.length() > 0, "Card should have description text")
-
-
-func test_evidence_card_state_awaiting_analysis() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
-	card.setup(ev)
-	var state_label: Label = card.get_node("%StateLabel")
-	assert_eq(state_label.text, "Awaiting Analysis", "Unsubmitted lab evidence should show 'Awaiting Analysis'")
-
-
-func test_evidence_card_state_collected() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	var ev: EvidenceData = CaseManager.get_evidence("ev_photo")
-	card.setup(ev)
-	var state_label: Label = card.get_node("%StateLabel")
-	assert_eq(state_label.text, "Collected", "Non-lab evidence should show 'Collected'")
-
-
-func test_evidence_card_state_processed() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	var ev: EvidenceData = CaseManager.get_evidence("ev_processed")
-	card.setup(ev)
-	var state_label: Label = card.get_node("%StateLabel")
-	assert_eq(state_label.text, "Processed", "Completed lab evidence should show 'Processed'")
-
-
-func test_evidence_card_state_in_lab() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	var ev: EvidenceData = CaseManager.get_evidence("ev_in_lab")
-	card.setup(ev)
-	var state_label: Label = card.get_node("%StateLabel")
-	assert_eq(state_label.text, "In Lab", "Processing evidence should show 'In Lab'")
-
-
-func test_evidence_card_emits_signal() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
+func test_evidence_polaroid_emits_signal() -> void:
+	var card: Node = _evidence_polaroid_scene.instantiate()
 	add_child_autofree(card)
 	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
 	card.setup(ev)
 	watch_signals(card)
 	card.card_pressed.emit("ev_fingerprint")
 	assert_signal_emitted_with_parameters(card, "card_pressed", ["ev_fingerprint"])
-
-
-func test_evidence_card_truncates_long_description() -> void:
-	var card: Node = _evidence_card_scene.instantiate()
-	add_child_autofree(card)
-	# Create evidence with a very long description
-	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
-	ev.description = "A".repeat(120)
-	card.setup(ev)
-	var desc_label: Label = card.get_node("%DescriptionLabel")
-	assert_eq(desc_label.text.length(), 100, "Long description should be truncated to 100 chars")
-	assert_true(desc_label.text.ends_with("..."), "Truncated text should end with ellipsis")
 
 
 # ============================================================

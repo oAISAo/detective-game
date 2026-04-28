@@ -18,9 +18,7 @@ extends Control
 @onready var detail_actions: VBoxContainer = %DetailActions
 @onready var action_list: VBoxContainer = %ActionList
 @onready var back_button: Button = %BackButton
-@onready var _left_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/LeftPanel
 @onready var _center_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/CenterPanel
-@onready var _right_panel: PanelContainer = $MarginContainer/VBoxContainer/MainColumns/RightPanel
 
 ## The location being investigated.
 var _location: LocationData = null
@@ -46,10 +44,9 @@ const _DETAIL_SECTION_SPACING: int = 18
 const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
 
 # Target reveal animation constants (for newly-unlocked conditional targets)
-const _REVEAL_SLIDE_DURATION: float = 0.35
+const _REVEAL_SLIDE_DURATION: float = 0.4
 const _REVEAL_BUTTON_HEIGHT: float = 40.0
-const _REVEAL_PULSE_DURATION: float = 0.4
-const _REVEAL_PULSE_COLOR: Color = Color(0.8, 0.88, 1.0, 1.0)
+const _REVEAL_PULSE_DURATION: float = 0.8
 
 var _handwriting_font: Font = null
 
@@ -58,7 +55,6 @@ func _ready() -> void:
 	_back_pressed_cb = _on_back_pressed
 	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(_back_pressed_cb)
-	_apply_panel_styles()
 	_apply_scene_image_clip()
 	_handwriting_font = _load_handwriting_font()
 
@@ -157,30 +153,27 @@ func _populate_objects() -> void:
 
 
 ## Plays the reveal animation for a newly-unlocked conditional target button.
-## Phase 1: slide down + fade in (0.35s). Phase 2: soft blue highlight pulse (0.4s).
+## Phase 1: slide down + fade in (0.4s) smoothly. Phase 2: blue highlight pulse fading out (0.8s).
 func _animate_target_reveal(btn: Button) -> void:
-	# Start fully transparent and collapsed to zero height
-	btn.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	# Start fully transparent blue and collapsed to zero height
+	# This prevents harsh color interpolation from white to blue while fading in
+	btn.modulate = Color(UIColors.BLUE, 0.0)
 	btn.custom_minimum_size.y = 0.0
 
 	var tween: Tween = btn.create_tween()
-	tween.set_parallel(true)
 
-	# Phase 1: slide into full height and fade in simultaneously
+	# Phase 1: Slide into full height smoothly and fade in to Blue
 	tween.tween_property(btn, "custom_minimum_size:y", _REVEAL_BUTTON_HEIGHT, _REVEAL_SLIDE_DURATION) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
-	tween.tween_property(btn, "modulate:a", 1.0, _REVEAL_SLIDE_DURATION) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.parallel().tween_property(btn, "modulate", UIColors.BLUE, _REVEAL_SLIDE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
-	# Phase 2: after slide, briefly tint blue then return to white (highlight pulse)
-	tween.set_parallel(false)
-	tween.tween_interval(_REVEAL_SLIDE_DURATION)
-	# Reset height constraint so the button's natural layout size takes over
-	tween.tween_callback(func() -> void: btn.custom_minimum_size.y = 0.0)
-	tween.tween_property(btn, "modulate", _REVEAL_PULSE_COLOR, _REVEAL_PULSE_DURATION * 0.5) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	tween.tween_property(btn, "modulate", Color.WHITE, _REVEAL_PULSE_DURATION * 0.5) \
-		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+	# Phase 2: Fade the blue glow back to white instantly after sliding finished
+	# Using sequentially appended tween + parallel callback (triggers exactly at start of Phase 2)
+	# EASE_OUT is critical here: EASE_IN_OUT creates a slow flat start that looks like a pause!
+	tween.tween_property(btn, "modulate", Color.WHITE, _REVEAL_PULSE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.parallel().tween_callback(func() -> void: btn.custom_minimum_size.y = 0.0)
 
 
 ## Handles object selection from the list.
@@ -274,19 +267,7 @@ func _on_inspect_pressed(object_id: String) -> void:
 	var discovered: Array[String] = LocationInvestigationManager.inspect_object(_location.id, object_id)
 	if discovered.is_empty() and actions_before == GameManager.actions_remaining and not GameManager.has_actions_remaining():
 		NotificationManager.notify("No Actions", LocationInvestigationManager.INVESTIGATION_ERROR_MESSAGE_NO_ACTIONS)
-	_show_discovery_feedback(discovered)
 	_refresh_ui()
-
-
-## Shows feedback when evidence is discovered.
-func _show_discovery_feedback(evidence_ids: Array[String]) -> void:
-	if evidence_ids.is_empty():
-		return
-
-	for ev_id: String in evidence_ids:
-		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-		if ev:
-			NotificationManager.notify_evidence(ev.name)
 
 
 ## Refreshes the entire UI after state changes.
@@ -427,26 +408,19 @@ func _on_back_pressed() -> void:
 	ScreenManager.navigate_back()
 
 
-## Applies border and padding overrides to the three main panels.
-func _apply_panel_styles() -> void:
-	for panel: PanelContainer in [_left_panel, _center_panel, _right_panel]:
-		var style: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate(true) as StyleBoxFlat
-		style.border_width_left = _PANEL_BORDER_WIDTH
-		style.border_width_top = _PANEL_BORDER_WIDTH
-		style.border_width_right = _PANEL_BORDER_WIDTH
-		style.border_width_bottom = _PANEL_BORDER_WIDTH
-		style.border_color = _PANEL_BORDER_COLOR
-		if panel == _center_panel:
-			style.content_margin_left = float(_PANEL_BORDER_WIDTH)
-			style.content_margin_top = float(_PANEL_BORDER_WIDTH)
-			style.content_margin_right = float(_PANEL_BORDER_WIDTH)
-			style.content_margin_bottom = float(_PANEL_BORDER_WIDTH)
-		panel.add_theme_stylebox_override("panel", style)
-
-
 ## Clips the center panel's image to the inner rounded shape.
 func _apply_scene_image_clip() -> void:
 	var center_vbox: VBoxContainer = _center_panel.get_node("CenterVBox") as VBoxContainer
+
+	# Remove the default theme margins from the center panel so the clip area reaches the border
+	var base_style: StyleBox = _center_panel.get_theme_stylebox("panel")
+	if base_style != null:
+		var new_base: StyleBox = base_style.duplicate()
+		new_base.content_margin_left = float(_PANEL_BORDER_WIDTH)
+		new_base.content_margin_top = float(_PANEL_BORDER_WIDTH)
+		new_base.content_margin_right = float(_PANEL_BORDER_WIDTH)
+		new_base.content_margin_bottom = float(_PANEL_BORDER_WIDTH)
+		_center_panel.add_theme_stylebox_override("panel", new_base)
 
 	var inner_radius: int = _PANEL_CORNER_RADIUS - _PANEL_BORDER_WIDTH
 	var clip_style := StyleBoxFlat.new()
