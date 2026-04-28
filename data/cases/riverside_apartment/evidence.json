@@ -7,7 +7,6 @@
 			"description": "Coroner's preliminary autopsy findings: Victim died from a stab wound to the chest. Estimated time of death approximately 21:00. Forensic findings indicate the wound was made with a single-edged blade approximately 15cm in length.",
 			"type": "DOCUMENT",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim"
 			],
@@ -32,7 +31,6 @@
 			"description": "A bloody kitchen knife found in the victim's kitchen sink. Blood matches the victim.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim"
 			],
@@ -56,7 +54,6 @@
 			"description": "Two wine glasses on the living room table. Indicates the victim had company before the murder.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"crime_scene",
@@ -81,7 +78,6 @@
 			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints. Contradicts her statement that she was not at the apartment that night.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -113,7 +109,6 @@
 			"description": "A clear fingerprint found on the victim's desk. Needs lab analysis to identify the owner.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"forensic",
@@ -133,7 +128,6 @@
 			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints. Confirms his earlier visit.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark"
 			],
@@ -161,7 +155,6 @@
 			"description": "A broken picture frame on the floor. The photo shows Daniel and Julia together. Suggests an argument took place.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_julia"
@@ -190,7 +183,6 @@
 			"description": "A text message from Julia to Daniel at 20:40: \"Are you home? We need to talk.\"",
 			"type": "DIGITAL",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia",
 				"p_victim"
@@ -221,7 +213,6 @@
 			"description": "Recovered deleted messages between Daniel and Julia showing a heated argument about money. Unlocked via phone search warrant.",
 			"type": "DIGITAL",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_julia"
@@ -253,7 +244,6 @@
 			"description": "Phone call log showing multiple calls between Mark and Daniel about financial issues in the days before the murder.",
 			"type": "DIGITAL",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark",
 				"p_victim"
@@ -285,7 +275,6 @@
 			"description": "An email from Daniel to Mark. Subject: \"We need to fix this before tomorrow.\" References financial irregularities.",
 			"type": "DIGITAL",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_mark"
@@ -316,7 +305,6 @@
 			"description": "Records showing money moved from the company account to an unknown destination. Suggests embezzlement.",
 			"type": "FINANCIAL",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark"
 			],
@@ -345,7 +333,6 @@
 			"description": "Detailed accounting files showing a pattern of embezzlement from the company. Found in the victim's office.",
 			"type": "FINANCIAL",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark",
 				"p_victim"
@@ -374,7 +361,6 @@
 			"description": "Julia's personal financial records showing large debts. Provides additional financial motive.",
 			"type": "FINANCIAL",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -402,7 +388,6 @@
 			"description": "Security camera footage from the parking lot showing Mark Bennett leaving the building at 20:40.",
 			"type": "RECORDING",
 			"location_found": "loc_parking_lot",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark"
 			],
@@ -432,7 +417,6 @@
 			"description": "Security camera footage showing someone entering the apartment at approximately 20:50. The figure's height roughly matches Julia Ross.",
 			"type": "RECORDING",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -461,7 +445,6 @@
 			"description": "Building elevator access logs showing Julia Ross's key card was used at 20:48 on the night of the murder.",
 			"type": "DOCUMENT",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -493,7 +476,6 @@
 			"description": "Maintenance work log showing Lucas Weber was working until 20:00, contradicting his claim of finishing at 19:00. However, he was in a different part of the building.",
 			"type": "DOCUMENT",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_lucas"
 			],
@@ -520,7 +502,6 @@
 			"description": "A shoe print found in the hallway near the victim's apartment. Needs lab analysis to determine the shoe type and size.",
 			"type": "FORENSIC",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"forensic",
@@ -540,7 +521,6 @@
 			"description": "A shoe print found in the hallway near the victim's apartment. Lab analysis matches Julia Ross's shoes.",
 			"type": "FORENSIC",
 			"location_found": "loc_hallway",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -572,7 +552,6 @@
 			"description": "Julia's shoes obtained via search warrant. The soles match the hallway shoe print exactly.",
 			"type": "OBJECT",
 			"location_found": "",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_julia"
 			],
@@ -603,7 +582,6 @@
 			"description": "A recently opened bottle of wine on the table. Confirms the victim was sharing drinks with someone.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"crime_scene",
@@ -622,7 +600,6 @@
 			"description": "A knife block on the kitchen counter with one knife missing. The missing knife matches the murder weapon.",
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
-			"discovered_day": 0,
 			"related_persons": [],
 			"tags": [
 				"crime_scene",
@@ -641,7 +618,6 @@
 			"description": "A hidden safe found in Daniel's office containing documents about the embezzlement scheme. Reveals the full extent of Mark's financial crimes and Daniel's plan to expose him.",
 			"type": "DOCUMENT",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_mark",
 				"p_victim"
@@ -658,7 +634,7 @@
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments.",
+			"hint_text": "Look carefully around Daniel's office \u2014 there may be hidden compartments.",
 			"linked_statements": [
 				"stmt_mark_money_admission",
 				"stmt_mark_deeper_admission",
@@ -672,7 +648,6 @@
 			"description": "Daniel's personal journal found in his office. Recent entries mention confronting both Mark about the embezzlement and Julia about their marriage. The last entry reads: \"I have to tell Julia everything tomorrow.\"",
 			"type": "DOCUMENT",
 			"location_found": "loc_victim_office",
-			"discovered_day": 0,
 			"related_persons": [
 				"p_victim",
 				"p_mark",

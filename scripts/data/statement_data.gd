@@ -25,6 +25,9 @@ extends Resource
 ## IDs of evidence items that potentially contradict this statement.
 @export var contradicting_evidence: Array[String] = []
 
+## How material this statement is to the case (used for weight bar color logic).
+@export var importance: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
+
 
 ## Creates a StatementData from a JSON dictionary.
 static func from_dict(data: Dictionary) -> StatementData:
@@ -36,6 +39,11 @@ static func from_dict(data: Dictionary) -> StatementData:
 	res.related_evidence.assign(data.get("related_evidence", []))
 	res.related_event = data.get("related_event", "")
 	res.contradicting_evidence.assign(data.get("contradicting_evidence", []))
+	res.importance = EnumHelper.parse_enum(
+		Enums.ImportanceLevel,
+		data.get("importance", "SUPPORTING"),
+		Enums.ImportanceLevel.SUPPORTING
+	) as Enums.ImportanceLevel
 	return res
 
 
@@ -61,4 +69,5 @@ func to_dict() -> Dictionary:
 		"related_evidence": related_evidence.duplicate(),
 		"related_event": related_event,
 		"contradicting_evidence": contradicting_evidence.duplicate(),
+		"importance": EnumHelper.enum_to_string(Enums.ImportanceLevel, importance),
 	}

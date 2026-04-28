@@ -34,7 +34,7 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] All 9 cards have a **NEW** badge (blue)
 - [ ] Right panel shows placeholder state: *"Select an evidence item to review"*
 - [ ] Notification bell counter shows 9 (or matches unreviewed count)
-- [ ] Archive is ordered by discovery: ev_autopsy_report at top (Day 0), then Day 1 items
+- [ ] Archive is ordered by discovery: ev_autopsy_report at top (discovered Day 0), then Day 1 items in order of discovery. Ordering uses `GameManager.get_evidence_discovery_day(id)` (runtime — recorded when `discover_evidence()` is called); secondary sort by importance.
 
 ---
 
@@ -157,7 +157,7 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] Importance badge: **CRITICAL**
 - [ ] Discovery method: *"Lab Result"*
 - [ ] Related Persons: Julia Ross (Suspect)
-- [ ] Evidentiary Weight bar shows high value (80–85%)
+- [ ] Evidentiary Weight bar shows high value (80–85%) in amber (no contradiction set yet)
 - [ ] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
 - [ ] No "Submit to Lab" section
 - [ ] Tags: `forensic`, `presence`, `contradiction`
@@ -219,6 +219,7 @@ They only appear here once both the statement and the linked evidence have been 
 **Expected:**
 - [ ] Pill changes to teal: **SUPPORTS**
 - [ ] Verdict change is saved in player state
+- [ ] Weight bar on `ev_parking_camera` turns **red** — `stmt_mark_departure_time` has a CONTRADICTION verdict and `importance = CRITICAL`, satisfying `EvidenceManager.is_contradicted()`
 
 **Action:** Click verdict pill on `stmt_mark_lied_to_hide_argument` → select **Unresolved**
 **Expected:**
@@ -238,6 +239,7 @@ They only appear here once both the statement and the linked evidence have been 
 **Expected:**
 - [ ] Pill turns red: **CONTRADICTION**
 - [ ] A key contradiction is now logged: Julia denied being there, but her fingerprint was on the wine glass
+- [ ] Weight bar on `ev_julia_fingerprint_glass` turns **red** (`stmt_julia_initial` has importance CRITICAL, satisfying `is_contradicted()`)
 
 ---
 

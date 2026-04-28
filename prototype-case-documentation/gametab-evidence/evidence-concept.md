@@ -126,8 +126,25 @@ The detail panel is split into a header, a main content column, and a side colum
 
 ### Evidentiary Weight Bar
 - Percentage drawn from evidence data (`weight` field)
-- Color: amber for most evidence, red if contradicted, teal if supporting a strong theory
+- **Color rules:**
+  - Red: `EvidenceManager.is_contradicted(evidence_id)` returns true — at least one linked statement has a player CONTRADICTION verdict and `statement.importance <= ImportanceLevel.SUPPORTING` (i.e. CRITICAL or SUPPORTING importance)
+  - Teal: evidence is supporting a strong confirmed theory (🚧 not yet implemented)
+  - Amber: default
 - One-sentence prosecutor assessment below the bar
+
+The check in code:
+```gdscript
+# In EvidenceManager:
+func is_contradicted(evidence_id: String) -> bool:
+    for stmt_id in ev.linked_statements:
+        if get_statement_verdict(evidence_id, stmt_id) != "contradiction":
+            continue
+        var stmt: StatementData = CaseManager.get_statement(stmt_id)
+        # CRITICAL (0) and SUPPORTING (1) are material; OPTIONAL (2) and KEY (3) are not
+        if stmt.importance <= Enums.ImportanceLevel.SUPPORTING:
+            return true
+    return false
+```
 
 Weight thresholds and their prose labels:
 | Weight | Label |
@@ -191,16 +208,18 @@ Each statement contains:
 - id
 - person_id
 - text
-- day_recorded
-- source_interrogation_id
+- day_given (int — the investigation day the statement was recorded)
+- related_evidence (string[] — evidence IDs this statement relates to)
+- related_event (string — event ID this statement relates to, optional)
+- contradicting_evidence (string[] — evidence IDs that potentially contradict this statement)
 
-Statements are linked to evidence via `linked_statements` in evidence data.
+Evidence links to statements via the `linked_statements` field on `EvidenceData` (evidence → statement direction). Statements link back to evidence via `related_evidence` on `StatementData` (statement → evidence direction). Contradictions are detected using `contradicting_evidence` on `StatementData`.
 
-Player decisions are stored separately:
+Player decisions are stored separately in `StatementVerdictData` (key: `"evidence_id:statement_id"`):
 - evidence_id
 - statement_id
-- verdict (contradiction / supports / unresolved)
-- player_note (optional)
+- verdict (unclassified / contradiction / supports / unresolved)
+- player_note (optional free text)
 
 ### Statement Item Anatomy
 Each statement shows:
@@ -228,7 +247,7 @@ The player sets the verdict by clicking the current verdict pill and selecting f
 ### "+ Link Statement" Button
 If the player wants to manually link a statement that wasn't pre-linked in the data, they can use this button to search for statements and attach them. This supports player-driven connections the data didn't anticipate.
 
-> **Open question:** Should manually linked statements be treated differently from data-driven ones? One option: manually linked statements show a small "player-tagged" indicator so it's clear the connection is the player's interpretation, not a data fact.
+> **Decided (D2):** Manually linked statements show a small pen icon ("player-tagged" indicator) so the player can distinguish their own inference from a data-driven link. 🚧 *Not yet implemented.*
 
 ---
 
@@ -306,7 +325,9 @@ A forensic match result is a new evidence item with:
 | `ev_julia_fingerprint_glass` | `ev_wine_glasses` | *(no new item — fingerprint already is the result)* | — |
 | `ev_bank_transfer` | `ev_accounting_files` | `ev_financial_link` | Financial connection confirmed |
 
-> **Open question:** Should invalid comparisons ever generate anything? For example, comparing the parking camera with the kitchen knife — obviously unrelated. One option: all comparisons produce *something* (even just a "no connection" note) so the player feels their effort was acknowledged. Another option: silent no-op, which is cleaner.
+> **Decided (D1):** Invalid comparisons produce a brief inline message only — no junk evidence is generated. This is already implemented in `EvidenceManager.compare_evidence()`.
+>
+> **Implementation note:** Comparisons are defined as `InsightData` objects stored in `data/cases/riverside_apartment/timeline.json` under the `"insights"` key. There is no separate `comparisons.json` file. Each `InsightData` specifies `source_evidence` (the two evidence IDs), `description`, and optionally `strengthens_theory`, `enables_warrant`, or `unlocks_topic`.
 
 ---
 
@@ -343,7 +364,7 @@ When the player clicks **Send to Board**:
 
 **Design principle:** Sending to the board is a gesture of intent — the player is saying "this matters, I want to think about it visually." It does not cost an action. Players can send as many or as few items as they want. The board doesn't need to contain everything.
 
-> **Open question:** Should "Send to Board" auto-place the card, or should the player manually drag it onto the board canvas? Auto-placement risks a cluttered board. Manual drag gives control but requires the player to go to the Board tab. Suggested answer: auto-place in an "inbox" zone at the edge of the board, player then positions it.
+> **Decided (D3):** "Send to Board" auto-places the node in an inbox zone at a predefined position on the board canvas. The player then repositions it manually in the Board tab. `BoardManager.send_to_board()` is already called from `evidence_archive.gd` — the inbox zone coordinates need to be finalized. 🚧
 
 ---
 
@@ -447,16 +468,16 @@ Evidence comparison
 
 Statement verdict classification
   → EvidenceManager.set_statement_verdict(evidence_id, statement_id, verdict)
-  → Stores in player state
-  → Updates verdict pill in UI
-  → contradiction_identified signal (if verdict = CONTRADICTION)
-     → Feeds into ProximityConfidenceSystem for case evaluation
+  → Stores in EvidenceManager._statement_verdicts
+  → Updates verdict pill in UI via statement_verdict_changed signal
+  → EvidenceManager.contradiction_detected signal (if verdict = CONTRADICTION)
+     → Feeds into case evaluation system (ConclusionManager)
 
 Send to board
-  → EvidenceManager.send_to_board(evidence_id)
-  → BoardManager.add_evidence_node(evidence_id)
+  → BoardManager.send_to_board("evidence", evidence_id)
+  → BoardManager.node_added signal
   → NotificationManager: "Added to board"
-  → evidence_sent_to_board signal
+  → [🚧 evidence_sent_to_board signal — planned, not yet implemented]
 ```
 
 ---
@@ -464,83 +485,123 @@ Send to board
 ## Data Model Notes
 
 ### Evidence Data Fields (from `evidence.json`)
+
+> **Note:** `weight` is stored as a float from 0.0–1.0 (not a percentage integer). Multiply by 100 for display. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
+
 ```json
 {
   "id": "ev_parking_camera",
   "name": "Parking Lot Camera Footage",
-  "description": "Security camera footage showing Mark Bennett leaving the building at 20:40.",
-  "type": "recording",
-  "importance": "critical",
-  "weight": 70,
+  "description": "Security camera footage from the parking lot showing Mark Bennett leaving the building at 20:40.",
+  "type": "RECORDING",
+  "importance_level": "CRITICAL",
+  "weight": 0.7,
   "location_found": "loc_parking_lot",
-  "day_available": 2,
   "requires_lab_analysis": false,
+  "discovery_method": "VISUAL",
   "related_persons": ["p_mark"],
-  "legal_categories": ["presence"],
+  "legal_categories": ["PRESENCE"],
   "linked_statements": ["stmt_mark_departure_time", "stmt_mark_corrected_departure", "stmt_mark_lied_to_hide_argument"],
-  "linked_comparisons": [],
+  "hint_text": "Check the security camera in the parking lot.",
   "tags": ["surveillance", "timeline", "alibi", "contradiction"]
 }
 ```
 
 ### Player Evidence State (runtime, persisted)
+
+State is split across multiple systems. Fields below show what IS currently tracked (✅) vs. what is planned but not yet implemented (🚧).
+
+**`GameManager.discovered_evidence`** (Array[String]):
+- ✅ Discovery order is implicit in the array insertion order (newest = last appended)
+
+**`EvidenceManager.pinned_evidence`** (Array[String]):
+- ✅ Pinned evidence IDs (max 5)
+
+**`EvidenceManager._statement_verdicts`** (Dictionary, key: `"evidence_id:statement_id"`):
 ```json
 {
-  "ev_parking_camera": {
-    "reviewed": true,
-    "pinned": false,
-    "sent_to_board": true,
-    "lab_status": "none",
-    "player_notes": "",
-    "player_tags": [],
-    "statement_verdicts": {
-      "stmt_mark_departure_time": "contradiction",
-      "stmt_mark_corrected_departure": "supports",
-      "stmt_mark_lied_to_hide_argument": "unresolved"
-    }
+  "ev_parking_camera:stmt_mark_departure_time": {
+    "evidence_id": "ev_parking_camera",
+    "statement_id": "stmt_mark_departure_time",
+    "verdict": "contradiction",
+    "player_note": ""
   }
 }
 ```
 
----
+**Per-evidence extended state (🚧 planned — not yet implemented in `EvidenceManager`):**
+```json
+{
+  "ev_parking_camera": {
+    "reviewed": true,
+    "sent_to_board": true,
+    "player_notes": "",
+    "player_tags": []
+  }
+}
+```
 
-## Open Questions
-
-These are design decisions that need to be made before implementation. Recommendations are provided.
-
-**Q1: Should invalid evidence comparisons produce any output?**
-Recommendation: Silent no-op with a brief inline message. Don't generate junk evidence items — they pollute the archive.
-
-**Q2: Should manually linked statements be visually distinguished from data-linked ones?**
-Recommendation: Yes. A small "player-tagged" indicator (e.g., a pen icon) on manually linked statements makes clear to the player what's game-verified vs. their own inference.
-
-**Q3: Auto-place or manual drag for "Send to Board"?**
-Recommendation: Auto-place in an inbox area on the board. Forcing the player to drag from scratch every time adds friction without adding value.
-
-**Q4: Should comparison be available from both evidence items in a pair, or only from one?**
-Recommendation: Available from either item. If the player has both and opens either one, they should be able to trigger the comparison from whichever they're viewing.
-
-**Q5: What happens to lab evidence cards after submission — does the original raw item become less prominent?**
-Recommendation: The raw item (`ev_shoe_print_raw`) stays in the archive but gets a "Superseded by lab result" visual treatment once the result arrives — muted appearance, with a link to the processed result. It's not removed (it's still evidence of what was found and where) but the processed result takes precedence for case building.
-
-**Q6: Should the Evidence Tab show a notification badge count in the top nav?**
-Recommendation: Yes. The bell icon already shows a counter. The Evidence tab icon in the nav bar should also show a small count of unreviewed NEW items — makes it clear when the player should visit.
+> **Note:** `lab_status` is stored on the `EvidenceData` resource itself (`Enums.LabStatus`), not in a separate player state dictionary.
 
 ---
 
-## Code Reference (Suggested)
+## Design Decisions
+
+All design questions have been resolved. Decisions are final.
+
+**D1 — Invalid evidence comparisons:** Silent inline message only — no junk evidence items are generated. ✅ *Already implemented in `EvidenceManager.compare_evidence()`.*
+
+**D2 — Manually linked statements:** Manually linked statements show a small pen icon ("player-tagged" indicator) to visually distinguish them from data-driven links. Player-created links are stored separately in `EvidenceManager` state. 🚧 *Not yet implemented.*
+
+**D3 — "Send to Board" placement:** Auto-place in an inbox zone at a predefined position on the board canvas. The player repositions it in the Board tab. `BoardManager.send_to_board()` is already called from `evidence_archive.gd` — the inbox zone coordinates need to be finalized. 🚧 *Inbox zone position not yet finalized.*
+
+**D4 — Comparison from either item:** Available from either evidence item in a pair. ✅ *Already implemented — `EvidenceManager.compare_evidence(a, b)` works symmetrically.*
+
+**D5 — Raw evidence after lab result arrives:** The raw item stays in the archive. Once its lab result arrives, the raw item gets a "Superseded" visual treatment: muted appearance + a link label pointing to the processed result item. The raw item is never removed. 🚧 *Not yet implemented.*
+
+**D6 — Nav badge count for unreviewed evidence:** Yes — the Evidence tab icon in the nav bar shows a count of unreviewed (NEW) items. 🚧 *Requires `reviewed` state tracking to be implemented first.*
+
+---
+
+## Code Reference
+
+### UI — Screens & Components
 
 | File | Purpose |
 |------|---------|
-| `scripts/ui/screens/evidence_tab.gd` | Main evidence tab screen |
-| `scripts/ui/components/evidence_archive.gd` | Left panel — archive grid |
-| `scripts/ui/components/evidence_detail.gd` | Right panel — detail view |
-| `scripts/ui/components/evidence_card.gd` | Individual polaroid card |
-| `scripts/ui/components/statement_item.gd` | Statement row in side column |
-| `scripts/ui/components/lab_submit_section.gd` | Lab submission UI block |
-| `scripts/ui/components/compare_selector.gd` | Evidence comparison overlay |
-| `scripts/managers/evidence_manager.gd` | Evidence state, filtering, verdicts, comparisons |
-| `scripts/managers/lab_manager.gd` | Lab request creation and overnight processing |
+| `scripts/ui/screens/evidence_archive.gd` | **Main evidence screen** — merged left panel (archive grid) + right panel (detail); `_populate_lab_section()` and `_populate_comparison_targets()` are built inline here |
+| `scenes/ui/evidence_archive.tscn` | Scene for the evidence screen |
+| `scripts/ui/components/evidence_polaroid.gd` | Polaroid card used in the evidence grid (`EvidencePolaroid` class) |
+| `scripts/ui/components/evidence_statements_panel.gd` | Container component that renders all statement items for the selected evidence (`EvidenceStatementsPanel` class) |
+| `scripts/ui/components/statement_item.gd` | Single statement row with verdict cycle button (`StatementItem` class) |
+
+> **Note:** There are no separate `evidence_tab.gd`, `evidence_archive.gd` (component), `evidence_detail.gd`, `lab_submit_section.gd`, or `compare_selector.gd` files — the full screen is implemented in `scripts/ui/screens/evidence_archive.gd`. `scripts/ui/components/evidence_card.gd` has been **deleted** — `EvidencePolaroid` (`scripts/ui/components/evidence_polaroid.gd`) is the canonical evidence card component.
+
+### Managers
+
+| File | Purpose |
+|------|---------|
+| `scripts/managers/evidence_manager.gd` | Evidence state: filtering, pinning, comparisons, verdicts, lab submission proxy, contradiction detection |
+| `scripts/managers/lab_manager.gd` | Lab request creation, submission, overnight processing |
+| `scripts/managers/board_manager.gd` | Board node management; `send_to_board("evidence", id)` |
+| `scripts/managers/game_manager.gd` | `discovered_evidence` array; `evidence_discovered` signal |
+| `scripts/managers/case_manager.gd` | Case data access: `get_evidence()`, `get_all_statements()`, `get_all_insights()` |
+
+### Data Classes
+
+| File | Purpose |
+|------|---------|
+| `scripts/data/evidence_data.gd` | `EvidenceData` resource class |
+| `scripts/data/statement_data.gd` | `StatementData` resource class |
+| `scripts/data/statement_verdict_data.gd` | `StatementVerdictData` — player verdict per statement-evidence pair |
+| `scripts/data/insight_data.gd` | `InsightData` — what this concept calls "comparison pairs"; `source_evidence` holds the two evidence IDs |
+
+### Case Data Files
+
+| File | Purpose |
+|------|---------|
 | `data/cases/riverside_apartment/evidence.json` | All evidence items and metadata |
-| `data/cases/riverside_apartment/comparisons.json` | Valid comparison pairs and results |
-| `data/cases/riverside_apartment/statements.json` | All statements with evidence links |
+| `data/cases/riverside_apartment/timeline.json` | `"statements"` array (all statements) + `"insights"` array (comparison pairs / InsightData) |
+| `data/cases/riverside_apartment/suspects.json` | Persons data |
+
+> **Note:** There is no separate `comparisons.json` or `statements.json`. Both live inside `timeline.json`.

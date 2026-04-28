@@ -284,6 +284,7 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Type", UIHelper.get_evidence_type_label(ev.type))
 	_add_info_row("Location", UIHelper.get_location_name(ev.location_found))
 	_add_info_row("Discovery", _get_discovery_method_label(ev.discovery_method))
+	_add_info_row("Day Found", "Day %d" % GameManager.get_evidence_discovery_day(ev.id))
 	_add_info_row("Importance", _get_importance_label(ev.importance_level))
 	_add_info_row("Weight", "%.0f%%" % (ev.weight * 100.0))
 
