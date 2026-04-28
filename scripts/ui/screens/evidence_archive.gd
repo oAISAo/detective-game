@@ -60,6 +60,7 @@ func _ready() -> void:
 
 	filter_option.item_selected.connect(_on_filter_changed)
 	search_box.text_changed.connect(_on_search_changed)
+	_add_search_icon()
 	
 	pin_button.pressed.connect(_on_pin_pressed)
 	compare_button.pressed.connect(_on_compare_pressed)
@@ -96,6 +97,31 @@ func _exit_tree() -> void:
 	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
 	if EvidenceManager.state_loaded.is_connected(_refresh):
 		EvidenceManager.state_loaded.disconnect(_refresh)
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if search_box.has_focus() and not search_box.get_global_rect().has_point(event.global_position):
+			search_box.release_focus()
+
+
+## Adds a Material Symbols search icon as a left overlay inside the search input.
+func _add_search_icon() -> void:
+	var icon_font := FontVariation.new()
+	icon_font.base_font = load("res://assets/fonts/MaterialSymbolsOutlined.ttf")
+	icon_font.opentype_features = {"liga": 1, "calt": 1}
+
+	var icon := Label.new()
+	icon.text = "search"
+	icon.add_theme_font_override("font", icon_font)
+	icon.add_theme_font_size_override("font_size", 18)
+	icon.add_theme_color_override("font_color", UIColors.TEXT_GREY)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	icon.custom_minimum_size = Vector2(36, 0)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	search_box.add_child(icon)
 
 
 ## Configures the filter dropdown with all evidence types.
@@ -230,7 +256,7 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	_populate_info_grid(ev)
 
 	# Lab submission section
-	_populate_lab_section(ev)
+	_populate_lab_section()
 
 	# Tags
 	_populate_tags(ev)
@@ -343,7 +369,7 @@ func _update_pin_button() -> void:
 		pin_button.text = "📌 Pin"
 
 
-func _populate_lab_section(ev: EvidenceData) -> void:
+func _populate_lab_section() -> void:
 	if _lab_section != null:
 		_lab_section.queue_free()
 		_lab_section = null

@@ -30,67 +30,67 @@ They only appear here once both the statement and the linked evidence have been 
 ### Step 1: Open Evidence Tab
 **Action:** Click the Evidence tab in the top navigation
 **Expected:**
-- [x] Evidence Archive (left panel) shows 9 polaroid cards
-- [x] All 9 cards have a **NEW** badge (blue)
-- [x] Right panel shows placeholder state: *"Select an evidence item to review"*
-- [x] Notification bell counter shows 9 (or matches unreviewed count)
-- [x] Archive is ordered by discovery: ev_autopsy_report at top (Day 0), then Day 1 items
+- [ ] Evidence Archive (left panel) shows 9 polaroid cards
+- [ ] All 9 cards have a **NEW** badge (blue)
+- [ ] Right panel shows placeholder state: *"Select an evidence item to review"*
+- [ ] Notification bell counter shows 9 (or matches unreviewed count)
+- [ ] Archive is ordered by discovery: ev_autopsy_report at top (Day 0), then Day 1 items
 
 ---
 
 ### Step 2: Review Autopsy Report
 **Action:** Click `ev_autopsy_report` card in the archive
 **Expected:**
-- [x] Right panel loads autopsy detail
-- [x] Header shows: *"Case File"* as discovery method
-- [x] Description: cause of death (knife wound), estimated time of death (~21:00), forensic findings
-- [x] Importance badge: **CRITICAL**
-- [x] **NEW** badge disappears from this card in the archive
-- [x] No statements appear in side column (no interrogations have happened yet)
-- [x] No "Submit to Lab" section (autopsy report does not require further analysis)
+- [ ] Right panel loads autopsy detail
+- [ ] Header shows: *"Case File"* as discovery method
+- [ ] Description: cause of death (knife wound), estimated time of death (~21:00), forensic findings
+- [ ] Importance badge: **CRITICAL**
+- [ ] **NEW** badge disappears from this card in the archive
+- [ ] No statements appear in side column (no interrogations have happened yet)
+- [ ] No "Submit to Lab" section (autopsy report does not require further analysis)
 
 ---
 
 ### Step 3: Review Murder Weapon
 **Action:** Click `ev_knife` card
 **Expected:**
-- [x] Detail loads: "Murder Weapon (Kitchen Knife)"
-- [x] Lab Status in metadata: *"Not required"*
-- [x] No "Submit to Lab" section
-- [x] Related Persons: none yet (lab result will link to Julia)
-- [x] **NEW** badge clears
+- [ ] Detail loads: "Murder Weapon (Kitchen Knife)"
+- [ ] Lab Status in metadata: *"Not required"*
+- [ ] No "Submit to Lab" section
+- [ ] Related Persons: none yet (lab result will link to Julia)
+- [ ] **NEW** badge clears
 
 ---
 
 ### Step 4: Review Wine Glasses — Identify Lab Opportunity
 **Action:** Click `ev_wine_glasses` card
 **Expected:**
-- [x] Detail loads: "Two Wine Glasses on Table"
-- [x] Below the Compare Evidence button, a **Lab Analysis Available** section appears:
+- [ ] Detail loads: "Two Wine Glasses on Table"
+- [ ] Below the Compare Evidence button, a **Lab Analysis Available** section appears:
   - Text: *"Fingerprint analysis can be performed on this item. Results return next day."*
   - Button: **Submit to Lab — Fingerprint Analysis**
-- [x] Lab Status in metadata: *"Not submitted"* (amber)
-- [x] No statements in side column yet
+- [ ] Lab Status in metadata: *"Not submitted"* (amber)
+- [ ] No statements in side column yet
 
 ---
 
 ### Step 5: Submit Wine Glasses to Lab
 **Action:** Click "Submit to Lab — Fingerprint Analysis"
 **Expected:**
-- [x] Notification popup: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
-- [x] Lab Status in metadata changes to: *"Pending — results Day 2"* (amber)
-- [x] Submit button changes to status indicator: *"In analysis — results Day 2 morning"* (disabled state)
-- [x] `ev_wine_glasses` card in the archive gains **LAB** badge
-- [x] Action counter is unchanged (submission costs 0 actions)
+- [ ] Notification popup: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
+- [ ] Lab Status in metadata changes to: *"Pending — results Day 2"* (amber)
+- [ ] Submit button changes to status indicator: *"In analysis — results Day 2 morning"* (disabled state)
+- [ ] `ev_wine_glasses` card in the archive gains **LAB** badge
+- [ ] Action counter is unchanged (submission costs 0 actions)
 
 ---
 
 ### Step 6: Review Shoe Print — Identify Lab Opportunity
 **Action:** Click `ev_shoe_print_raw` card
 **Expected:**
-- [x] Detail loads: "Shoe Print in Hallway (Unanalyzed)"
-- [x] Description notes it needs analysis to determine size and pattern
-- [x] **Lab Analysis Available** section appears:
+- [ ] Detail loads: "Shoe Print in Hallway (Unanalyzed)"
+- [ ] Description notes it needs analysis to determine size and pattern
+- [ ] **Lab Analysis Available** section appears:
   - Text: *"Footwear analysis can extract size, sole pattern, and brand. Results return next day."*
   - Button: **Submit to Lab — Footwear Analysis**
 
@@ -99,39 +99,39 @@ They only appear here once both the statement and the linked evidence have been 
 ### Step 7: Submit Shoe Print to Lab
 **Action:** Click "Submit to Lab — Footwear Analysis"
 **Expected:**
-- [x] Notification popup: *"Shoe print submitted for footwear analysis. Results expected tomorrow morning."*
-- [x] Lab Status changes to *"Pending — results Day 2"*
-- [x] `ev_shoe_print_raw` card gains **LAB** badge
+- [ ] Notification popup: *"Shoe print submitted for footwear analysis. Results expected tomorrow morning."*
+- [ ] Lab Status changes to *"Pending — results Day 2"*
+- [ ] `ev_shoe_print_raw` card gains **LAB** badge
 
 ---
 
 ### Step 8: Review Julia's Text Message
 **Action:** Click `ev_julia_text_message` card
 **Expected:**
-- [x] Detail loads: "Text Message From Julia"
-- [x] Description: Julia texted Daniel at 20:40: "Are you home? We need to talk."
-- [x] Related Persons: Julia Ross (Suspect)
-- [x] No statements yet (Julia hasn't been interrogated)
-- [x] No lab analysis required
-- [x] Tags include: `digital`, `timeline`, `connection`
+- [ ] Detail loads: "Text Message From Julia"
+- [ ] Description: Julia texted Daniel at 20:40: "Are you home? We need to talk."
+- [ ] Related Persons: Julia Ross (Suspect)
+- [ ] No statements yet (Julia hasn't been interrogated)
+- [ ] No lab analysis required
+- [ ] Tags include: `digital`, `timeline`, `connection`
 
 ---
 
 ### Step 9: Review Mark's Call Log
 **Action:** Click `ev_mark_call_log` card
 **Expected:**
-- [x] Detail loads: "Call Log Between Mark and Daniel"
-- [x] Related Persons: Mark Bennett (Suspect)
-- [x] No statements yet
-- [x] Note: this evidence is what triggered the Victim's Office unlock on the Map tab
+- [ ] Detail loads: "Call Log Between Mark and Daniel"
+- [ ] Related Persons: Mark Bennett (Suspect)
+- [ ] No statements yet
+- [ ] Note: this evidence is what triggered the Victim's Office unlock on the Map tab
 
 ---
 
 ### Step 10: End Day 1
 **Action:** Return to day progression (End Day button or equivalent)
 **Expected:**
-- [x] 2 lab requests are queued (wine glasses, shoe print)
-- [x] At least 7 of 9 evidence items have been reviewed (NEW badges cleared)
+- [ ] 2 lab requests are queued (wine glasses, shoe print)
+- [ ] At least 7 of 9 evidence items have been reviewed (NEW badges cleared)
 
 ---
 
@@ -139,28 +139,28 @@ They only appear here once both the statement and the linked evidence have been 
 
 ### Step 11: Morning — Lab Results Delivered
 **Expected (automatic, before player acts):**
-- [x] Notification popup fires: *"Lab results in: Julia's Fingerprint on Wine Glass"*
-- [x] `ev_julia_fingerprint_glass` appears in the archive with **NEW** badge
-- [x] Notification fires: *"Lab results in: Shoe Print in Hallway"*
-- [x] `ev_shoe_print` appears in the archive with **NEW** badge
-- [x] `ev_wine_glasses` card: **LAB** badge is removed. Lab Status in its detail panel: *"Complete — see: Julia's Fingerprint on Wine Glass"* with a link to the result
-- [x] `ev_shoe_print_raw` card: same treatment — Lab Status shows *"Complete — see: Shoe Print in Hallway"*
-- [x] Archive now has 11 items total (9 original + 2 new lab results)
-- [x] Notification bell counter: 2 new unreviewed items
+- [ ] Notification popup fires: *"Lab results in: Julia's Fingerprint on Wine Glass"*
+- [ ] `ev_julia_fingerprint_glass` appears in the archive with **NEW** badge
+- [ ] Notification fires: *"Lab results in: Shoe Print in Hallway"*
+- [ ] `ev_shoe_print` appears in the archive with **NEW** badge
+- [ ] `ev_wine_glasses` card: **LAB** badge is removed. Lab Status in its detail panel: *"Complete — see: Julia's Fingerprint on Wine Glass"* with a link to the result
+- [ ] `ev_shoe_print_raw` card: same treatment — Lab Status shows *"Complete — see: Shoe Print in Hallway"*
+- [ ] Archive now has 11 items total (9 original + 2 new lab results)
+- [ ] Notification bell counter: 2 new unreviewed items
 
 ---
 
 ### Step 12: Review Julia's Fingerprint — Critical Evidence
 **Action:** Click `ev_julia_fingerprint_glass` card
 **Expected:**
-- [x] Detail loads: "Julia's Fingerprint on Wine Glass"
-- [x] Importance badge: **CRITICAL**
-- [x] Discovery method: *"Lab Result"*
-- [x] Related Persons: Julia Ross (Suspect)
-- [x] Evidentiary Weight bar shows high value (80–85%)
-- [x] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
-- [x] No "Submit to Lab" section
-- [x] Tags: `forensic`, `presence`, `contradiction`
+- [ ] Detail loads: "Julia's Fingerprint on Wine Glass"
+- [ ] Importance badge: **CRITICAL**
+- [ ] Discovery method: *"Lab Result"*
+- [ ] Related Persons: Julia Ross (Suspect)
+- [ ] Evidentiary Weight bar shows high value (80–85%)
+- [ ] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
+- [ ] No "Submit to Lab" section
+- [ ] Tags: `forensic`, `presence`, `contradiction`
 
 > Note: Julia's statements will appear here AFTER interrogation (Day 2, Actions 5–8 in the combined flow). See Step 16.
 
@@ -169,33 +169,33 @@ They only appear here once both the statement and the linked evidence have been 
 ### Step 13: Review Analyzed Shoe Print
 **Action:** Click `ev_shoe_print` card
 **Expected:**
-- [x] Detail loads: "Shoe Print in Hallway"
-- [x] Description: Women's shoe, size 38, distinctive sole pattern
-- [x] Discovery method: *"Lab Result"*
-- [x] **Compare Evidence** button is available — but no valid comparison exists yet (Julia's shoes not in evidence)
-- [x] Compare attempt with any current evidence produces: *"No forensic connection found between these items."*
+- [ ] Detail loads: "Shoe Print in Hallway"
+- [ ] Description: Women's shoe, size 38, distinctive sole pattern
+- [ ] Discovery method: *"Lab Result"*
+- [ ] **Compare Evidence** button is available — but no valid comparison exists yet (Julia's shoes not in evidence)
+- [ ] Compare attempt with any current evidence produces: *"No forensic connection found between these items."*
 
 ---
 
 ### Step 14: Review Elevator Logs — Strong Presence Evidence
 **Action:** Click `ev_elevator_logs` card (discovered via Map tab Day 2, Action 5)
 **Expected:**
-- [x] Detail loads: "Elevator Logs"
-- [x] Description: Julia Ross's key card used at 20:48 on the night of the murder
-- [x] Importance: **CRITICAL**
-- [x] Related Persons: Julia Ross (Suspect)
-- [x] Legal Categories badge: **Presence**, **Opportunity**
-- [x] No statements yet (Julia hasn't been interrogated yet at this point)
+- [ ] Detail loads: "Elevator Logs"
+- [ ] Description: Julia Ross's key card used at 20:48 on the night of the murder
+- [ ] Importance: **CRITICAL**
+- [ ] Related Persons: Julia Ross (Suspect)
+- [ ] Legal Categories badge: **Presence**, **Opportunity**
+- [ ] No statements yet (Julia hasn't been interrogated yet at this point)
 
 ---
 
 ### Step 15: Review Parking Camera
 **Action:** Click `ev_parking_camera` card
 **Expected:**
-- [x] Detail loads: "Parking Lot Camera Footage"
-- [x] Description: Mark Bennett leaving the building at 20:40
-- [x] No statements yet if Mark hasn't been interrogated yet
-- [x] After Mark's Day 2 interrogation (Action 7 in overall flow), return here — see Step 16
+- [ ] Detail loads: "Parking Lot Camera Footage"
+- [ ] Description: Mark Bennett leaving the building at 20:40
+- [ ] No statements yet if Mark hasn't been interrogated yet
+- [ ] After Mark's Day 2 interrogation (Action 7 in overall flow), return here — see Step 16
 
 ---
 
@@ -204,25 +204,25 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_parking_camera` card
 **Expected:**
-- [x] Side column — Statements shows 3 linked items:
+- [ ] Side column — Statements shows 3 linked items:
   - `stmt_mark_departure_time`: *"I left around 20:30."* — verdict: **UNCLASSIFIED** (amber)
   - `stmt_mark_corrected_departure`: *"Fine. I left closer to 20:40."* — verdict: **UNCLASSIFIED** (amber)
   - `stmt_mark_lied_to_hide_argument`: *"I lied because we argued..."* — verdict: **UNCLASSIFIED** (amber)
 
 **Action:** Click the verdict pill on `stmt_mark_departure_time` → select **Contradiction**
 **Expected:**
-- [x] Pill changes to red: **CONTRADICTION**
-- [x] Expand the statement → Analysis notes field is available for player to type observations
-- [x] No action consumed
+- [ ] Pill changes to red: **CONTRADICTION**
+- [ ] Expand the statement → Analysis notes field is available for player to type observations
+- [ ] No action consumed
 
 **Action:** Click verdict pill on `stmt_mark_corrected_departure` → select **Supports**
 **Expected:**
-- [x] Pill changes to teal: **SUPPORTS**
-- [x] Verdict change is saved in player state
+- [ ] Pill changes to teal: **SUPPORTS**
+- [ ] Verdict change is saved in player state
 
 **Action:** Click verdict pill on `stmt_mark_lied_to_hide_argument` → select **Unresolved**
 **Expected:**
-- [x] Pill stays amber but changes label to **UNRESOLVED** (distinct from default UNCLASSIFIED)
+- [ ] Pill stays amber but changes label to **UNRESOLVED** (distinct from default UNCLASSIFIED)
 
 ---
 
@@ -231,13 +231,13 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_julia_fingerprint_glass` card
 **Expected:**
-- [x] Side column — Statements shows at least 1 linked item:
+- [ ] Side column — Statements shows at least 1 linked item:
   - `stmt_julia_initial`: *"I wasn't at the apartment that night."* — verdict: **UNCLASSIFIED**
 
 **Action:** Click verdict pill → select **Contradiction**
 **Expected:**
-- [x] Pill turns red: **CONTRADICTION**
-- [x] A key contradiction is now logged: Julia denied being there, but her fingerprint was on the wine glass
+- [ ] Pill turns red: **CONTRADICTION**
+- [ ] A key contradiction is now logged: Julia denied being there, but her fingerprint was on the wine glass
 
 ---
 
@@ -246,14 +246,14 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_hallway_camera` card
 **Expected:**
-- [x] Side column — Statements:
+- [ ] Side column — Statements:
   - `stmt_sarah_confronted`: *"I... maybe I heard a woman's voice too."* — UNCLASSIFIED
   - `stmt_sarah_saw_woman`: *"I saw a woman leaving Daniel's apartment."* — UNCLASSIFIED
 
 **Action:** Set both to **Supports**
 **Expected:**
-- [x] Both pills turn teal
-- [x] Sarah's testimony corroborates what the camera shows
+- [ ] Both pills turn teal
+- [ ] Sarah's testimony corroborates what the camera shows
 
 ---
 
@@ -262,14 +262,14 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_elevator_logs`
 **Expected:**
-- [x] Side column — Statements:
+- [ ] Side column — Statements:
   - `stmt_julia_fingerprint`: *"I visited earlier in the day."* — UNCLASSIFIED
-- [x] The elevator log shows 20:48 — the night of the murder. "Earlier in the day" is false.
+- [ ] The elevator log shows 20:48 — the night of the murder. "Earlier in the day" is false.
 
 **Action:** Set verdict to **Contradiction**
 **Expected:**
-- [x] Pill turns red: **CONTRADICTION**
-- [x] Second Julia contradiction now logged
+- [ ] Pill turns red: **CONTRADICTION**
+- [ ] Second Julia contradiction now logged
 
 ---
 
@@ -283,61 +283,61 @@ They only appear here once both the statement and the linked evidence have been 
 ### Step 20: Review Daniel's Email
 **Action:** Click `ev_daniel_email` card
 **Expected:**
-- [x] Detail loads: "Email From Daniel to Mark"
-- [x] Subject line visible in description: "We need to fix this before tomorrow."
-- [x] Related Persons: Mark Bennett
-- [x] Tags: `document`, `financial`, `timeline`
+- [ ] Detail loads: "Email From Daniel to Mark"
+- [ ] Subject line visible in description: "We need to fix this before tomorrow."
+- [ ] Related Persons: Mark Bennett
+- [ ] Tags: `document`, `financial`, `timeline`
 
 ---
 
 ### Step 21: Review Bank Transfer
 **Action:** Click `ev_bank_transfer` card
 **Expected:**
-- [x] Detail loads: "Suspicious Bank Transfer"
-- [x] Importance: **CRITICAL**
-- [x] Description: money moved from company account, destination unknown
-- [x] **Compare Evidence** button available
-- [x] Side column — Statements: Mark's `stmt_mark_argument` may appear ("we argued a little") — if so, set to UNRESOLVED
+- [ ] Detail loads: "Suspicious Bank Transfer"
+- [ ] Importance: **CRITICAL**
+- [ ] Description: money moved from company account, destination unknown
+- [ ] **Compare Evidence** button available
+- [ ] Side column — Statements: Mark's `stmt_mark_argument` may appear ("we argued a little") — if so, set to UNRESOLVED
 
 ---
 
 ### Step 22: Compare Bank Transfer with Accounting Files
 **Action:** With `ev_bank_transfer` open, click **Compare Evidence**
 **Expected:**
-- [x] Comparison selector panel slides in over the right panel
-- [x] All discovered evidence shown as a scrollable list
-- [x] `ev_accounting_files` is visible in the list
+- [ ] Comparison selector panel slides in over the right panel
+- [ ] All discovered evidence shown as a scrollable list
+- [ ] `ev_accounting_files` is visible in the list
 
 **Action:** Select `ev_accounting_files` from the comparison selector
 **Expected:**
-- [x] System checks for a valid comparison pair
-- [x] Valid pair found: generates `ev_financial_link`
-- [x] Notification popup: *"Forensic connection confirmed: the bank transfer is consistent with the embezzlement pattern in the accounting files."*
-- [x] `ev_financial_link` appears in the archive with **NEW** badge
-- [x] Comparison selector closes
+- [ ] System checks for a valid comparison pair
+- [ ] Valid pair found: generates `ev_financial_link`
+- [ ] Notification popup: *"Forensic connection confirmed: the bank transfer is consistent with the embezzlement pattern in the accounting files."*
+- [ ] `ev_financial_link` appears in the archive with **NEW** badge
+- [ ] Comparison selector closes
 
 ---
 
 ### Step 23: Review Financial Link (Generated Evidence)
 **Action:** Click `ev_financial_link` card
 **Expected:**
-- [x] Detail loads: "Financial Connection Confirmed"
-- [x] Discovery method: *"Evidence Comparison"*
-- [x] Description: links the bank transfer to the embezzlement pattern in the accounting files
-- [x] Related Persons: Mark Bennett
-- [x] Importance: **CRITICAL**
-- [x] Evidentiary Weight: high
+- [ ] Detail loads: "Financial Connection Confirmed"
+- [ ] Discovery method: *"Evidence Comparison"*
+- [ ] Description: links the bank transfer to the embezzlement pattern in the accounting files
+- [ ] Related Persons: Mark Bennett
+- [ ] Importance: **CRITICAL**
+- [ ] Evidentiary Weight: high
 
 ---
 
 ### Step 24: Review Hidden Safe Evidence
 **Action:** Click `ev_hidden_safe` card
 **Expected:**
-- [x] Detail loads: "Hidden Safe in Office"
-- [x] Description: documents revealing the full extent of Mark's financial crimes and Daniel's plan to expose him
-- [x] Importance: **CRITICAL**
-- [x] Related Persons: Mark Bennett (and potentially Julia Ross, as her financial situation is referenced)
-- [x] Tags: `document`, `motive`, `financial`
+- [ ] Detail loads: "Hidden Safe in Office"
+- [ ] Description: documents revealing the full extent of Mark's financial crimes and Daniel's plan to expose him
+- [ ] Importance: **CRITICAL**
+- [ ] Related Persons: Mark Bennett (and potentially Julia Ross, as her financial situation is referenced)
+- [ ] Tags: `document`, `motive`, `financial`
 
 ---
 
@@ -346,13 +346,13 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_elevator_logs`
 **Expected:**
-- [x] A new statement has appeared: `stmt_julia_elevator` — *"Okay... I stopped by briefly. But Daniel was alive when I left."*
-- [x] Verdict: UNCLASSIFIED
+- [ ] A new statement has appeared: `stmt_julia_elevator` — *"Okay... I stopped by briefly. But Daniel was alive when I left."*
+- [ ] Verdict: UNCLASSIFIED
 
 **Action:** Classify `stmt_julia_elevator` as **Unresolved**
 **Expected:**
-- [x] Pill updates
-- [x] Player note: she admits being there — the earlier lie is now a confirmed contradiction, this new admission shifts focus to what happened inside
+- [ ] Pill updates
+- [ ] Player note: she admits being there — the earlier lie is now a confirmed contradiction, this new admission shifts focus to what happened inside
 
 ---
 
@@ -367,50 +367,50 @@ They only appear here once both the statement and the linked evidence have been 
 > **Prerequisite:** Search warrant for Julia's apartment was submitted (recommended: Day 2 after getting fingerprint + elevator logs). Results arrive next morning.
 
 **Expected (if warrant was submitted Day 2 or 3):**
-- [x] Notification: *"Search warrant executed: Julia Ross's apartment. New evidence collected."*
-- [x] `ev_julia_shoes` appears in archive with **NEW** badge
+- [ ] Notification: *"Search warrant executed: Julia Ross's apartment. New evidence collected."*
+- [ ] `ev_julia_shoes` appears in archive with **NEW** badge
 
 ---
 
 ### Step 27: Review Julia's Shoes
 **Action:** Click `ev_julia_shoes` card
 **Expected:**
-- [x] Detail loads: "Julia Ross's Shoes (Women's, Size 38)"
-- [x] Discovery method: *"Search Warrant"*
-- [x] Description: sole pattern noted, matches analyzed shoe print from hallway
-- [x] **Compare Evidence** button available
+- [ ] Detail loads: "Julia Ross's Shoes (Women's, Size 38)"
+- [ ] Discovery method: *"Search Warrant"*
+- [ ] Description: sole pattern noted, matches analyzed shoe print from hallway
+- [ ] **Compare Evidence** button available
 
 ---
 
 ### Step 28: Compare Shoe Print with Julia's Shoes
 **Action:** With `ev_julia_shoes` open, click **Compare Evidence** → select `ev_shoe_print`
 **Expected:**
-- [x] Valid pair found
-- [x] Notification: *"Forensic match confirmed: the hallway shoe print matches Julia Ross's shoes (size 38, identical sole pattern)."*
-- [x] `ev_shoe_match` generated and added to archive with **NEW** badge
+- [ ] Valid pair found
+- [ ] Notification: *"Forensic match confirmed: the hallway shoe print matches Julia Ross's shoes (size 38, identical sole pattern)."*
+- [ ] `ev_shoe_match` generated and added to archive with **NEW** badge
 
 ---
 
 ### Step 29: Review Shoe Match Result
 **Action:** Click `ev_shoe_match`
 **Expected:**
-- [x] Detail loads: "Shoe Print Match — Julia Ross"
-- [x] Discovery method: *"Evidence Comparison"*
-- [x] Importance: **CRITICAL**
-- [x] Evidentiary Weight: very high (~90%)
-- [x] Related Persons: Julia Ross
-- [x] Legal Categories: **Presence**, **Opportunity**
+- [ ] Detail loads: "Shoe Print Match — Julia Ross"
+- [ ] Discovery method: *"Evidence Comparison"*
+- [ ] Importance: **CRITICAL**
+- [ ] Evidentiary Weight: very high (~90%)
+- [ ] Related Persons: Julia Ross
+- [ ] Legal Categories: **Presence**, **Opportunity**
 
 ---
 
 ### Step 30: Review Daniel's Personal Journal
 **Action:** Click `ev_personal_journal` card
 **Expected:**
-- [x] Detail loads: "Daniel's Personal Journal"
-- [x] Discovery method: *"Visual Inspection"*
-- [x] Description: recent entries mention confronting both Mark (embezzlement) and Julia (marriage). Last entry: "I have to tell Julia everything tomorrow."
-- [x] Importance: **CRITICAL**
-- [x] Related Persons: Daniel Ross, Mark Bennett, Julia Ross
+- [ ] Detail loads: "Daniel's Personal Journal"
+- [ ] Discovery method: *"Visual Inspection"*
+- [ ] Description: recent entries mention confronting both Mark (embezzlement) and Julia (marriage). Last entry: "I have to tell Julia everything tomorrow."
+- [ ] Importance: **CRITICAL**
+- [ ] Related Persons: Daniel Ross, Mark Bennett, Julia Ross
 
 ---
 
@@ -419,13 +419,13 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_personal_journal`
 **Expected:**
-- [x] Side column — Statements shows:
+- [ ] Side column — Statements shows:
   - `stmt_julia_confession`: *"He threatened to ruin everything. I just lost control."* — UNCLASSIFIED
 
 **Action:** Set verdict to **Supports**
 **Expected:**
-- [x] Pill turns teal: **SUPPORTS**
-- [x] The journal's last entry ("I have to tell Julia everything tomorrow") provides direct context for why the confrontation happened — this statement supports that reading
+- [ ] Pill turns teal: **SUPPORTS**
+- [ ] The journal's last entry ("I have to tell Julia everything tomorrow") provides direct context for why the confrontation happened — this statement supports that reading
 
 ---
 
@@ -434,7 +434,7 @@ They only appear here once both the statement and the linked evidence have been 
 
 **Action:** Click `ev_hidden_safe`
 **Expected:**
-- [x] Statements now include:
+- [ ] Statements now include:
   - `stmt_mark_deeper_admission`: *"Daniel found out about the money. He said he was going to expose everything."* — UNCLASSIFIED
   - `stmt_mark_final_lock`: *"Alright. That's everything. Daniel had the records. He was going to destroy me."* — UNCLASSIFIED
   - `stmt_mark_julia_knew`: *"Julia had been asking Daniel strange questions lately."* — UNCLASSIFIED
@@ -443,15 +443,15 @@ They only appear here once both the statement and the linked evidence have been 
 **Action:** Set `stmt_mark_final_lock` → **Supports**
 **Action:** Set `stmt_mark_julia_knew` → **Unresolved**
 **Expected:**
-- [x] Mark's admissions now corroborate the safe documents
+- [ ] Mark's admissions now corroborate the safe documents
 
 ---
 
 ### Step 33: Final Archive Check
 **Action:** Scroll through the full Evidence Archive
 **Expected:**
-- [x] No items have **NEW** badge remaining (all reviewed)
-- [x] Archive shows approximately 16–17 items:
+- [ ] No items have **NEW** badge remaining (all reviewed)
+- [ ] Archive shows approximately 16–17 items:
   - 1 autopsy report (Day 0)
   - 8 from map Day 1 (knife, knife block, wine glasses, broken frame, wine bottle, julia text, mark call log, shoe print raw)
   - 2 lab results Day 2 (julia fingerprint, analyzed shoe print)
@@ -461,11 +461,11 @@ They only appear here once both the statement and the linked evidence have been 
   - 1 from map Day 4 (personal journal)
   - 1 from warrant (julia shoes)
   - 1 comparison result Day 4 (shoe match)
-- [x] All major contradictions classified:
+- [ ] All major contradictions classified:
   - ev_parking_camera: Mark's "20:30" statement → CONTRADICTION ✓
   - ev_julia_fingerprint_glass: Julia's "wasn't there" statement → CONTRADICTION ✓
   - ev_elevator_logs: Julia's "visited earlier in the day" statement → CONTRADICTION ✓
-- [x] Key supports classified:
+- [ ] Key supports classified:
   - ev_personal_journal: Julia's confession statement → SUPPORTS ✓
   - ev_hallway_camera: Sarah's testimony → SUPPORTS ✓
   - ev_shoe_match: Places Julia at the scene → ready for case report ✓
