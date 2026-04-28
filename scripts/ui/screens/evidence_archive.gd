@@ -5,6 +5,7 @@
 extends Control
 
 const POLAROID_SCENE: PackedScene = preload("res://scenes/ui/components/evidence_polaroid.tscn")
+const STATEMENTS_PANEL_SCRIPT = preload("res://scripts/ui/components/evidence_statements_panel.gd")
 const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
 
 var _handwriting_font: Font = null
@@ -39,6 +40,7 @@ var _handwriting_font: Font = null
 var _selected_evidence_id: String = ""
 var _comparing: bool = false
 var _lab_section: VBoxContainer = null
+var _statements_panel: Node = null
 
 # Stored callables for signal disconnection on exit
 var _on_evidence_discovered_cb: Callable
@@ -67,6 +69,9 @@ func _ready() -> void:
 	_populate_pinned_bar()
 	_populate_evidence_list()
 	_clear_detail()
+
+	_statements_panel = STATEMENTS_PANEL_SCRIPT.new()
+	related_statements_list.add_child(_statements_panel)
 
 	# Store callables so we can disconnect them in _exit_tree
 	_on_evidence_discovered_cb = func(_id: String) -> void: _refresh()
@@ -311,30 +316,7 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 
 
 func _populate_related_statements(ev: EvidenceData) -> void:
-	UIHelper.clear_children(related_statements_list)
-
-	# Find statements that reference this evidence
-	var all_stmts: Array[StatementData] = CaseManager.get_all_statements()
-	var related: Array[StatementData] = []
-	for stmt: StatementData in all_stmts:
-		if _selected_evidence_id in stmt.related_evidence or _selected_evidence_id in stmt.contradicting_evidence:
-			related.append(stmt)
-
-	if related.is_empty():
-		var none_label: Label = Label.new()
-		none_label.text = "None"
-		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
-		related_statements_list.add_child(none_label)
-		return
-
-	for stmt: StatementData in related:
-		var person: PersonData = CaseManager.get_person(stmt.person_id)
-		var stmt_label: RichTextLabel = RichTextLabel.new()
-		stmt_label.bbcode_enabled = true
-		stmt_label.fit_content = true
-		var person_name: String = person.name if person else stmt.person_id
-		stmt_label.text = "• [b]%s[/b]: \"%s\"" % [person_name, stmt.text]
-		related_statements_list.add_child(stmt_label)
+	_statements_panel.set_evidence(ev.id)
 
 
 func _populate_legal_categories(ev: EvidenceData) -> void:
@@ -492,23 +474,10 @@ func _on_send_to_board_pressed() -> void:
 
 func _on_submit_to_lab() -> void:
 	if _selected_evidence_id.is_empty(): return
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(_selected_evidence_id)
-	if lab_req == null: return
-
-	var result: Dictionary = LabManager.submit_request(
-		_selected_evidence_id,
-		lab_req.analysis_type,
-		lab_req.output_evidence_id,
-		1
-	)
-
-	if result.is_empty():
+	var success: bool = EvidenceManager.submit_to_lab(_selected_evidence_id)
+	if not success:
 		NotificationManager.notify("Submission Failed", "Could not submit lab request.")
 		return
-
-	var ev: EvidenceData = CaseManager.get_evidence(_selected_evidence_id)
-	var ev_name: String = ev.name if ev else _selected_evidence_id
-	NotificationManager.notify_lab_result("%s submitted for %s." % [ev_name, lab_req.analysis_type])
 	UIHelper.confirmation_flash("Submitted to Lab", self)
 	_show_evidence_detail(_selected_evidence_id)
 

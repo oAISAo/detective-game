@@ -419,8 +419,3 @@ func test_screen_manager_navigation_data_cleared_on_reset() -> void:
 	ScreenManager.navigation_data = {"evidence_id": "ev_test"}
 	ScreenManager.reset()
 	assert_eq(ScreenManager.navigation_data, {}, "Reset should clear navigation_data")
-
-
-func test_screen_manager_has_evidence_detail_screen() -> void:
-	assert_true(ScreenManager.SCREEN_SCENES.has("evidence_detail"),
-		"evidence_detail should be registered in SCREEN_SCENES")

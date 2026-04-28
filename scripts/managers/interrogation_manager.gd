@@ -616,6 +616,7 @@ func _record_statement(statement_id: String) -> void:
 
 	if statement_id not in _heard_statements:
 		_heard_statements.append(statement_id)
+		StatementManager.unlock_statement(statement_id)
 		statement_recorded.emit(statement_id)
 
 

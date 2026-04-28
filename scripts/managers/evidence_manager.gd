@@ -23,6 +23,12 @@ signal contradiction_detected(statement_id: String, evidence_id: String)
 signal hint_delivered(hint_text: String, source: String)
 signal state_loaded
 
+## Emitted when the player sets a verdict on a statement-evidence link.
+signal statement_verdict_changed(evidence_id: String, statement_id: String, verdict: String)
+
+## Emitted when the player updates a note on a statement-evidence link.
+signal statement_note_changed(evidence_id: String, statement_id: String)
+
 
 # --- Constants --- #
 
@@ -37,6 +43,10 @@ var pinned_evidence: Array[String] = []
 
 ## Detected contradictions: [{statement_id, evidence_id, statement_text, person_id}]
 var detected_contradictions: Array[Dictionary] = []
+
+## Player verdicts per statement-evidence pair.
+## Key: "evidence_id:statement_id", Value: StatementVerdictData
+var _statement_verdicts: Dictionary = {}
 
 
 # --- Lifecycle --- #
@@ -237,6 +247,71 @@ func has_contradiction(statement_id: String) -> bool:
 	return false
 
 
+# --- Statements & Verdicts --- #
+
+## Returns whether the player has unlocked the given statement (heard it in interrogation).
+func is_statement_unlocked(statement_id: String) -> bool:
+	return StatementManager.is_statement_unlocked(statement_id)
+
+
+## Returns StatementData items visible for a given evidence item.
+## Only returns statements that are linked to this evidence AND unlocked by the player.
+func get_statements_for_evidence(evidence_id: String) -> Array[StatementData]:
+	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
+	if ev == null:
+		return []
+	var result: Array[StatementData] = []
+	for stmt_id: String in ev.linked_statements:
+		if not is_statement_unlocked(stmt_id):
+			continue
+		var stmt: StatementData = CaseManager.get_statement(stmt_id)
+		if stmt != null:
+			result.append(stmt)
+	return result
+
+
+## Returns the player's verdict for a statement relative to an evidence item.
+## Returns "unclassified" if no verdict has been set.
+func get_statement_verdict(evidence_id: String, statement_id: String) -> String:
+	var key: String = "%s:%s" % [evidence_id, statement_id]
+	var vd: StatementVerdictData = _statement_verdicts.get(key, null)
+	return vd.verdict if vd != null else "unclassified"
+
+
+## Sets the player's verdict for a statement relative to an evidence item.
+## Valid verdicts: "unclassified", "contradiction", "supports", "unresolved".
+func set_statement_verdict(evidence_id: String, statement_id: String, verdict: String) -> void:
+	if verdict not in StatementVerdictData.VALID_VERDICTS:
+		push_error("[EvidenceManager] Invalid verdict '%s'" % verdict)
+		return
+	var key: String = "%s:%s" % [evidence_id, statement_id]
+	var vd: StatementVerdictData = _statement_verdicts.get(key, null)
+	if vd == null:
+		vd = StatementVerdictData.new(evidence_id, statement_id)
+		_statement_verdicts[key] = vd
+	vd.verdict = verdict
+	statement_verdict_changed.emit(evidence_id, statement_id, verdict)
+
+
+## Sets a player note on a statement-evidence link.
+func set_statement_note(evidence_id: String, statement_id: String, note: String) -> void:
+	var key: String = "%s:%s" % [evidence_id, statement_id]
+	var vd: StatementVerdictData = _statement_verdicts.get(key, null)
+	if vd == null:
+		vd = StatementVerdictData.new(evidence_id, statement_id)
+		_statement_verdicts[key] = vd
+	vd.player_note = note
+	statement_note_changed.emit(evidence_id, statement_id)
+
+
+# --- Lab Analysis --- #
+
+## Submits evidence for lab analysis. Returns true if the request was accepted.
+## Delegates to LabManager, which looks up the lab recipe from CaseManager.
+func submit_to_lab(evidence_id: String) -> bool:
+	return LabManager.submit_to_lab(evidence_id)
+
+
 # --- Progressive Discovery Hints --- #
 
 ## Requests a progressive hint. Returns a dictionary with hint details,
@@ -314,7 +389,15 @@ func serialize() -> Dictionary:
 	return {
 		"pinned_evidence": pinned_evidence.duplicate(),
 		"detected_contradictions": detected_contradictions.duplicate(true),
+		"statement_verdicts": _serialize_verdicts(),
 	}
+
+
+func _serialize_verdicts() -> Dictionary:
+	var out: Dictionary = {}
+	for key: String in _statement_verdicts:
+		out[key] = _statement_verdicts[key].to_dict()
+	return out
 
 
 ## Restores evidence manager state from a saved dictionary.
@@ -325,6 +408,11 @@ func deserialize(data: Dictionary) -> void:
 	for item: Variant in saved_contradictions:
 		if item is Dictionary:
 			detected_contradictions.append(item)
+	_statement_verdicts.clear()
+	var saved_verdicts: Dictionary = data.get("statement_verdicts", {})
+	for key: String in saved_verdicts:
+		var vd: StatementVerdictData = StatementVerdictData.from_dict(saved_verdicts[key])
+		_statement_verdicts[key] = vd
 	state_loaded.emit()
 
 
@@ -332,3 +420,4 @@ func deserialize(data: Dictionary) -> void:
 func reset() -> void:
 	pinned_evidence.clear()
 	detected_contradictions.clear()
+	_statement_verdicts.clear()

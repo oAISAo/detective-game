@@ -47,6 +47,21 @@ func _ready() -> void:
 
 # --- Submission --- #
 
+## Simplified submission API — looks up the lab request template automatically.
+## Returns true if the request was accepted, false if the evidence has no lab
+## template, is already submitted, or the concurrent limit is reached.
+func submit_to_lab(evidence_id: String) -> bool:
+	var template: LabRequestData = CaseManager.get_lab_request_for_evidence(evidence_id)
+	if template == null:
+		return false
+	var result: Dictionary = submit_request(
+		evidence_id,
+		template.analysis_type,
+		template.output_evidence_id,
+	)
+	return not result.is_empty()
+
+
 ## Submits a lab request for the given evidence.
 ## Returns the request dictionary on success, or empty dictionary on failure.
 func submit_request(

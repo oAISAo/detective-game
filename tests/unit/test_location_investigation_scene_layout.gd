@@ -9,7 +9,7 @@ func test_back_button_reserves_vertical_space_in_tall_header() -> void:
 	var instance: Control = scene.instantiate() as Control
 	assert_not_null(instance, "Location investigation scene should instantiate")
 
-	var back_button: Button = instance.get_node_or_null("MarginContainer/VBoxContainer/Header/BackButton") as Button
+	var back_button: Button = instance.get_node_or_null("MarginContainer/VBoxContainer/Header/BackButtonMargin/BackButton") as Button
 	assert_not_null(back_button, "BackButton should exist in location investigation header")
 	assert_eq(
 		back_button.size_flags_vertical,

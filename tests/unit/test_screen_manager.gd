@@ -19,13 +19,12 @@ func test_screen_scenes_registry_has_all_screens() -> void:
 	assert_true(ScreenManager.SCREEN_SCENES.has("timeline_board"), "Should have timeline_board")
 	assert_true(ScreenManager.SCREEN_SCENES.has("location_map"), "Should have location_map")
 	assert_true(ScreenManager.SCREEN_SCENES.has("investigation_log"), "Should have investigation_log")
-	assert_true(ScreenManager.SCREEN_SCENES.has("evidence_detail"), "Should have evidence_detail")
 	assert_true(ScreenManager.SCREEN_SCENES.has("interrogation"), "Should have interrogation")
 	assert_true(ScreenManager.SCREEN_SCENES.has("theory_builder"), "Should have theory_builder")
 	assert_true(ScreenManager.SCREEN_SCENES.has("lab_queue"), "Should have lab_queue")
 	assert_true(ScreenManager.SCREEN_SCENES.has("surveillance_panel"), "Should have surveillance_panel")
 	assert_true(ScreenManager.SCREEN_SCENES.has("warrant_office"), "Should have warrant_office")
-	assert_eq(ScreenManager.SCREEN_SCENES.size(), 17, "Should have exactly 17 screens")
+	assert_eq(ScreenManager.SCREEN_SCENES.size(), 16, "Should have exactly 16 screens")
 
 
 func test_modal_scenes_registry_has_all_modals() -> void:

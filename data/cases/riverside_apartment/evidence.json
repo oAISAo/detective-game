@@ -22,7 +22,8 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
-			]
+			],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_knife",
@@ -45,7 +46,8 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
-			]
+			],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_wine_glasses",
@@ -66,6 +68,10 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint"
 			]
 		},
 		{
@@ -94,7 +100,11 @@
 				"PRESENCE",
 				"CONNECTION"
 			],
-			"hint_text": "Have the wine glasses analyzed for fingerprints at the lab."
+			"hint_text": "Have the wine glasses analyzed for fingerprints at the lab.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint"
+			]
 		},
 		{
 			"id": "ev_desk_fingerprint_raw",
@@ -113,7 +123,8 @@
 			"weight": 0.2,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_mark_fingerprint_desk",
@@ -137,6 +148,10 @@
 			"lab_result_text": "Fingerprint matched to Mark Bennett.",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_mark_visit",
+				"stmt_mark_daniel_requested"
 			]
 		},
 		{
@@ -161,6 +176,11 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
+			],
+			"linked_statements": [
+				"stmt_mark_argument",
+				"stmt_sarah_heard_argument",
+				"stmt_julia_initial"
 			]
 		},
 		{
@@ -187,7 +207,12 @@
 				"PRESENCE",
 				"CONNECTION"
 			],
-			"hint_text": "Check the victim's phone for recent messages."
+			"hint_text": "Check the victim's phone for recent messages.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator"
+			]
 		},
 		{
 			"id": "ev_deleted_messages",
@@ -214,7 +239,12 @@
 				"MOTIVE",
 				"CONNECTION"
 			],
-			"hint_text": "A warrant to search Julia's phone may reveal deleted messages."
+			"hint_text": "A warrant to search Julia's phone may reveal deleted messages.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_elevator",
+				"stmt_julia_confession"
+			]
 		},
 		{
 			"id": "ev_mark_call_log",
@@ -240,6 +270,12 @@
 			"legal_categories": [
 				"MOTIVE",
 				"CONNECTION"
+			],
+			"linked_statements": [
+				"stmt_mark_visit",
+				"stmt_mark_daniel_requested",
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission"
 			]
 		},
 		{
@@ -266,6 +302,11 @@
 			"legal_categories": [
 				"MOTIVE",
 				"CONNECTION"
+			],
+			"linked_statements": [
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission"
 			]
 		},
 		{
@@ -290,7 +331,12 @@
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Check the file cabinet in Daniel's office for financial records."
+			"hint_text": "Check the file cabinet in Daniel's office for financial records.",
+			"linked_statements": [
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission"
+			]
 		},
 		{
 			"id": "ev_accounting_files",
@@ -314,6 +360,11 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
+			],
+			"linked_statements": [
+				"stmt_mark_denies_financial",
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission"
 			]
 		},
 		{
@@ -337,6 +388,11 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
+			],
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_mark_julia_knew",
+				"stmt_julia_confession"
 			]
 		},
 		{
@@ -362,7 +418,12 @@
 			"legal_categories": [
 				"PRESENCE"
 			],
-			"hint_text": "Check the security camera in the parking lot."
+			"hint_text": "Check the security camera in the parking lot.",
+			"linked_statements": [
+				"stmt_mark_departure_time",
+				"stmt_mark_corrected_departure",
+				"stmt_mark_lied_to_hide_argument"
+			]
 		},
 		{
 			"id": "ev_hallway_camera",
@@ -385,6 +446,12 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator",
+				"stmt_sarah_confronted"
 			]
 		},
 		{
@@ -411,7 +478,13 @@
 				"PRESENCE",
 				"OPPORTUNITY"
 			],
-			"hint_text": "Check the building's elevator access records."
+			"hint_text": "Check the building's elevator access records.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator",
+				"stmt_lucas_initial"
+			]
 		},
 		{
 			"id": "ev_lucas_work_log",
@@ -434,6 +507,10 @@
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
+			],
+			"linked_statements": [
+				"stmt_lucas_initial",
+				"stmt_lucas_heard_argument"
 			]
 		},
 		{
@@ -453,7 +530,8 @@
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_shoe_print",
@@ -479,7 +557,13 @@
 			"legal_categories": [
 				"PRESENCE"
 			],
-			"hint_text": "Examine the hallway floor for footprints."
+			"hint_text": "Examine the hallway floor for footprints.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator",
+				"stmt_sarah_footsteps"
+			]
 		},
 		{
 			"id": "ev_julia_shoes",
@@ -505,7 +589,12 @@
 				"PRESENCE",
 				"CONNECTION"
 			],
-			"hint_text": "A search warrant for Julia's residence may yield matching shoes."
+			"hint_text": "A search warrant for Julia's residence may yield matching shoes.",
+			"linked_statements": [
+				"stmt_julia_initial",
+				"stmt_julia_fingerprint",
+				"stmt_julia_elevator"
+			]
 		},
 		{
 			"id": "ev_wine_bottle",
@@ -523,7 +612,8 @@
 			"weight": 0.2,
 			"importance_level": "OPTIONAL",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_knife_block",
@@ -541,7 +631,8 @@
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
-			"legal_categories": []
+			"legal_categories": [],
+			"linked_statements": []
 		},
 		{
 			"id": "ev_hidden_safe",
@@ -567,7 +658,12 @@
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments."
+			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments.",
+			"linked_statements": [
+				"stmt_mark_money_admission",
+				"stmt_mark_deeper_admission",
+				"stmt_mark_final_lock"
+			]
 		},
 		{
 			"id": "ev_personal_journal",
@@ -595,7 +691,12 @@
 				"MOTIVE",
 				"CONNECTION"
 			],
-			"hint_text": "Daniel may have kept personal notes at his office."
+			"hint_text": "Daniel may have kept personal notes at his office.",
+			"linked_statements": [
+				"stmt_mark_deeper_admission",
+				"stmt_mark_julia_knew",
+				"stmt_julia_confession"
+			]
 		}
 	]
 }

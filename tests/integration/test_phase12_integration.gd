@@ -166,7 +166,7 @@ func test_screen_scenes_includes_phase12() -> void:
 	assert_true(ScreenManager.SCREEN_SCENES.has("case_report"), "Should have case_report screen")
 	assert_true(ScreenManager.SCREEN_SCENES.has("prosecutor_review"), "Should have prosecutor_review screen")
 	assert_true(ScreenManager.SCREEN_SCENES.has("case_outcome"), "Should have case_outcome screen")
-	assert_eq(ScreenManager.SCREEN_SCENES.size(), 17, "Should have 17 total screens")
+	assert_eq(ScreenManager.SCREEN_SCENES.size(), 16, "Should have 16 total screens")
 
 
 # =========================================================================
