@@ -553,3 +553,75 @@ func test_evidence_polaroid_hover_includes_image_region() -> void:
 		"ImagePlaceholder should ignore mouse so empty-image hover keeps card highlight active")
 	assert_eq(name_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
 		"NameLabel should ignore mouse so clicking the label name routes to the card")
+
+
+# ============================================================
+# EvidencePolaroid Badge Tests
+# ============================================================
+
+func test_evidence_polaroid_new_badge_shown_when_unreviewed() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	# Do NOT call mark_reviewed — evidence is unreviewed
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	assert_true(badge_row.visible, "BadgeRow should be visible when there are active badges")
+	var has_new_label: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "NEW":
+			has_new_label = true
+	assert_true(has_new_label, "NEW badge should appear for unreviewed evidence")
+
+
+func test_evidence_polaroid_no_new_badge_after_mark_reviewed() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	var found_new: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "NEW":
+			found_new = true
+	assert_false(found_new, "NEW badge must not appear after evidence is reviewed")
+
+
+func test_evidence_polaroid_lab_badge_shown_when_processing() -> void:
+	GameManager.discover_evidence("ev_in_lab")
+	EvidenceManager.mark_reviewed("ev_in_lab")  # suppress NEW badge so only LAB is tested
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_in_lab")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	assert_true(badge_row.visible, "BadgeRow should be visible for lab-pending evidence")
+	var has_lab_label: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "LAB":
+			has_lab_label = true
+	assert_true(has_lab_label, "LAB badge should appear for evidence with PROCESSING lab status")
+
+
+func test_evidence_polaroid_pinned_dot_shown_when_pinned() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")  # suppress NEW badge
+	EvidenceManager.pin_evidence("ev_fingerprint")
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	assert_true(badge_row.visible, "BadgeRow should be visible for pinned evidence")
+	var has_pinned_label: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "• PINNED":
+			has_pinned_label = true
+	assert_true(has_pinned_label, "Pinned badge should appear for pinned evidence")

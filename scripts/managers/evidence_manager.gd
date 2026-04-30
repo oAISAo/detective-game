@@ -29,6 +29,9 @@ signal statement_verdict_changed(evidence_id: String, statement_id: String, verd
 ## Emitted when the player updates a note on a statement-evidence link.
 signal statement_note_changed(evidence_id: String, statement_id: String)
 
+## Emitted the first time an evidence item's detail panel is opened by the player.
+signal evidence_reviewed(evidence_id: String)
+
 
 # --- Constants --- #
 
@@ -47,6 +50,9 @@ var detected_contradictions: Array[Dictionary] = []
 ## Player verdicts per statement-evidence pair.
 ## Key: "evidence_id:statement_id", Value: StatementVerdictData
 var _statement_verdicts: Dictionary = {}
+
+## Tracks which evidence IDs the player has reviewed (opened detail panel).
+var _reviewed_evidence: Dictionary = {}
 
 
 # --- Lifecycle --- #
@@ -402,6 +408,22 @@ func _on_evidence_discovered(_evidence_id: String) -> void:
 			contradiction_detected.emit(c.get("statement_id", ""), c.get("evidence_id", ""))
 
 
+# --- Reviewed State --- #
+
+## Marks an evidence item as reviewed the first time the player opens its detail panel.
+## Emits evidence_reviewed on the first call only (idempotent after that).
+func mark_reviewed(evidence_id: String) -> void:
+	if _reviewed_evidence.has(evidence_id):
+		return
+	_reviewed_evidence[evidence_id] = true
+	evidence_reviewed.emit(evidence_id)
+
+
+## Returns true if the player has previously opened this evidence item's detail panel.
+func is_reviewed(evidence_id: String) -> bool:
+	return _reviewed_evidence.has(evidence_id)
+
+
 # --- Serialization --- #
 
 ## Returns the evidence manager state as a dictionary for saving.
@@ -410,6 +432,7 @@ func serialize() -> Dictionary:
 		"pinned_evidence": pinned_evidence.duplicate(),
 		"detected_contradictions": detected_contradictions.duplicate(true),
 		"statement_verdicts": _serialize_verdicts(),
+		"reviewed_evidence": _reviewed_evidence.duplicate(),
 	}
 
 
@@ -433,6 +456,7 @@ func deserialize(data: Dictionary) -> void:
 	for key: String in saved_verdicts:
 		var vd: StatementVerdictData = StatementVerdictData.from_dict(saved_verdicts[key])
 		_statement_verdicts[key] = vd
+	_reviewed_evidence = data.get("reviewed_evidence", {}).duplicate()
 	state_loaded.emit()
 
 
@@ -441,3 +465,4 @@ func reset() -> void:
 	pinned_evidence.clear()
 	detected_contradictions.clear()
 	_statement_verdicts.clear()
+	_reviewed_evidence.clear()

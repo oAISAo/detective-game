@@ -17,7 +17,6 @@ Legend: `🚧 not started` · `🔧 partial` · `✅ done`
 
 ## UI — Evidence Detail Header
 
-- 🚧 **Evidence ID label** in detail header (e.g., `E-14 · Parking Lot Camera Footage`) — currently only the title (`detail_title`) is shown, no ID prefix
 - 🚧 **Importance badge** (`CRITICAL` / `SUPPORTING` / `NOISE`) in the header badges row
 - 🚧 **Type badge** in the header badges row
 - 🚧 **Legal Category badge(s)** in the header badges row — currently legal categories are rendered in a separate `LegalCategoriesList` section below, not in the header

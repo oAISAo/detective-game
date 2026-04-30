@@ -824,3 +824,52 @@ func test_game_manager_deserialize_restores_evidence_manager() -> void:
 	assert_false(EvidenceManager.is_pinned("ev_fingerprint"))
 	GameManager.deserialize(data)
 	assert_true(EvidenceManager.is_pinned("ev_fingerprint"))
+
+
+# ============================================================
+# Reviewed State
+# ============================================================
+
+func test_is_reviewed_false_by_default() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"Evidence should not be reviewed until mark_reviewed is called.")
+
+
+func test_mark_reviewed_marks_and_emits_signal() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	assert_true(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"Evidence should be marked reviewed after mark_reviewed.")
+	assert_signal_emitted(EvidenceManager, "evidence_reviewed")
+	assert_signal_emitted_with_parameters(EvidenceManager, "evidence_reviewed", ["ev_fingerprint"])
+
+
+func test_mark_reviewed_again_is_no_op() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	assert_signal_emit_count(EvidenceManager, "evidence_reviewed", 0,
+		"Second mark_reviewed call must not re-emit the signal.")
+
+
+func test_reviewed_state_serializes_and_restores() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"is_reviewed should be false after reset.")
+	EvidenceManager.deserialize(data)
+	assert_true(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"is_reviewed should be restored after deserialize.")
+
+
+func test_reset_clears_reviewed_state() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"reset() must clear the reviewed state.")

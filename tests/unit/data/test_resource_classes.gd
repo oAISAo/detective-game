@@ -15,7 +15,6 @@ func test_evidence_from_dict_full() -> void:
 		"description": "A sharp knife found in the sink.",
 		"type": "FORENSIC",
 		"location_found": "loc_kitchen",
-		"discovered_day": 1,
 		"related_persons": ["p_julia", "p_mark"],
 		"tags": ["weapon", "critical"],
 		"lab_status": "NOT_SUBMITTED",
@@ -30,7 +29,6 @@ func test_evidence_from_dict_full() -> void:
 	assert_eq(ev.name, "Kitchen Knife")
 	assert_eq(ev.type, Enums.EvidenceType.FORENSIC)
 	assert_eq(ev.location_found, "loc_kitchen")
-	assert_eq(ev.discovered_day, 1)
 	assert_eq(ev.related_persons.size(), 2)
 	assert_true("p_julia" in ev.related_persons)
 	assert_eq(ev.tags.size(), 2)

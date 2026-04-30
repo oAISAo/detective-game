@@ -18,7 +18,7 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 │  Evidence Archive       │  Evidence Detail                                │
 │                         │                                                 │
 │  [Search bar]           │  ┌─ Header ──────────────────────────────────┐  │
-│  [Type filter]          │  │  ID · Title · Badges · Pin · Board        │  │
+│  [Type filter]          │  │  Title · Badges · Pin · Board        │  │
 │                         │  └────────────────────────────────────────────┘ │
 │  Polaroid grid of all   │  ┌─ Main col ─────────┐  ┌─ Side col ───────┐  │
 │  discovered evidence    │  │  Image              │  │  Related Persons │  │
@@ -76,7 +76,7 @@ The detail panel is split into a header, a main content column, and a side colum
 
 ```
 ┌─ Header ────────────────────────────────────────────────────────┐
-│  [E14 — Parking Lot]  Parking Lot Camera Footage                │
+│  Parking Lot Camera Footage                │
 │  [CRITICAL] [Recording] [Presence]          [Pinned] [Board]    │
 └─────────────────────────────────────────────────────────────────┘
 ┌─ Main Column (fills space) ──┐  ┌─ Side Column (220px) ────────┐
@@ -101,7 +101,6 @@ The detail panel is split into a header, a main content column, and a side colum
 ```
 
 ### Header
-- **Evidence ID** — monospace label above the title (e.g., `E14 — Parking Lot`)
 - **Title** — serif large type
 - **Badges row** — Importance badge (CRITICAL / SUPPORTING / NOISE) + Type badge + Legal Category badge(s)
 - **Pin button** — toggles pinned state; purely a player convenience bookmark

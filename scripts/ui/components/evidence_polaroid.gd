@@ -15,9 +15,11 @@ const _IMAGE_MIN_HEIGHT: int = 120
 const _SHADOW_SIZE: int = 8
 const _HOVER_DIMNESS: float = 0.88
 
+@onready var _image_area: Control = $VBox/ImageArea
 @onready var _image_clip: Control = %ImageClip
 @onready var _image_rect: TextureRect = %ImageRect
 @onready var _image_placeholder: ColorRect = %ImagePlaceholder
+@onready var _badge_row: HBoxContainer = %BadgeRow
 @onready var _name_label: Label = %NameLabel
 
 var _evidence_id: String = ""
@@ -58,6 +60,65 @@ func setup(ev: EvidenceData, handwriting_font: Font = null) -> void:
 	_name_label.lines_skipped = 0
 	_name_label.max_lines_visible = 2
 
+	_update_badges()
+
+
+## Refreshes the badge row to reflect current state (reviewed, lab, pinned).
+## Call externally after state changes (e.g. after pinning/unpinning).
+func refresh_badges() -> void:
+	_update_badges()
+
+
+## Builds badge pills reflecting the current evidence state.
+func _update_badges() -> void:
+	for child in _badge_row.get_children():
+		child.queue_free()
+
+	if _evidence_id.is_empty():
+		_badge_row.visible = false
+		return
+
+	var ev: EvidenceData = CaseManager.get_evidence(_evidence_id)
+
+	if not EvidenceManager.is_reviewed(_evidence_id):
+		_badge_row.add_child(_make_badge_pill("NEW", UIColors.BLUE))
+
+	if ev != null and ev.lab_status == Enums.LabStatus.PROCESSING:
+		_badge_row.add_child(_make_badge_pill("LAB", UIColors.AMBER))
+
+	if EvidenceManager.is_pinned(_evidence_id):
+		_badge_row.add_child(_make_badge_pill("• Pinned", UIColors.AMBER))
+
+	_badge_row.visible = _badge_row.get_child_count() > 0
+
+
+## Creates a styled badge pill (PanelContainer + Label) matching the LocationCard overlay style.
+func _make_badge_pill(text: String, color: Color) -> PanelContainer:
+	var pill: PanelContainer = PanelContainer.new()
+	pill.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
+	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
+	badge_style.bg_color = UIColors.LOCATION_CARD_BADGE_BG
+	var border_color: Color = color
+	border_color.a = UIColors.LOCATION_CARD_BADGE_BORDER_ALPHA
+	badge_style.border_color = border_color
+	badge_style.set_border_width_all(1)
+	badge_style.set_corner_radius_all(4)
+	badge_style.content_margin_left = 8
+	badge_style.content_margin_right = 8
+	badge_style.content_margin_top = 4
+	badge_style.content_margin_bottom = 4
+	pill.add_theme_stylebox_override("panel", badge_style)
+
+	var label: Label = Label.new()
+	label.text = text.to_upper()
+	label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	label.add_theme_color_override("font_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(label)
+
+	return pill
+
 
 func _gui_input(event: InputEvent) -> void:
 	var mouse_event: InputEventMouseButton = event as InputEventMouseButton
@@ -97,8 +158,7 @@ func _apply_card_style() -> void:
 func _enforce_square_image() -> void:
 	var inner_width: float = size.x - (_PADDING * 2)
 	if inner_width > 0.0:
-		_image_clip.custom_minimum_size.y = inner_width
-		_image_placeholder.custom_minimum_size.y = inner_width
+		_image_area.custom_minimum_size.y = inner_width
 
 
 ## Routes all mouse events through the card root so hover and click work uniformly

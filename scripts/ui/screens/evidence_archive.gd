@@ -41,11 +41,14 @@ var _selected_evidence_id: String = ""
 var _comparing: bool = false
 var _lab_section: VBoxContainer = null
 var _statements_panel: Node = null
+## Maps evidence_id → EvidencePolaroid card node for targeted badge refreshes.
+var _card_nodes: Dictionary = {}  # evidence_id: String → EvidencePolaroid
 
 # Stored callables for signal disconnection on exit
 var _on_evidence_discovered_cb: Callable
 var _on_evidence_pinned_cb: Callable
 var _on_evidence_unpinned_cb: Callable
+var _on_evidence_reviewed_cb: Callable
 
 
 func _ready() -> void:
@@ -76,13 +79,15 @@ func _ready() -> void:
 
 	# Store callables so we can disconnect them in _exit_tree
 	_on_evidence_discovered_cb = func(_id: String) -> void: _refresh()
-	_on_evidence_pinned_cb = func(_id: String) -> void: _populate_pinned_bar(); _update_pin_button()
-	_on_evidence_unpinned_cb = func(_id: String) -> void: _populate_pinned_bar(); _update_pin_button()
+	_on_evidence_pinned_cb = func(id: String) -> void: _populate_pinned_bar(); _update_pin_button(); _refresh_card_badges(id)
+	_on_evidence_unpinned_cb = func(id: String) -> void: _populate_pinned_bar(); _update_pin_button(); _refresh_card_badges(id)
+	_on_evidence_reviewed_cb = func(id: String) -> void: _refresh_card_badges(id)
 
 	# Connect to live updates
 	GameManager.evidence_discovered.connect(_on_evidence_discovered_cb)
 	EvidenceManager.evidence_pinned.connect(_on_evidence_pinned_cb)
 	EvidenceManager.evidence_unpinned.connect(_on_evidence_unpinned_cb)
+	EvidenceManager.evidence_reviewed.connect(_on_evidence_reviewed_cb)
 	EvidenceManager.state_loaded.connect(_refresh)
 	
 	# Check if navigated with an evidence id
@@ -95,6 +100,8 @@ func _exit_tree() -> void:
 	GameManager.evidence_discovered.disconnect(_on_evidence_discovered_cb)
 	EvidenceManager.evidence_pinned.disconnect(_on_evidence_pinned_cb)
 	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
+	if EvidenceManager.evidence_reviewed.is_connected(_on_evidence_reviewed_cb):
+		EvidenceManager.evidence_reviewed.disconnect(_on_evidence_reviewed_cb)
 	if EvidenceManager.state_loaded.is_connected(_refresh):
 		EvidenceManager.state_loaded.disconnect(_refresh)
 
@@ -140,6 +147,7 @@ func _setup_filter_options() -> void:
 ## Populates the evidence grid with card components.
 func _populate_evidence_list() -> void:
 	UIHelper.clear_children(evidence_grid)
+	_card_nodes.clear()
 
 	var items: Array[EvidenceData] = _get_filtered_evidence()
 
@@ -155,6 +163,14 @@ func _populate_evidence_list() -> void:
 		evidence_grid.add_child(card)
 		card.setup(ev, _handwriting_font)
 		card.card_pressed.connect(_on_card_pressed)
+		_card_nodes[ev.id] = card
+
+
+## Refreshes badges on a single card without rebuilding or reordering the grid.
+func _refresh_card_badges(evidence_id: String) -> void:
+	var card: EvidencePolaroid = _card_nodes.get(evidence_id) as EvidencePolaroid
+	if card != null and is_instance_valid(card):
+		card.refresh_badges()
 
 func _on_card_pressed(evidence_id: String) -> void:
 	_show_evidence_detail(evidence_id)
@@ -179,7 +195,36 @@ func _get_filtered_evidence() -> Array[EvidenceData]:
 				filtered.append(ev)
 		items = filtered
 
-	return items
+	return _sort_evidence(items)
+
+
+## Sorts evidence for display in the grid.
+## Order: unreviewed first → most recently discovered → most important.
+func _sort_evidence(items: Array[EvidenceData]) -> Array[EvidenceData]:
+	var result: Array[EvidenceData] = items.duplicate()
+	result.sort_custom(func(a: EvidenceData, b: EvidenceData) -> bool:
+		# Primary: unreviewed first (false < true)
+		var a_reviewed: bool = EvidenceManager.is_reviewed(a.id)
+		var b_reviewed: bool = EvidenceManager.is_reviewed(b.id)
+		if a_reviewed != b_reviewed:
+			return not a_reviewed  # unreviewed (false) sorts before reviewed (true)
+
+		# Secondary: most recently discovered first
+		var a_day: int = GameManager.get_evidence_discovery_day(a.id)
+		var b_day: int = GameManager.get_evidence_discovery_day(b.id)
+		if a_day != b_day:
+			return a_day > b_day
+
+		# Fallback: discovery order in discovered_evidence list (most recent = higher index)
+		var a_idx: int = GameManager.discovered_evidence.find(a.id)
+		var b_idx: int = GameManager.discovered_evidence.find(b.id)
+		if a_idx != b_idx:
+			return a_idx > b_idx
+
+		# Tertiary: importance (CRITICAL=0 first, higher number = less important)
+		return a.importance_level < b.importance_level
+	)
+	return result
 
 
 ## Populates the pinned evidence bar.
@@ -236,6 +281,7 @@ func _show_evidence_detail(evidence_id: String) -> void:
 		return
 
 	_selected_evidence_id = evidence_id
+	EvidenceManager.mark_reviewed(evidence_id)
 	
 	placeholder_title.visible = false
 	detail_title.visible = true
