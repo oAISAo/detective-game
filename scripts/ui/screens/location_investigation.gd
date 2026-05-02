@@ -391,7 +391,7 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 
 ## Navigates to the evidence detail screen when a polaroid card is clicked.
 func _on_evidence_card_pressed(evidence_id: String) -> void:
-	ScreenManager.navigate_to("evidence_detail", {"evidence_id": evidence_id})
+	ScreenManager.navigate_to("evidence_archive", {"evidence_id": evidence_id})
 
 
 ## Loads the handwriting font used for polaroid clue labels.

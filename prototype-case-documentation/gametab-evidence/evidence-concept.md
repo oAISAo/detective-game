@@ -436,7 +436,6 @@ Evidence notifications always show:
 1. Evidence is discovered → **NEW** badge appears on card in archive
 2. Player opens the detail panel → **NEW** badge disappears
 3. If player hasn't opened it by end of day → badge persists into next day
-4. Notification bell counter (top-right nav) counts all unreviewed NEW items
 
 ---
 
@@ -558,7 +557,7 @@ All design questions have been resolved. Decisions are final.
 
 **D5 — Raw evidence after lab result arrives:** The raw item stays in the archive. Once its lab result arrives, the raw item gets a "Superseded" visual treatment: muted appearance + a link label pointing to the processed result item. The raw item is never removed. 🚧 *Not yet implemented.*
 
-**D6 — Nav badge count for unreviewed evidence:** Yes — the Evidence tab icon in the nav bar shows a count of unreviewed (NEW) items. 🚧 *Requires `reviewed` state tracking to be implemented first.*
+**D6 — Nav badge count for unreviewed evidence:** Removed — the Evidence tab nav icon does not show an unreviewed-items counter. The NEW badge on individual evidence cards in the archive is sufficient.
 
 ---
 

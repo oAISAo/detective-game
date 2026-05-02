@@ -132,10 +132,14 @@ theme_type_variation = &"SurfacePanel"
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="RightHeader" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+[node name="RightHeader" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
 layout_mode = 2
 
-[node name="PlaceholderTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+[node name="PlaceholderTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader/TitleRow"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -144,22 +148,30 @@ text = "Select an evidence"
 horizontal_alignment = 1
 theme_type_variation = &"PanelHeader"
 
-[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+[node name="DetailTitle" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Evidence Detail"
 theme_type_variation = &"PanelHeader"
 
-[node name="PinButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+[node name="PinButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 0
 text = "📌 Pin"
 
-[node name="SendToBoardButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+[node name="SendToBoardButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 0
 text = "📋 Send to Board"
+
+[node name="HeaderBadgesRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/RightHeader"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
 
 [node name="DetailPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
 unique_name_in_owner = true

@@ -32,6 +32,24 @@ signal statement_note_changed(evidence_id: String, statement_id: String)
 ## Emitted the first time an evidence item's detail panel is opened by the player.
 signal evidence_reviewed(evidence_id: String)
 
+## Emitted when the player saves a note for an evidence item.
+signal player_notes_changed(evidence_id: String)
+
+## Emitted when the player adds a custom tag to an evidence item.
+signal player_tag_added(evidence_id: String, tag: String)
+
+## Emitted when the player removes a custom tag from an evidence item.
+signal player_tag_removed(evidence_id: String, tag: String)
+
+## Emitted when the player manually links a statement to an evidence item.
+signal statement_manually_linked(evidence_id: String, statement_id: String)
+
+## Emitted when the player removes a manually linked statement from an evidence item.
+signal statement_manually_unlinked(evidence_id: String, statement_id: String)
+
+## Emitted the first time a piece of evidence is sent to the detective board.
+signal evidence_sent_to_board(evidence_id: String)
+
 
 # --- Constants --- #
 
@@ -53,6 +71,18 @@ var _statement_verdicts: Dictionary = {}
 
 ## Tracks which evidence IDs the player has reviewed (opened detail panel).
 var _reviewed_evidence: Dictionary = {}
+
+## Player-written notes per evidence item. Key: evidence_id, Value: note text.
+var _player_notes: Dictionary = {}
+
+## Tracks which evidence items have been sent to the detective board.
+var _sent_to_board: Dictionary = {}
+
+## Player-added tags per evidence item. Key: evidence_id, Value: Array of tag strings.
+var _player_tags: Dictionary = {}
+
+## Manually linked statements per evidence item. Key: evidence_id, Value: Array of statement_id strings.
+var _manually_linked_statements: Dictionary = {}
 
 
 # --- Lifecycle --- #
@@ -281,13 +311,23 @@ func is_contradicted(evidence_id: String) -> bool:
 
 
 ## Returns StatementData items visible for a given evidence item.
-## Only returns statements that are linked to this evidence AND unlocked by the player.
+## Includes both case-data linked statements and player-manually-linked statements.
+## Only returns statements that are unlocked by the player.
 func get_statements_for_evidence(evidence_id: String) -> Array[StatementData]:
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
-	if ev == null:
-		return []
+	var seen: Dictionary = {}
 	var result: Array[StatementData] = []
-	for stmt_id: String in ev.linked_statements:
+	if ev != null:
+		for stmt_id: String in ev.linked_statements:
+			if not is_statement_unlocked(stmt_id):
+				continue
+			var stmt: StatementData = CaseManager.get_statement(stmt_id)
+			if stmt != null:
+				seen[stmt_id] = true
+				result.append(stmt)
+	for stmt_id: String in get_manually_linked_statements(evidence_id):
+		if seen.has(stmt_id):
+			continue
 		if not is_statement_unlocked(stmt_id):
 			continue
 		var stmt: StatementData = CaseManager.get_statement(stmt_id)
@@ -328,6 +368,56 @@ func set_statement_note(evidence_id: String, statement_id: String, note: String)
 		_statement_verdicts[key] = vd
 	vd.player_note = note
 	statement_note_changed.emit(evidence_id, statement_id)
+
+
+## Returns the player note for a statement-evidence link. Returns "" if not set.
+func get_statement_note(evidence_id: String, statement_id: String) -> String:
+	var key: String = "%s:%s" % [evidence_id, statement_id]
+	var vd: StatementVerdictData = _statement_verdicts.get(key, null)
+	return vd.player_note if vd != null else ""
+
+
+# --- Manually Linked Statements --- #
+
+## Manually links a statement to an evidence item.
+## Returns false if already linked via case data or manually. Otherwise emits signal and returns true.
+func link_statement_manually(evidence_id: String, statement_id: String) -> bool:
+	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
+	if ev != null and statement_id in ev.linked_statements:
+		return false
+	if is_manually_linked(evidence_id, statement_id):
+		return false
+	if not _manually_linked_statements.has(evidence_id):
+		_manually_linked_statements[evidence_id] = []
+	_manually_linked_statements[evidence_id].append(statement_id)
+	statement_manually_linked.emit(evidence_id, statement_id)
+	return true
+
+
+## Removes a manually linked statement. Safe to call even if the link does not exist.
+func unlink_statement_manually(evidence_id: String, statement_id: String) -> void:
+	if not _manually_linked_statements.has(evidence_id):
+		return
+	var arr: Array = _manually_linked_statements[evidence_id]
+	var idx: int = arr.find(statement_id)
+	if idx == -1:
+		return
+	arr.remove_at(idx)
+	statement_manually_unlinked.emit(evidence_id, statement_id)
+
+
+## Returns true if the given statement was manually linked by the player to the given evidence.
+func is_manually_linked(evidence_id: String, statement_id: String) -> bool:
+	var arr: Array = _manually_linked_statements.get(evidence_id, [])
+	return statement_id in arr
+
+
+## Returns the manually linked statement IDs for the given evidence item.
+func get_manually_linked_statements(evidence_id: String) -> Array[String]:
+	var raw: Array = _manually_linked_statements.get(evidence_id, [])
+	var result: Array[String] = []
+	result.assign(raw)
+	return result
 
 
 # --- Lab Analysis --- #
@@ -424,6 +514,86 @@ func is_reviewed(evidence_id: String) -> bool:
 	return _reviewed_evidence.has(evidence_id)
 
 
+## Marks evidence as sent to the detective board. Idempotent — emits signal only on first call.
+func mark_sent_to_board(evidence_id: String) -> void:
+	if _sent_to_board.has(evidence_id):
+		return
+	_sent_to_board[evidence_id] = true
+	evidence_sent_to_board.emit(evidence_id)
+
+
+## Returns true if the given evidence has been sent to the detective board.
+func is_sent_to_board(evidence_id: String) -> bool:
+	return _sent_to_board.has(evidence_id)
+
+
+## Returns true when this evidence item is superseded by a discovered lab result.
+## An item is superseded when it is the input of a lab request whose output evidence
+## the player has already discovered.
+func is_superseded(evidence_id: String) -> bool:
+	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(evidence_id)
+	if lab_req == null:
+		return false
+	return GameManager.has_evidence(lab_req.output_evidence_id)
+
+
+# --- Player Notes --- #
+
+## Returns the player's private note for this evidence item, or "" if none exists.
+func get_player_notes(evidence_id: String) -> String:
+	return _player_notes.get(evidence_id, "")
+
+
+## Saves the player's private note for this evidence item and emits player_notes_changed.
+## Passing an empty string removes the stored entry.
+func set_player_notes(evidence_id: String, notes: String) -> void:
+	if notes.is_empty():
+		_player_notes.erase(evidence_id)
+	else:
+		_player_notes[evidence_id] = notes
+	player_notes_changed.emit(evidence_id)
+
+
+# --- Player Tags --- #
+
+## Returns all player-added tags for this evidence item. Returns [] if none exist.
+func get_player_tags(evidence_id: String) -> Array[String]:
+	var raw: Array = _player_tags.get(evidence_id, [])
+	var result: Array[String] = []
+	result.assign(raw)
+	return result
+
+
+## Adds a custom tag to an evidence item. Trims whitespace; rejects empty strings
+## and exact duplicates. Returns true if the tag was added, false otherwise.
+func add_player_tag(evidence_id: String, tag: String) -> bool:
+	var trimmed: String = tag.strip_edges()
+	if trimmed.is_empty():
+		return false
+	var existing: Array = _player_tags.get(evidence_id, [])
+	if trimmed in existing:
+		return false
+	existing.append(trimmed)
+	_player_tags[evidence_id] = existing
+	player_tag_added.emit(evidence_id, trimmed)
+	return true
+
+
+## Removes a player-added tag from an evidence item. Safe to call with a tag
+## that does not exist. Emits player_tag_removed regardless.
+func remove_player_tag(evidence_id: String, tag: String) -> void:
+	var existing: Array = _player_tags.get(evidence_id, [])
+	if tag not in existing:
+		player_tag_removed.emit(evidence_id, tag)
+		return
+	existing.erase(tag)
+	if existing.is_empty():
+		_player_tags.erase(evidence_id)
+	else:
+		_player_tags[evidence_id] = existing
+	player_tag_removed.emit(evidence_id, tag)
+
+
 # --- Serialization --- #
 
 ## Returns the evidence manager state as a dictionary for saving.
@@ -433,6 +603,10 @@ func serialize() -> Dictionary:
 		"detected_contradictions": detected_contradictions.duplicate(true),
 		"statement_verdicts": _serialize_verdicts(),
 		"reviewed_evidence": _reviewed_evidence.duplicate(),
+		"player_notes": _player_notes.duplicate(),
+		"player_tags": _player_tags.duplicate(true),
+		"manually_linked_statements": _manually_linked_statements.duplicate(true),
+		"sent_to_board": _sent_to_board.duplicate(),
 	}
 
 
@@ -457,6 +631,10 @@ func deserialize(data: Dictionary) -> void:
 		var vd: StatementVerdictData = StatementVerdictData.from_dict(saved_verdicts[key])
 		_statement_verdicts[key] = vd
 	_reviewed_evidence = data.get("reviewed_evidence", {}).duplicate()
+	_player_notes = data.get("player_notes", {}).duplicate()
+	_player_tags = data.get("player_tags", {}).duplicate(true)
+	_manually_linked_statements = data.get("manually_linked_statements", {}).duplicate(true)
+	_sent_to_board = data.get("sent_to_board", {}).duplicate()
 	state_loaded.emit()
 
 
@@ -466,3 +644,7 @@ func reset() -> void:
 	detected_contradictions.clear()
 	_statement_verdicts.clear()
 	_reviewed_evidence.clear()
+	_player_notes.clear()
+	_player_tags.clear()
+	_manually_linked_statements.clear()
+	_sent_to_board.clear()

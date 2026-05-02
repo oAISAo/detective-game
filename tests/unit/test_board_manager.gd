@@ -381,9 +381,9 @@ func test_send_to_board() -> void:
 	assert_false(node.is_empty())
 	assert_eq(node["type"], "evidence")
 	assert_eq(node["ref_id"], "ev_test")
-	# First node placed at top-left visible area
-	assert_eq(node["x"], 40.0)
-	assert_eq(node["y"], 40.0)
+	# First node placed at INBOX_ORIGIN
+	assert_eq(node["x"], BoardManager.INBOX_ORIGIN.x)
+	assert_eq(node["y"], BoardManager.INBOX_ORIGIN.y)
 
 
 func test_send_to_board_staggers_positions() -> void:
@@ -391,6 +391,74 @@ func test_send_to_board_staggers_positions() -> void:
 	var node1: Dictionary = BoardManager.send_to_board("evidence", "ev_1")
 	var node2: Dictionary = BoardManager.send_to_board("person", "p_1")
 	assert_ne(node1["x"], node2["x"], "Nodes should be placed at different positions")
+
+
+# =========================================================================
+# Inbox Zone
+# =========================================================================
+
+func test_send_to_board_second_node_offset_by_col_stride() -> void:
+	var n1: Dictionary = BoardManager.send_to_board("evidence", "ev_1")
+	var n2: Dictionary = BoardManager.send_to_board("evidence", "ev_2")
+	assert_eq(n2["x"], n1["x"] + BoardManager.INBOX_COL_STRIDE,
+		"Second node should be one INBOX_COL_STRIDE to the right.")
+	assert_eq(n2["y"], n1["y"], "Second node should share the same row as the first.")
+
+
+func test_send_to_board_wraps_to_next_row_after_inbox_cols() -> void:
+	# Fill exactly one row.
+	for i: int in range(BoardManager.INBOX_COLS):
+		BoardManager.send_to_board("evidence", "ev_%d" % i)
+	# The next node should appear at the start of the second row.
+	var overflow: Dictionary = BoardManager.send_to_board("evidence", "ev_overflow")
+	assert_eq(overflow["x"], BoardManager.INBOX_ORIGIN.x,
+		"Overflow node should wrap to column 0 of the next row.")
+	assert_eq(overflow["y"], BoardManager.INBOX_ORIGIN.y + BoardManager.INBOX_ROW_STRIDE,
+		"Overflow node should be one INBOX_ROW_STRIDE below the first row.")
+
+
+func test_send_to_board_cursor_unaffected_by_add_node() -> void:
+	# Manually adding a node via add_node() must not shift the inbox cursor.
+	BoardManager.add_node("evidence", "ev_manual", 500.0, 500.0)
+	var n: Dictionary = BoardManager.send_to_board("evidence", "ev_inbox")
+	assert_eq(n["x"], BoardManager.INBOX_ORIGIN.x,
+		"Cursor should still be 0 — add_node() must not affect inbox cursor.")
+
+
+func test_send_to_board_cursor_unaffected_by_remove_node() -> void:
+	# send two, remove one — next send must not reuse the removed slot.
+	var n1: Dictionary = BoardManager.send_to_board("evidence", "ev_1")
+	BoardManager.send_to_board("evidence", "ev_2")
+	BoardManager.remove_node(n1["id"])
+	# cursor is now 2, so next node goes to column 2
+	var n3: Dictionary = BoardManager.send_to_board("evidence", "ev_3")
+	assert_eq(n3["x"], BoardManager.INBOX_ORIGIN.x + 2.0 * BoardManager.INBOX_COL_STRIDE,
+		"Cursor should not reuse the removed node's slot.")
+
+
+func test_send_to_board_cursor_resets_on_clear_board() -> void:
+	BoardManager.send_to_board("evidence", "ev_1")
+	BoardManager.send_to_board("evidence", "ev_2")
+	BoardManager.clear_board()
+	var n: Dictionary = BoardManager.send_to_board("evidence", "ev_fresh")
+	assert_eq(n["x"], BoardManager.INBOX_ORIGIN.x,
+		"After clear_board() the cursor must reset to 0.")
+	assert_eq(n["y"], BoardManager.INBOX_ORIGIN.y)
+
+
+func test_send_to_board_cursor_serialized_and_restored() -> void:
+	BoardManager.send_to_board("evidence", "ev_1")
+	BoardManager.send_to_board("evidence", "ev_2")
+	var data: Dictionary = BoardManager.serialize()
+	assert_true(data.has("inbox_cursor"), "Serialized data must contain inbox_cursor.")
+	assert_eq(data["inbox_cursor"], 2)
+
+	BoardManager.reset()
+	BoardManager.deserialize(data)
+	# Next send must continue from cursor=2, not restart at 0.
+	var n: Dictionary = BoardManager.send_to_board("evidence", "ev_3")
+	assert_eq(n["x"], BoardManager.INBOX_ORIGIN.x + 2.0 * BoardManager.INBOX_COL_STRIDE,
+		"Cursor should resume at 2 after deserialization.")
 
 
 func test_reset_clears_everything() -> void:

@@ -55,7 +55,7 @@ func test_accent_color_system_is_critical() -> void:
 func test_toast_mouse_filter_is_ignore() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
-	toast.setup("Test", "Message", NotificationManager.NotificationType.EVIDENCE)
+	toast.setup({"title": "Test", "message": "Message", "type": NotificationManager.NotificationType.EVIDENCE})
 	assert_eq(toast.mouse_filter, Control.MOUSE_FILTER_IGNORE, "Toast should pass through clicks")
 
 
@@ -66,14 +66,14 @@ func test_toast_mouse_filter_is_ignore() -> void:
 func test_toast_builds_children_on_setup() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
-	toast.setup("Title", "Body", NotificationManager.NotificationType.SYSTEM)
+	toast.setup({"title": "Title", "message": "Body", "type": NotificationManager.NotificationType.SYSTEM})
 	assert_gt(toast.get_child_count(), 0, "Toast should have children after setup")
 
 
 func test_toast_has_panel_style() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
-	toast.setup("Title", "Body", NotificationManager.NotificationType.EVIDENCE)
+	toast.setup({"title": "Title", "message": "Body", "type": NotificationManager.NotificationType.EVIDENCE})
 	var style: StyleBox = toast.get_theme_stylebox("panel")
 	assert_not_null(style, "Toast should have a panel StyleBox override")
 
@@ -81,14 +81,14 @@ func test_toast_has_panel_style() -> void:
 func test_toast_minimum_width() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
-	toast.setup("Title", "Body", NotificationManager.NotificationType.EVIDENCE)
+	toast.setup({"title": "Title", "message": "Body", "type": NotificationManager.NotificationType.EVIDENCE})
 	assert_eq(toast.custom_minimum_size.x, 350.0, "Toast should have 350px minimum width")
 
 
 func test_toast_empty_message_omits_label() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
-	toast.setup("Title Only", "", NotificationManager.NotificationType.SYSTEM)
+	toast.setup({"title": "Title Only", "message": "", "type": NotificationManager.NotificationType.SYSTEM})
 	# Walk the tree: PanelContainer → MarginContainer → HBox → [bar, VBox]
 	# VBox should have exactly 1 child (title only, no message label)
 	var margin: MarginContainer = toast.get_child(0) as MarginContainer
@@ -100,7 +100,7 @@ func test_toast_empty_message_omits_label() -> void:
 func test_toast_with_message_has_two_labels() -> void:
 	var toast: Node = NotificationToast.new()
 	add_child_autofree(toast)
-	toast.setup("Title", "Some message", NotificationManager.NotificationType.EVIDENCE)
+	toast.setup({"title": "Title", "message": "Some message", "type": NotificationManager.NotificationType.EVIDENCE})
 	var margin: MarginContainer = toast.get_child(0) as MarginContainer
 	var row: HBoxContainer = margin.get_child(0) as HBoxContainer
 	var text_col: VBoxContainer = row.get_child(1) as VBoxContainer

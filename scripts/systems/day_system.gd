@@ -206,7 +206,7 @@ func _process_lab_completions() -> Array[Dictionary]:
 				# Notify the player about the lab result
 				var output_ev: EvidenceData = CaseManager.get_evidence(output_id)
 				var ev_name: String = output_ev.name if output_ev else output_id
-				NotificationManager.notify_lab_result("Lab result: %s" % ev_name)
+				NotificationManager.notify_lab_result(ev_name, output_id)
 			# Sync authoritative state in LabManager
 			var lab_mgr: Node = get_node_or_null("/root/LabManager")
 			if lab_mgr and lab_mgr.has_method("_on_lab_result_ready"):

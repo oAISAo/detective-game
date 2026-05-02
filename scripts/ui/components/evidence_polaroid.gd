@@ -23,6 +23,7 @@ const _HOVER_DIMNESS: float = 0.88
 @onready var _name_label: Label = %NameLabel
 
 var _evidence_id: String = ""
+var _base_modulate: Color = Color.WHITE
 
 
 func _ready() -> void:
@@ -91,6 +92,10 @@ func _update_badges() -> void:
 
 	_badge_row.visible = _badge_row.get_child_count() > 0
 
+	# Dim the card when this evidence has been superseded by a discovered lab result.
+	_base_modulate = Color(1.0, 1.0, 1.0, 0.5) if EvidenceManager.is_superseded(_evidence_id) else Color.WHITE
+	modulate = _base_modulate
+
 
 ## Creates a styled badge pill (PanelContainer + Label) matching the LocationCard overlay style.
 func _make_badge_pill(text: String, color: Color) -> PanelContainer:
@@ -131,11 +136,11 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _on_mouse_entered() -> void:
-	modulate = Color(_HOVER_DIMNESS, _HOVER_DIMNESS, _HOVER_DIMNESS)
+	modulate = Color(_HOVER_DIMNESS, _HOVER_DIMNESS, _HOVER_DIMNESS, _base_modulate.a)
 
 
 func _on_mouse_exited() -> void:
-	modulate = Color.WHITE
+	modulate = _base_modulate
 
 
 func _apply_card_style() -> void:

@@ -52,8 +52,9 @@ func _ready() -> void:
 # --- Public API --- #
 
 ## Adds a new notification to the queue.
+## extra: Optional additional fields merged into the notification dict (e.g. evidence_id).
 ## Returns the notification ID.
-func notify(title: String, message: String, type: NotificationType = NotificationType.SYSTEM) -> String:
+func notify(title: String, message: String, type: NotificationType = NotificationType.SYSTEM, extra: Dictionary = {}) -> String:
 	if suppressed:
 		return ""
 	var notif: Dictionary = {
@@ -64,6 +65,8 @@ func notify(title: String, message: String, type: NotificationType = Notificatio
 		"timestamp": Time.get_unix_time_from_system(),
 		"read": false,
 	}
+	if not extra.is_empty():
+		notif.merge(extra)
 	_next_id += 1
 	_notifications.append(notif)
 	notification_added.emit(notif)
@@ -71,12 +74,22 @@ func notify(title: String, message: String, type: NotificationType = Notificatio
 
 
 ## Convenience methods for common notification types.
-func notify_evidence(evidence_name: String) -> String:
-	return notify("Evidence Found", evidence_name, NotificationType.EVIDENCE)
+## Pass evidence_id (and optionally evidence_description) to enable a "View" shortcut in the toast.
+func notify_evidence(evidence_name: String, evidence_id: String = "", evidence_description: String = "") -> String:
+	var extra: Dictionary = {}
+	if not evidence_id.is_empty():
+		extra["evidence_id"] = evidence_id
+	if not evidence_description.is_empty():
+		extra["evidence_description"] = evidence_description
+	return notify("Evidence Found", evidence_name, NotificationType.EVIDENCE, extra)
 
 
-func notify_lab_result(result_name: String) -> String:
-	return notify("Lab Result Ready", result_name, NotificationType.LAB_RESULT)
+## Pass evidence_id to enable a "View" shortcut in the toast.
+func notify_lab_result(result_name: String, evidence_id: String = "") -> String:
+	var extra: Dictionary = {}
+	if not evidence_id.is_empty():
+		extra["evidence_id"] = evidence_id
+	return notify("Lab Result Ready", result_name, NotificationType.LAB_RESULT, extra)
 
 
 func notify_statement(person_name: String) -> String:

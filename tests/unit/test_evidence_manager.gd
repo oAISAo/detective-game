@@ -53,6 +53,7 @@ var _test_case_data: Dictionary = {
 			"importance_level": "CRITICAL",
 			"hint_text": "Did you check the wine glasses in the kitchen?",
 			"legal_categories": ["PRESENCE"],
+			"linked_statements": ["s_julia_01"],
 		},
 		{
 			"id": "ev_camera",
@@ -126,6 +127,17 @@ var _test_case_data: Dictionary = {
 			"weight": 0.5,
 			"importance_level": "SUPPORTING",
 		},
+		{
+			"id": "ev_knife_result",
+			"name": "Blood DNA Analysis",
+			"description": "DNA extracted from blood traces on the kitchen knife.",
+			"type": "FORENSIC",
+			"location_found": "",
+			"related_persons": [],
+			"tags": ["forensic", "dna"],
+			"weight": 0.95,
+			"importance_level": "CRITICAL",
+		},
 	],
 	"statements": [
 		{
@@ -197,6 +209,17 @@ var _test_case_data: Dictionary = {
 			"description": "Mark had a motive — irregular financial transactions suggest embezzlement.",
 			"source_evidence": ["ev_document", "ev_phone"],
 			"strengthens_theory": "theory_mark",
+		},
+	],
+	"lab_requests": [
+		{
+			"id": "lab_knife_dna",
+			"input_evidence_id": "ev_knife",
+			"output_evidence_id": "ev_knife_result",
+			"analysis_type": "dna",
+			"day_submitted": 1,
+			"completion_day": 2,
+			"lab_transform": "derive",
 		},
 	],
 }
@@ -873,3 +896,319 @@ func test_reset_clears_reviewed_state() -> void:
 	EvidenceManager.reset()
 	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
 		"reset() must clear the reviewed state.")
+
+
+# ============================================================
+# §7 — Player Notes
+# ============================================================
+
+func test_player_notes_empty_by_default() -> void:
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"get_player_notes should return empty string when no note has been set.")
+
+
+func test_set_and_get_player_notes() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "Suspicious residue visible.")
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "Suspicious residue visible.",
+		"get_player_notes should return the exact text passed to set_player_notes.")
+
+
+func test_set_empty_notes_removes_entry() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "Some note.")
+	EvidenceManager.set_player_notes("ev_fingerprint", "")
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"Setting empty notes should clear the entry — get_player_notes must return ''.")
+
+
+func test_set_player_notes_emits_signal() -> void:
+	watch_signals(EvidenceManager)
+	EvidenceManager.set_player_notes("ev_fingerprint", "Check this again.")
+	assert_signal_emitted(EvidenceManager, "player_notes_changed")
+	assert_signal_emitted_with_parameters(EvidenceManager, "player_notes_changed",
+		["ev_fingerprint"])
+
+
+func test_player_notes_serializes_and_restores() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "My key note.")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"Notes should be absent after reset.")
+	EvidenceManager.deserialize(data)
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "My key note.",
+		"Notes should be restored after deserialize.")
+
+
+# ============================================================
+# §8 — Player Tags
+# ============================================================
+
+func test_player_tags_empty_by_default() -> void:
+	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
+	assert_eq(tags.size(), 0, "get_player_tags should return an empty array by default.")
+
+
+func test_add_player_tag_success() -> void:
+	var added: bool = EvidenceManager.add_player_tag("ev_fingerprint", "alibi")
+	assert_true(added, "add_player_tag should return true when adding a new tag.")
+	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
+	assert_eq(tags.size(), 1)
+	assert_eq(tags[0], "alibi")
+
+
+func test_add_player_tag_prevents_duplicates() -> void:
+	EvidenceManager.add_player_tag("ev_fingerprint", "key")
+	var second_add: bool = EvidenceManager.add_player_tag("ev_fingerprint", "key")
+	assert_false(second_add, "Adding an identical tag a second time should return false.")
+	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 1,
+		"Duplicate tag must not be stored.")
+
+
+func test_add_player_tag_trims_whitespace() -> void:
+	EvidenceManager.add_player_tag("ev_fingerprint", "  motive  ")
+	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
+	assert_eq(tags[0], "motive", "Tag should be stored trimmed of surrounding whitespace.")
+
+
+func test_add_player_tag_rejects_empty_string() -> void:
+	var added: bool = EvidenceManager.add_player_tag("ev_fingerprint", "")
+	assert_false(added, "Empty string should be rejected.")
+	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0)
+
+
+func test_add_player_tag_rejects_whitespace_only() -> void:
+	var added: bool = EvidenceManager.add_player_tag("ev_fingerprint", "   ")
+	assert_false(added, "Whitespace-only string should be rejected.")
+	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0)
+
+
+func test_add_player_tag_emits_signal() -> void:
+	watch_signals(EvidenceManager)
+	EvidenceManager.add_player_tag("ev_fingerprint", "timeline")
+	assert_signal_emitted(EvidenceManager, "player_tag_added")
+	assert_signal_emitted_with_parameters(EvidenceManager, "player_tag_added",
+		["ev_fingerprint", "timeline"])
+
+
+func test_remove_player_tag() -> void:
+	EvidenceManager.add_player_tag("ev_fingerprint", "motive")
+	EvidenceManager.add_player_tag("ev_fingerprint", "alibi")
+	EvidenceManager.remove_player_tag("ev_fingerprint", "motive")
+	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
+	assert_eq(tags.size(), 1)
+	assert_eq(tags[0], "alibi", "Only the non-removed tag should remain.")
+
+
+func test_remove_player_tag_emits_signal() -> void:
+	EvidenceManager.add_player_tag("ev_fingerprint", "key")
+	watch_signals(EvidenceManager)
+	EvidenceManager.remove_player_tag("ev_fingerprint", "key")
+	assert_signal_emitted(EvidenceManager, "player_tag_removed")
+	assert_signal_emitted_with_parameters(EvidenceManager, "player_tag_removed",
+		["ev_fingerprint", "key"])
+
+
+func test_remove_nonexistent_tag_is_safe() -> void:
+	# Should not crash or raise an error.
+	EvidenceManager.remove_player_tag("ev_fingerprint", "ghost_tag")
+	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0,
+		"Removing a tag that never existed must not corrupt state.")
+
+
+func test_player_tags_serializes_and_restores() -> void:
+	EvidenceManager.add_player_tag("ev_fingerprint", "motive")
+	EvidenceManager.add_player_tag("ev_fingerprint", "key")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0,
+		"Tags should be absent after reset.")
+	EvidenceManager.deserialize(data)
+	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
+	assert_eq(tags.size(), 2, "Both tags should be restored after deserialize.")
+	assert_has(tags, "motive")
+	assert_has(tags, "key")
+
+
+func test_reset_clears_player_notes_and_tags() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "Important!")
+	EvidenceManager.add_player_tag("ev_fingerprint", "critical")
+	EvidenceManager.reset()
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"reset() must clear all player notes.")
+	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0,
+		"reset() must clear all player tags.")
+
+
+# ============================================================
+# §9 — Manually Linked Statements
+# ============================================================
+
+func test_is_manually_linked_false_by_default() -> void:
+	assert_false(EvidenceManager.is_manually_linked("ev_camera", "s_mark_01"),
+		"Should return false before any manual linking.")
+
+
+func test_link_statement_manually_succeeds() -> void:
+	var ok: bool = EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	assert_true(ok, "link_statement_manually should return true for a new link.")
+	assert_true(EvidenceManager.is_manually_linked("ev_camera", "s_mark_01"))
+
+
+func test_link_statement_manually_returns_false_if_already_manually_linked() -> void:
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	var ok: bool = EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	assert_false(ok, "Duplicate manual link should return false.")
+	assert_eq(EvidenceManager.get_manually_linked_statements("ev_camera").size(), 1,
+		"Duplicate must not be stored.")
+
+
+func test_link_statement_manually_returns_false_if_in_case_data() -> void:
+	# ev_fingerprint has s_julia_01 in its case-data linked_statements
+	var ok: bool = EvidenceManager.link_statement_manually("ev_fingerprint", "s_julia_01")
+	assert_false(ok, "Should reject if statement already in case-data linked_statements.")
+
+
+func test_get_manually_linked_statements() -> void:
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	EvidenceManager.link_statement_manually("ev_camera", "s_julia_02")
+	var ids: Array[String] = EvidenceManager.get_manually_linked_statements("ev_camera")
+	assert_eq(ids.size(), 2)
+	assert_has(ids, "s_mark_01")
+	assert_has(ids, "s_julia_02")
+
+
+func test_unlink_statement_manually() -> void:
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	EvidenceManager.unlink_statement_manually("ev_camera", "s_mark_01")
+	assert_false(EvidenceManager.is_manually_linked("ev_camera", "s_mark_01"),
+		"Statement should no longer be manually linked after unlinking.")
+
+
+func test_unlink_statement_manually_nonexistent_is_safe() -> void:
+	EvidenceManager.unlink_statement_manually("ev_camera", "ghost_stmt")
+	assert_false(EvidenceManager.is_manually_linked("ev_camera", "ghost_stmt"),
+		"Unlinking a non-existent statement must not crash or corrupt state.")
+
+
+func test_get_statements_for_evidence_includes_manually_linked() -> void:
+	StatementManager.unlock_statement("s_mark_01")
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	var stmts: Array[StatementData] = EvidenceManager.get_statements_for_evidence("ev_camera")
+	var ids: Array[String] = []
+	for s: StatementData in stmts:
+		ids.append(s.id)
+	assert_has(ids, "s_mark_01",
+		"Manually linked unlocked statement should appear in get_statements_for_evidence.")
+
+
+func test_get_statements_for_evidence_deduplicates_case_data() -> void:
+	# s_julia_01 is in ev_fingerprint case-data linked_statements.
+	# link_statement_manually rejects it, so it can never appear twice.
+	StatementManager.unlock_statement("s_julia_01")
+	var stmts: Array[StatementData] = EvidenceManager.get_statements_for_evidence("ev_fingerprint")
+	var count: int = 0
+	for s: StatementData in stmts:
+		if s.id == "s_julia_01":
+			count += 1
+	assert_eq(count, 1, "Case-data linked s_julia_01 should appear exactly once.")
+
+
+func test_statement_manually_linked_signal() -> void:
+	watch_signals(EvidenceManager)
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	assert_signal_emitted_with_parameters(EvidenceManager, "statement_manually_linked",
+		["ev_camera", "s_mark_01"])
+
+
+func test_statement_manually_unlinked_signal() -> void:
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	watch_signals(EvidenceManager)
+	EvidenceManager.unlink_statement_manually("ev_camera", "s_mark_01")
+	assert_signal_emitted_with_parameters(EvidenceManager, "statement_manually_unlinked",
+		["ev_camera", "s_mark_01"])
+
+
+func test_manual_links_serialize_and_restore() -> void:
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_manually_linked("ev_camera", "s_mark_01"),
+		"Should be cleared after reset.")
+	EvidenceManager.deserialize(data)
+	assert_true(EvidenceManager.is_manually_linked("ev_camera", "s_mark_01"),
+		"Should be restored after deserialize.")
+
+
+func test_reset_clears_manual_links() -> void:
+	EvidenceManager.link_statement_manually("ev_camera", "s_mark_01")
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_manually_linked("ev_camera", "s_mark_01"),
+		"reset() must clear all manual links.")
+	assert_eq(EvidenceManager.get_manually_linked_statements("ev_camera").size(), 0)
+
+
+# ============================================================
+# §10 — Sent to Board & Superseded State
+# ============================================================
+
+func test_is_sent_to_board_false_by_default() -> void:
+	assert_false(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"Evidence should not be marked sent-to-board by default.")
+
+
+func test_mark_sent_to_board_sets_state() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	assert_true(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"Evidence should be marked sent-to-board after mark_sent_to_board.")
+
+
+func test_mark_sent_to_board_emits_signal() -> void:
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	assert_signal_emitted_with_parameters(EvidenceManager, "evidence_sent_to_board",
+		["ev_fingerprint"])
+
+
+func test_mark_sent_to_board_is_idempotent() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	assert_signal_emit_count(EvidenceManager, "evidence_sent_to_board", 0,
+		"Second mark_sent_to_board call must not re-emit the signal.")
+
+
+func test_sent_to_board_serializes_and_restores() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"is_sent_to_board should be false after reset.")
+	EvidenceManager.deserialize(data)
+	assert_true(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"is_sent_to_board should be restored after deserialize.")
+
+
+func test_reset_clears_sent_to_board() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"reset() must clear sent-to-board state.")
+
+
+func test_is_superseded_false_without_lab_request() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	assert_false(EvidenceManager.is_superseded("ev_fingerprint"),
+		"Evidence without a lab request should never be superseded.")
+
+
+func test_is_superseded_false_before_output_discovered() -> void:
+	GameManager.discover_evidence("ev_knife")
+	assert_false(EvidenceManager.is_superseded("ev_knife"),
+		"Evidence with an undiscovered lab result should not be superseded.")
+
+
+func test_is_superseded_true_when_output_discovered() -> void:
+	GameManager.discover_evidence("ev_knife")
+	GameManager.discover_evidence("ev_knife_result")
+	assert_true(EvidenceManager.is_superseded("ev_knife"),
+		"Evidence should be superseded when its lab result has been discovered.")

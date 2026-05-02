@@ -328,7 +328,7 @@ func _dispatch_action(action_str: String, source_trigger_id: String) -> void:
 			GameManager.discover_evidence(action_value)
 			var ev: EvidenceData = CaseManager.get_evidence(action_value)
 			var ev_name: String = ev.name if ev else action_value
-			NotificationManager.notify_evidence(ev_name)
+			NotificationManager.notify_evidence(ev_name, action_value, ev.description if ev else "")
 		ActionStringParser.ACT_UNLOCK_EVENT:
 			# Events are informational — log and notify
 			NotificationManager.notify_story("New event: %s" % action_value)
@@ -345,7 +345,7 @@ func _dispatch_action(action_str: String, source_trigger_id: String) -> void:
 		ActionStringParser.ACT_DELIVER_LAB_RESULTS:
 			var ev: EvidenceData = CaseManager.get_evidence(action_value)
 			var ev_name: String = ev.name if ev else action_value
-			NotificationManager.notify_lab_result(ev_name)
+			NotificationManager.notify_lab_result(ev_name, action_value)
 		ActionStringParser.ACT_UNLOCK_WARRANT:
 			NotificationManager.notify_warrant("Warrant available: %s" % action_value)
 		ActionStringParser.ACT_ADD_MANDATORY:

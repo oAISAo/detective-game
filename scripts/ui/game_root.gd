@@ -941,11 +941,7 @@ func _on_notification_button_pressed() -> void:
 func _spawn_toast(notification: Dictionary) -> void:
 	var toast: NotificationToast = NotificationToast.new()
 	toast_container.add_child(toast)
-	toast.setup(
-		notification.get("title", ""),
-		notification.get("message", ""),
-		notification.get("type", NotificationManager.NotificationType.SYSTEM),
-	)
+	toast.setup(notification)
 
 
 # --- Legacy Screen Management (kept for backward compatibility) --- #

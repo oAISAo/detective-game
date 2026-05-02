@@ -25,6 +25,7 @@ var _handwriting_font: Font = null
 @onready var compare_button: Button = %CompareButton
 @onready var send_to_board_button: Button = %SendToBoardButton
 
+@onready var _header_badges_row: HBoxContainer = %HeaderBadgesRow
 @onready var evidence_image: TextureRect = %EvidenceImage
 @onready var description_label: RichTextLabel = %DescriptionLabel
 @onready var info_grid: GridContainer = %InfoGrid
@@ -40,6 +41,9 @@ var _handwriting_font: Font = null
 var _selected_evidence_id: String = ""
 var _comparing: bool = false
 var _lab_section: VBoxContainer = null
+var _weight_section: Node = null
+var _notes_section: Node = null
+var _tag_input_section: Node = null
 var _statements_panel: Node = null
 ## Maps evidence_id → EvidencePolaroid card node for targeted badge refreshes.
 var _card_nodes: Dictionary = {}  # evidence_id: String → EvidencePolaroid
@@ -49,6 +53,7 @@ var _on_evidence_discovered_cb: Callable
 var _on_evidence_pinned_cb: Callable
 var _on_evidence_unpinned_cb: Callable
 var _on_evidence_reviewed_cb: Callable
+var _on_evidence_sent_to_board_cb: Callable
 
 
 func _ready() -> void:
@@ -82,12 +87,16 @@ func _ready() -> void:
 	_on_evidence_pinned_cb = func(id: String) -> void: _populate_pinned_bar(); _update_pin_button(); _refresh_card_badges(id)
 	_on_evidence_unpinned_cb = func(id: String) -> void: _populate_pinned_bar(); _update_pin_button(); _refresh_card_badges(id)
 	_on_evidence_reviewed_cb = func(id: String) -> void: _refresh_card_badges(id)
+	_on_evidence_sent_to_board_cb = func(ev_id: String) -> void:
+		if ev_id == _selected_evidence_id:
+			_update_send_to_board_button()
 
 	# Connect to live updates
 	GameManager.evidence_discovered.connect(_on_evidence_discovered_cb)
 	EvidenceManager.evidence_pinned.connect(_on_evidence_pinned_cb)
 	EvidenceManager.evidence_unpinned.connect(_on_evidence_unpinned_cb)
 	EvidenceManager.evidence_reviewed.connect(_on_evidence_reviewed_cb)
+	EvidenceManager.evidence_sent_to_board.connect(_on_evidence_sent_to_board_cb)
 	EvidenceManager.state_loaded.connect(_refresh)
 	
 	# Check if navigated with an evidence id
@@ -102,6 +111,8 @@ func _exit_tree() -> void:
 	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
 	if EvidenceManager.evidence_reviewed.is_connected(_on_evidence_reviewed_cb):
 		EvidenceManager.evidence_reviewed.disconnect(_on_evidence_reviewed_cb)
+	if EvidenceManager.evidence_sent_to_board.is_connected(_on_evidence_sent_to_board_cb):
+		EvidenceManager.evidence_sent_to_board.disconnect(_on_evidence_sent_to_board_cb)
 	if EvidenceManager.state_loaded.is_connected(_refresh):
 		EvidenceManager.state_loaded.disconnect(_refresh)
 
@@ -267,6 +278,8 @@ func _clear_detail() -> void:
 	pin_button.visible = false
 	compare_button.visible = false
 	send_to_board_button.visible = false
+	_header_badges_row.visible = false
+	UIHelper.clear_children(_header_badges_row)
 	evidence_image.visible = false
 	comparison_panel.visible = false
 	detail_panel.visible = false
@@ -291,9 +304,9 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	detail_panel.visible = true
 	
 	detail_title.text = ev.name
+	_populate_header_badges(ev)
 	_update_pin_button()
-	send_to_board_button.text = "📋 Send to Board"
-	send_to_board_button.disabled = false
+	_update_send_to_board_button()
 
 	# Description
 	description_label.text = ev.description
@@ -301,11 +314,15 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	# Info grid (key-value pairs)
 	_populate_info_grid(ev)
 
+	# Evidentiary weight bar (inserted inside InfoSection after InfoGrid)
+	_populate_weight_section(ev)
+
 	# Lab submission section
 	_populate_lab_section()
 
-	# Tags
+	# Tags (case-data tags + player-added tags with remove button)
 	_populate_tags(ev)
+	_populate_tag_input(ev)
 
 	# Related persons
 	_populate_related_persons(ev)
@@ -315,6 +332,9 @@ func _show_evidence_detail(evidence_id: String) -> void:
 
 	# Legal categories
 	_populate_legal_categories(ev)
+
+	# Player notes (appended at end of MainContent, below Compare section)
+	_populate_notes_section(ev)
 
 	# Evidence image via AssetFallback
 	var image_path: String = ev.image
@@ -332,7 +352,7 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Discovery", _get_discovery_method_label(ev.discovery_method))
 	_add_info_row("Day Found", "Day %d" % GameManager.get_evidence_discovery_day(ev.id))
 	_add_info_row("Importance", _get_importance_label(ev.importance_level))
-	_add_info_row("Weight", "%.0f%%" % (ev.weight * 100.0))
+	# weight rendered by _populate_weight_section() below the grid
 
 	if ev.requires_lab_analysis:
 		if not ev.lab_result_text.is_empty():
@@ -361,14 +381,113 @@ func _add_info_row(key: String, value: String) -> void:
 func _populate_tags(ev: EvidenceData) -> void:
 	UIHelper.clear_children(tags_container)
 
-	if ev.tags.is_empty():
-		return
-
 	for tag: String in ev.tags:
 		var tag_label: Label = Label.new()
 		tag_label.text = "  %s  " % tag
 		tag_label.add_theme_color_override("font_color", UIColors.TEXT_HIGHLIGHTED)
 		tags_container.add_child(tag_label)
+
+	# Player-added tags rendered after case-data tags, with a remove button each.
+	for tag: String in EvidenceManager.get_player_tags(ev.id):
+		var tag_row: HBoxContainer = HBoxContainer.new()
+		var tag_label: Label = Label.new()
+		tag_label.text = "  %s  " % tag
+		tag_label.add_theme_color_override("font_color", UIColors.GREEN)
+		tag_row.add_child(tag_label)
+		var remove_btn: Button = Button.new()
+		remove_btn.text = "×"
+		remove_btn.flat = true
+		remove_btn.add_theme_color_override("font_color", UIColors.TEXT_GREY)
+		remove_btn.pressed.connect(func() -> void:
+			EvidenceManager.remove_player_tag(ev.id, tag)
+			_populate_tags(ev))
+		tag_row.add_child(remove_btn)
+		tags_container.add_child(tag_row)
+
+
+func _populate_tag_input(ev: EvidenceData) -> void:
+	if _tag_input_section != null:
+		_tag_input_section.queue_free()
+		_tag_input_section = null
+
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+
+	var line_edit: LineEdit = LineEdit.new()
+	line_edit.placeholder_text = "Add tag…"
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	row.add_child(line_edit)
+
+	var add_btn: Button = Button.new()
+	add_btn.text = "+"
+	add_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(add_btn)
+
+	var do_add := func() -> void:
+		if EvidenceManager.add_player_tag(ev.id, line_edit.text):
+			line_edit.text = ""
+			_populate_tags(ev)
+
+	line_edit.text_submitted.connect(func(_t: String) -> void: do_add.call())
+	add_btn.pressed.connect(do_add)
+
+	_tag_input_section = row
+	tags_container.get_parent().add_child(row)
+
+
+func _populate_notes_section(ev: EvidenceData) -> void:
+	if _notes_section != null:
+		_notes_section.queue_free()
+		_notes_section = null
+
+	_notes_section = VBoxContainer.new()
+	_notes_section.add_theme_constant_override("separation", 6)
+
+	# Header row: "My Notes" label + collapse/expand toggle button.
+	var header_row: HBoxContainer = HBoxContainer.new()
+	var section_label: Label = Label.new()
+	section_label.text = "My Notes"
+	section_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
+	section_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	section_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(section_label)
+	var toggle_btn: Button = Button.new()
+	toggle_btn.flat = true
+	toggle_btn.add_theme_color_override("font_color", UIColors.TEXT_GREY)
+	header_row.add_child(toggle_btn)
+	_notes_section.add_child(header_row)
+
+	# TextEdit with handwriting font.
+	var text_edit: TextEdit = TextEdit.new()
+	text_edit.placeholder_text = "Your private notes about this evidence…"
+	text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_edit.custom_minimum_size.y = 80
+	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	if _handwriting_font != null:
+		text_edit.add_theme_font_override("font", _handwriting_font)
+	text_edit.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
+	text_edit.text = EvidenceManager.get_player_notes(ev.id)
+	_notes_section.add_child(text_edit)
+
+	# Start expanded only if the player already has notes for this item.
+	var has_existing_notes: bool = not EvidenceManager.get_player_notes(ev.id).is_empty()
+	text_edit.visible = has_existing_notes
+	toggle_btn.text = "▼" if has_existing_notes else "▶"
+
+	toggle_btn.pressed.connect(func() -> void:
+		text_edit.visible = not text_edit.visible
+		toggle_btn.text = "▼" if text_edit.visible else "▶"
+		if text_edit.visible:
+			text_edit.grab_focus())
+
+	# Auto-save on every keystroke — no explicit save button required.
+	text_edit.text_changed.connect(func() -> void:
+		EvidenceManager.set_player_notes(ev.id, text_edit.text))
+
+	# Append to the end of MainContent (after CompareSection).
+	var main_content: Node = comparison_panel.get_parent().get_parent()
+	main_content.add_child(_notes_section)
 
 
 func _populate_related_persons(ev: EvidenceData) -> void:
@@ -408,12 +527,97 @@ func _populate_legal_categories(ev: EvidenceData) -> void:
 		legal_categories_list.add_child(cat_label)
 
 
+func _populate_weight_section(ev: EvidenceData) -> void:
+	if _weight_section != null:
+		_weight_section.queue_free()
+		_weight_section = null
+
+	var bar_color: Color = _get_weight_bar_color(ev)
+
+	_weight_section = VBoxContainer.new()
+	_weight_section.add_theme_constant_override("separation", 6)
+
+	# Header row: label on left, percentage on right
+	var header_row: HBoxContainer = HBoxContainer.new()
+	var header_label: Label = Label.new()
+	header_label.text = "Evidentiary Weight"
+	header_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
+	header_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	header_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(header_label)
+	var pct_label: Label = Label.new()
+	pct_label.text = "%.0f%%" % (ev.weight * 100.0)
+	pct_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	pct_label.add_theme_color_override("font_color", bar_color)
+	header_row.add_child(pct_label)
+	_weight_section.add_child(header_row)
+
+	# Progress bar
+	var bar: ProgressBar = ProgressBar.new()
+	bar.min_value = 0.0
+	bar.max_value = 1.0
+	bar.value = ev.weight
+	bar.show_percentage = false
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.custom_minimum_size.y = 10
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+	fill_style.bg_color = bar_color
+	fill_style.set_corner_radius_all(4)
+	bar.add_theme_stylebox_override("fill", fill_style)
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.set_corner_radius_all(4)
+	bar.add_theme_stylebox_override("background", bg_style)
+	_weight_section.add_child(bar)
+
+	# Prose label
+	var prose_label: Label = Label.new()
+	prose_label.text = _get_weight_prose(ev.weight)
+	prose_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	prose_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
+	prose_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_weight_section.add_child(prose_label)
+
+	# Insert into InfoSection right after InfoGrid
+	var info_section: Node = info_grid.get_parent()
+	info_section.add_child(_weight_section)
+	info_section.move_child(_weight_section, info_grid.get_index() + 1)
+
+
+func _get_weight_bar_color(ev: EvidenceData) -> Color:
+	if EvidenceManager.is_contradicted(ev.id):
+		return UIColors.RED
+	return UIColors.AMBER
+
+
+func _get_weight_prose(weight: float) -> String:
+	var pct: float = weight * 100.0
+	if pct >= 85.0:
+		return "Airtight. Will convict on its own."
+	elif pct >= 65.0:
+		return "Strong. Holds up under cross-examination."
+	elif pct >= 40.0:
+		return "Corroborating. Strengthens the case when combined with other evidence."
+	elif pct >= 20.0:
+		return "Weak. Circumstantial \u2014 the defense will challenge this."
+	return "Marginal. Context only."
+
+
 func _update_pin_button() -> void:
 	if _selected_evidence_id.is_empty(): return
 	if EvidenceManager.is_pinned(_selected_evidence_id):
 		pin_button.text = "📌 Unpin"
 	else:
 		pin_button.text = "📌 Pin"
+
+
+func _update_send_to_board_button() -> void:
+	if _selected_evidence_id.is_empty(): return
+	if EvidenceManager.is_sent_to_board(_selected_evidence_id):
+		send_to_board_button.text = "View on Board ↗"
+	else:
+		send_to_board_button.text = "📋 Send to Board"
+	send_to_board_button.disabled = false
 
 
 func _populate_lab_section() -> void:
@@ -446,6 +650,14 @@ func _populate_lab_section() -> void:
 			result_label.text = "Result: %s" % output_ev.name
 			result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			_lab_section.add_child(result_label)
+			var view_btn: Button = Button.new()
+			view_btn.text = "→ View: %s" % output_ev.name
+			view_btn.flat = true
+			view_btn.add_theme_color_override("font_color", UIColors.BLUE)
+			view_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			var out_id: String = lab_req.output_evidence_id
+			view_btn.pressed.connect(func() -> void: _show_evidence_detail(out_id))
+			_lab_section.add_child(view_btn)
 	elif already_submitted:
 		var status_label: Label = Label.new()
 		status_label.text = "Submitted to Lab — Results pending."
@@ -539,9 +751,11 @@ func _on_compare_with(other_id: String) -> void:
 
 func _on_send_to_board_pressed() -> void:
 	if _selected_evidence_id.is_empty(): return
+	if EvidenceManager.is_sent_to_board(_selected_evidence_id):
+		ScreenManager.navigate_to("detective_board")
+		return
 	BoardManager.send_to_board("evidence", _selected_evidence_id)
-	send_to_board_button.text = "Sent to Board"
-	send_to_board_button.disabled = true
+	EvidenceManager.mark_sent_to_board(_selected_evidence_id)
 	UIHelper.confirmation_flash("Added to Board", self, UIColors.BLUE)
 
 
@@ -556,6 +770,56 @@ func _on_submit_to_lab() -> void:
 
 
 # --- Label Helpers --- #
+
+func _populate_header_badges(ev: EvidenceData) -> void:
+	UIHelper.clear_children(_header_badges_row)
+	_header_badges_row.add_child(
+			_make_header_badge_pill(_get_importance_label(ev.importance_level),
+					_get_importance_badge_color(ev.importance_level)))
+	_header_badges_row.add_child(
+			_make_header_badge_pill(UIHelper.get_evidence_type_label(ev.type),
+					UIColors.TEXT_HIGHLIGHTED))
+	for cat_val: int in ev.legal_categories:
+		_header_badges_row.add_child(
+				_make_header_badge_pill(UIHelper.get_legal_category_label(cat_val),
+						UIColors.GREEN))
+	_header_badges_row.visible = true
+
+
+func _make_header_badge_pill(text: String, color: Color) -> PanelContainer:
+	var pill: PanelContainer = PanelContainer.new()
+	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	var bg_color: Color = color
+	bg_color.a = 0.12
+	style.bg_color = bg_color
+	var border_color: Color = color
+	border_color.a = 0.5
+	style.border_color = border_color
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	pill.add_theme_stylebox_override("panel", style)
+	var label: Label = Label.new()
+	label.text = text.to_upper()
+	label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	label.add_theme_color_override("font_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(label)
+	return pill
+
+
+func _get_importance_badge_color(level: Enums.ImportanceLevel) -> Color:
+	match level:
+		Enums.ImportanceLevel.CRITICAL: return UIColors.RED
+		Enums.ImportanceLevel.SUPPORTING: return UIColors.BLUE
+		Enums.ImportanceLevel.OPTIONAL: return UIColors.TEXT_GREY
+		Enums.ImportanceLevel.KEY: return UIColors.AMBER
+	return UIColors.TEXT_GREY
+
 
 func _get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
 	match method:
