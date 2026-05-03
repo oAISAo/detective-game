@@ -314,14 +314,14 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	# Description
 	description_label.text = ev.description
 
-	# Evidentiary weight bar (inserted in the first column below the description)
-	_populate_weight_section(ev)
-
 	# Info grid (key-value pairs)
 	_populate_info_grid(ev)
 
-	# Lab submission section
+	# Lab submission section in the first column, between Description and Evidentiary Weight.
 	_populate_lab_section()
+
+	# Evidentiary weight bar (inserted in the first column below the description stack)
+	_populate_weight_section(ev)
 
 	# Related persons
 	_populate_related_persons(ev)
@@ -332,7 +332,7 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	# Legal categories
 	_populate_legal_categories(ev)
 
-	# Player notes (appended at end of MainContent, below Compare section)
+	# Player notes (inserted into the third column below Referenced Statements)
 	_populate_notes_section(ev)
 
 	# Evidence image via AssetFallback
@@ -396,51 +396,39 @@ func _populate_notes_section(ev: EvidenceData) -> void:
 		_notes_section = null
 
 	_notes_section = VBoxContainer.new()
-	_notes_section.add_theme_constant_override("separation", 6)
+	_notes_section.name = "NotesSection"
+	_notes_section.add_theme_constant_override("separation", 8)
 
-	# Header row: "My Notes" label + collapse/expand toggle button.
-	var header_row: HBoxContainer = HBoxContainer.new()
 	var section_label: Label = Label.new()
+	section_label.name = "NotesHeader"
 	section_label.text = "My Notes"
 	section_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-	section_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-	section_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header_row.add_child(section_label)
-	var toggle_btn: Button = Button.new()
-	toggle_btn.flat = true
-	toggle_btn.add_theme_color_override("font_color", UIColors.TEXT_GREY)
-	header_row.add_child(toggle_btn)
-	_notes_section.add_child(header_row)
+	section_label.theme_type_variation = &"SectionHeader"
+	_notes_section.add_child(section_label)
 
 	# TextEdit with handwriting font.
 	var text_edit: TextEdit = TextEdit.new()
+	text_edit.name = "NotesTextEdit"
 	text_edit.placeholder_text = "Your private notes about this evidence…"
 	text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_edit.custom_minimum_size.y = 80
+	text_edit.custom_minimum_size.y = 120
 	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	if _handwriting_font != null:
 		text_edit.add_theme_font_override("font", _handwriting_font)
-	text_edit.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
+	text_edit.add_theme_font_size_override("font_size", UIFonts.SIZE_SECTION)
 	text_edit.text = EvidenceManager.get_player_notes(ev.id)
+	text_edit.visible = true
 	_notes_section.add_child(text_edit)
-
-	# Start expanded only if the player already has notes for this item.
-	var has_existing_notes: bool = not EvidenceManager.get_player_notes(ev.id).is_empty()
-	text_edit.visible = has_existing_notes
-	toggle_btn.text = "▼" if has_existing_notes else "▶"
-
-	toggle_btn.pressed.connect(func() -> void:
-		text_edit.visible = not text_edit.visible
-		toggle_btn.text = "▼" if text_edit.visible else "▶"
-		if text_edit.visible:
-			text_edit.grab_focus())
 
 	# Auto-save on every keystroke — no explicit save button required.
 	text_edit.text_changed.connect(func() -> void:
 		EvidenceManager.set_player_notes(ev.id, text_edit.text))
 
-	# Append to the end of the first column.
-	_detail_column1_content.add_child(_notes_section)
+	# Insert into the third column directly below Referenced Statements.
+	var statements_section: VBoxContainer = related_statements_list.get_parent() as VBoxContainer
+	var relationships_content: VBoxContainer = statements_section.get_parent() as VBoxContainer
+	relationships_content.add_child(_notes_section)
+	relationships_content.move_child(_notes_section, statements_section.get_index() + 1)
 
 
 func _populate_related_persons(ev: EvidenceData) -> void:
@@ -448,8 +436,9 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 
 	if ev.related_persons.is_empty():
 		var none_label: Label = Label.new()
-		none_label.text = "None"
+		none_label.text = "No related persons yet. No related persons yet. No related persons yet. No related persons yet."
 		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
+		none_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		related_persons_list.add_child(none_label)
 		return
 
@@ -457,6 +446,8 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 		var person: PersonData = CaseManager.get_person(pid)
 		var person_label: Label = Label.new()
 		person_label.text = "• %s" % (person.name if person else pid)
+		person_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		person_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		related_persons_list.add_child(person_label)
 
 
@@ -477,6 +468,8 @@ func _populate_legal_categories(ev: EvidenceData) -> void:
 	for cat_val: int in ev.legal_categories:
 		var cat_label: Label = Label.new()
 		cat_label.text = "• %s" % UIHelper.get_legal_category_label(cat_val)
+		cat_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		legal_categories_list.add_child(cat_label)
 
 
@@ -488,6 +481,7 @@ func _populate_weight_section(ev: EvidenceData) -> void:
 	var bar_color: Color = _get_weight_bar_color(ev)
 
 	_weight_section = VBoxContainer.new()
+	_weight_section.name = "WeightSection"
 	_weight_section.add_theme_constant_override("separation", 6)
 
 	# Header row: label on left, percentage on right
@@ -531,9 +525,12 @@ func _populate_weight_section(ev: EvidenceData) -> void:
 	prose_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_weight_section.add_child(prose_label)
 
-	# Insert into the first column right after the description.
+	# Insert into the first column after the description stack.
+	var insertion_index: int = description_label.get_index() + 1
+	if _lab_section != null and is_instance_valid(_lab_section) and _lab_section.get_parent() == _detail_column1_content:
+		insertion_index = _lab_section.get_index() + 1
 	_detail_column1_content.add_child(_weight_section)
-	_detail_column1_content.move_child(_weight_section, description_label.get_index() + 1)
+	_detail_column1_content.move_child(_weight_section, insertion_index)
 
 
 func _get_weight_bar_color(ev: EvidenceData) -> Color:
@@ -581,10 +578,12 @@ func _populate_lab_section() -> void:
 	if lab_req == null: return
 
 	_lab_section = VBoxContainer.new()
+	_lab_section.name = "ForensicAnalysisSection"
 	_lab_section.add_theme_constant_override("separation", 8)
 
 	var header: Label = Label.new()
-	header.text = "FORENSIC ANALYSIS"
+	header.name = "ForensicAnalysisHeader"
+	header.text = "Forensic Analysis"
 	header.theme_type_variation = &"SectionHeader"
 	_lab_section.add_child(header)
 
@@ -627,11 +626,9 @@ func _populate_lab_section() -> void:
 		submit_btn.pressed.connect(_on_submit_to_lab)
 		_lab_section.add_child(submit_btn)
 
-	var info_section: Node = info_grid.get_parent()
-	var main_content: Node = info_section.get_parent()
-	var idx: int = info_section.get_index() + 1
-	main_content.add_child(_lab_section)
-	main_content.move_child(_lab_section, idx)
+	# Insert into the first column after the description so it lands before the weight section.
+	_detail_column1_content.add_child(_lab_section)
+	_detail_column1_content.move_child(_lab_section, description_label.get_index() + 1)
 
 
 func _populate_comparison_targets() -> void:

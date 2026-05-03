@@ -73,39 +73,35 @@ The **NEW** badge disappears the moment the player opens the evidence detail for
 ## Right Panel — Evidence Detail
 
 ### Layout
-The detail panel is split into a header, a main content column, and a side column.
+The detail panel is split into a header and three scrollable columns.
 
 ```
-┌─ Header ────────────────────────────────────────────────────────┐
-│  Parking Lot Camera Footage                │
-│  [CRITICAL] [Recording] [Presence]          [Pinned] [Board]    │
-└─────────────────────────────────────────────────────────────────┘
-┌─ Main Column (fills space) ──┐  ┌─ Side Column (220px) ────────┐
-│  [ Image / Placeholder ]     │  │  RELATED PERSONS             │
-│                               │  │  ○ Mark Bennett · Suspect    │
-│  DESCRIPTION                 │  │                              │
-│  Security camera footage...  │  │  ──────────────────────────  │
-│                               │  │  STATEMENTS                  │
-│  DETAILS                     │  │  [stmt item]                 │
-│  Location / Discovery /      │  │  [stmt item]                 │
-│  Day Found / Lab Status      │  │  [stmt item]                 │
-│                               │  │                              │
-│  EVIDENTIARY WEIGHT          │  │  [My Notes]                  │
-│  ████████░░ 70%              │  │  [Send to Board ↗]           │
-│  "Strong corroborating..."   │  └──────────────────────────────┘
-│                               │
-│  [◎ Compare Evidence]        │
-└──────────────────────────────┘
+┌─ Header ────────────────────────────────────────────────────────────────────┐
+│  Parking Lot Camera Footage                         [Pinned] [Compare] [Board] │
+│  [CRITICAL] [Recording] [Presence]                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌─ Column 1: Evidence View ─────┐ ┌─ Column 2: Details ───────────────────┐ ┌─ Column 3: Analysis ─────────────┐
+│  [Square Image / Placeholder] │ │  DETAILS                              │ │  REFERENCED STATEMENTS           │
+│  Security camera footage...    │ │  Location / Discovery / Day Found    │ │  [stmt item]                     │
+│                                │ │  Lab Status / Metadata                │ │  [stmt item]                     │
+│  FORENSIC ANALYSIS             │ │  RELATED PERSONS                     │ │  [stmt item]                     │
+│  [submit / pending / complete] │ │  LEGAL CATEGORIES                    │ │                                  │
+│                                │ │                                      │ │  MY NOTES                        │
+│  EVIDENTIARY WEIGHT            │ │                                      │ │  [always-visible TextEdit]       │
+│  ████████░░ 70%                │ │                                      │ │                                  │
+│  "Strong corroborating..."     │ │                                      │ └──────────────────────────────────┘
+└────────────────────────────────┘ └──────────────────────────────────────┘ └──────────────────────────────────┘
 ```
 
 ### Header
 - **Title** — serif large type
 - **Badges row** — Importance badge (CRITICAL / SUPPORTING / NOISE) + Type badge + Legal Category badge(s)
 - **Pin button** — toggles pinned state; purely a player convenience bookmark
+- **Compare button** — opens the comparison selector in the right panel header button row
 - **Board button** — sends evidence to the Detective Board (see Board tab integration below)
 
 ### Image Block
-- Shows evidence image if available
+- Shows evidence image if available, filling the first-column width while staying square
 - Placeholder pattern (diagonal hatch) with camera icon if no image
 - Bottom label bar: evidence ID + day discovered
 
@@ -123,6 +119,7 @@ The detail panel is split into a header, a main content column, and a side colum
 
 ### Evidentiary Weight Bar
 - Percentage drawn from evidence data (`weight` field)
+- This lives in the first column below the description and the forensic-analysis block.
 - **Color rules:**
   - Red: `EvidenceManager.is_contradicted(evidence_id)` returns true — at least one linked statement has a player CONTRADICTION verdict and `statement.importance <= ImportanceLevel.SUPPORTING` (i.e. CRITICAL or SUPPORTING importance)
   - Teal: evidence is supporting a strong confirmed theory (🚧 not yet implemented)
@@ -153,13 +150,15 @@ Weight thresholds and their prose labels:
 | 1–19% | Marginal. Context only. |
 
 ### Compare Evidence Button
+The compare button lives in the header button row with Pin and Send to Board. It still opens the comparison selector in the right panel.
+
 See **Evidence Comparison** section below.
 
 ---
 
-## Main Column — Related Persons
+## Second Column — Related Persons
 
-A compact list of all persons linked to this evidence in the case data. It sits below the evidentiary weight bar in the second column.
+A compact list of all persons linked to this evidence in the case data. It sits in the second column below the forensic analysis block.
 
 Each person entry shows:
 - Avatar circle with initials (color-coded: red for suspects, blue for witnesses, grey for other)
@@ -168,7 +167,7 @@ Each person entry shows:
 
 Clicking a person navigates to their profile in the Suspects tab.
 
-## Main Column — Legal Categories
+## Second Column — Legal Categories
 
 A compact list of the evidence's legal categories in the case data. It appears directly below Related Persons in the second column.
 
@@ -178,7 +177,7 @@ Each entry shows:
 
 ---
 
-## Side Column — Statements (Contradiction Engine)
+## Third Column — Referenced Statements (Contradiction Engine)
 
 This is the most important section of the Evidence Tab. It shows all recorded statements that are linked to this evidence item — and lets the player classify whether each statement **supports**, **contradicts**, or is **unresolved** relative to this evidence.
 
@@ -202,6 +201,14 @@ This means:
 - The player sees the link because they now have both pieces of information
 
 Statements are **never automatically classified**. Showing up in the list is neutral — the player decides what the relationship means.
+
+## Third Column — My Notes
+
+The notes section sits directly below Referenced Statements in the third column.
+
+It uses a `My Notes` Section Header, keeps the text field visible at all times, and autosaves the player's writing back into evidence state.
+
+There is no collapse/expand toggle.
 
 ### Statement Data Model
 Each statement contains:
@@ -253,11 +260,11 @@ Some evidence discovered on the Map tab is raw and requires forensic laboratory 
 **Lab submission costs 0 actions** (passive activity). It represents the detective packaging up the sample and sending it off — a routine administrative step, not an investigation decision. The meaningful decision is *which evidence* to submit and *when* — submitting something wastes nothing, so the player is always incentivized to submit promptly.
 
 ### Raw Evidence
-Evidence with `requires_lab_analysis: true` in its data displays a **Submit to Lab** section in the detail panel instead of (or below) the Compare Evidence button:
+Evidence with `requires_lab_analysis: true` in its data displays a **Forensic Analysis** block in the first column, between the Description and Evidentiary Weight sections:
 
 ```
 ┌─────────────────────────────────────────┐
-│  LAB ANALYSIS AVAILABLE                 │
+│  FORENSIC ANALYSIS                      │
 │  Fingerprint analysis can be performed  │
 │  on this item. Results return next day. │
 │                                         │
@@ -267,7 +274,7 @@ Evidence with `requires_lab_analysis: true` in its data displays a **Submit to L
 
 ### Submission Steps
 1. Player opens raw evidence (e.g., `ev_wine_glasses`)
-2. "Submit to Lab" section appears with the analysis type pre-populated from data
+2. The Forensic Analysis block appears in the first column with the analysis type pre-populated from data
 3. Player clicks "Submit to Lab"
 4. Notification: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
 5. Evidence card in the archive gains **LAB** badge
@@ -363,7 +370,7 @@ When the player clicks **Send to Board**:
 
 ## Player Notes
 
-The statement expansion section includes a **free-text notes field** per statement link. The main evidence detail panel also has a **notes area** accessible via a small notes toggle icon near the bottom, positioned below the evidentiary weight bar in the first column.
+The statement expansion section includes a **free-text notes field** per statement link. The main evidence detail panel also includes the always-open `My Notes` section in the third column, directly below Referenced Statements.
 
 Player notes are:
 - Stored per evidence item in game state

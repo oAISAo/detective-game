@@ -34,7 +34,9 @@ func _reload() -> void:
 
 	if statements.is_empty():
 		var empty_label: Label = Label.new()
-		empty_label.text = "No relevant statements yet."
+		empty_label.text = "No statements linked yet. Interrogate suspects to gather testimony."
+		empty_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		add_child(empty_label)
 	else:
