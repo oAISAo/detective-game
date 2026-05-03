@@ -21,7 +21,6 @@ Any final layout should support these elements and states without feeling crowde
 - Description block
 - Metadata grid: Location, Discovery, Day Found, Lab Status
 - Evidentiary weight bar + prose label
-- Tags section
 - Compare Evidence button
 - Lab submission section for raw evidence
 - Related persons list
@@ -74,7 +73,6 @@ This is the safest and most direct evolution of the current layout.
 - Description below that in a clean, readable block.
 - Metadata grid under the description.
 - Weight bar next, with the prose label below it.
-- Tags after the weight.
 - Compare button and lab section at the bottom as the action zone.
 - Player notes tucked into a separated lower card or folded-paper panel so it feels private.
 
@@ -120,7 +118,6 @@ This version tries to make the panel feel more like a working forensic worksheet
 - Title, badges, and pin/board controls feel anchored to the same top band.
 - Description and metadata are grouped as a single “Evidence Facts” sheet.
 - Weight bar becomes a prominent horizontal band with a short assessment line.
-- Tags are presented as small evidence chips on a textured strip.
 - Lab submission, compare evidence, and player notes are each their own distinct section card.
 
 ### Side Column
@@ -165,7 +162,6 @@ This option leans most strongly into elegance and cohesion.
 - Description is presented like an evidence summary paragraph.
 - Metadata becomes a two-column fact table with more whitespace and stronger typography.
 - Weight bar is visually elegant, almost like a meter in a report.
-- Tags look like labeled archival tabs.
 - Compare and lab actions are treated as prominent call-to-action buttons rather than utility buttons.
 - Notes feel like margin annotations or handwritten addenda.
 
@@ -209,11 +205,10 @@ This is a compromise between the dossier layout and the editorial layout.
 3. Description
 4. Facts grid
 5. Weight bar
-6. Tags
-7. Lab / compare / board actions
-8. Evidence notes
-9. Related persons
-10. Statements
+6. Lab / compare / board actions
+7. Evidence notes
+8. Related persons
+9. Statements
 
 ### Why This Works
 

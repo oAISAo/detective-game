@@ -16,7 +16,6 @@ func test_evidence_from_dict_full() -> void:
 		"type": "FORENSIC",
 		"location_found": "loc_kitchen",
 		"related_persons": ["p_julia", "p_mark"],
-		"tags": ["weapon", "critical"],
 		"lab_status": "NOT_SUBMITTED",
 		"requires_lab_analysis": true,
 		"weight": 0.9,
@@ -31,7 +30,6 @@ func test_evidence_from_dict_full() -> void:
 	assert_eq(ev.location_found, "loc_kitchen")
 	assert_eq(ev.related_persons.size(), 2)
 	assert_true("p_julia" in ev.related_persons)
-	assert_eq(ev.tags.size(), 2)
 	assert_eq(ev.lab_status, Enums.LabStatus.NOT_SUBMITTED)
 	assert_true(ev.requires_lab_analysis)
 	assert_almost_eq(ev.weight, 0.9, 0.001)
@@ -78,6 +76,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 	assert_eq(result["name"], "Roundtrip Evidence")
 	assert_eq(result["type"], "DOCUMENT")
 	assert_eq(result["importance_level"], "CRITICAL")
+	assert_false(result.has("tags"))
 
 
 # =============================================================================

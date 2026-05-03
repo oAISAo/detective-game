@@ -25,7 +25,7 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 │                         │  │  Description        │  │  Statements /    │  │
 │  Click → loads detail   │  │  Metadata grid      │  │  Contradiction   │  │
 │                         │  │  Weight bar         │  │  Engine          │  │
-│                         │  │  Tags               │  │  Send to Board   │  │
+│                         │  │                     │  │  Send to Board   │  │
 │                         │  │  Compare button     │  └──────────────────┘  │
 │                         │  └────────────────────────────────────────────┘  │
 └─────────────────────────┴─────────────────────────────────────────────────┘
@@ -93,9 +93,6 @@ The detail panel is split into a header, a main content column, and a side colum
 │  ████████░░ 70%              │  │  [Send to Board ↗]           │
 │  "Strong corroborating..."   │  └──────────────────────────────┘
 │                               │
-│  TAGS                        │
-│  [surveillance] [timeline]   │
-│                               │
 │  [◎ Compare Evidence]        │
 └──────────────────────────────┘
 ```
@@ -153,11 +150,6 @@ Weight thresholds and their prose labels:
 | 40–64% | Corroborating. Strengthens the case when combined with other evidence. |
 | 20–39% | Weak. Circumstantial — the defense will challenge this. |
 | 1–19% | Marginal. Context only. |
-
-### Tags
-- Predefined tags from case data (e.g., `surveillance`, `timeline`, `alibi`, `contradiction`)
-- Players can add custom tags (free text, short label)
-- Tags are used as a secondary search filter in the left panel
 
 ### Compare Evidence Button
 See **Evidence Comparison** section below.
@@ -246,7 +238,7 @@ The player sets the verdict by clicking the current verdict pill and selecting f
 ### "+ Link Statement" Button
 If the player wants to manually link a statement that wasn't pre-linked in the data, they can use this button to search for statements and attach them. This supports player-driven connections the data didn't anticipate.
 
-> **Decided (D2):** Manually linked statements show a small pen icon ("player-tagged" indicator) so the player can distinguish their own inference from a data-driven link. 🚧 *Not yet implemented.*
+> **Decided (D2):** Manually linked statements show a small pen icon ("player-linked" indicator) so the player can distinguish their own inference from a data-driven link. 🚧 *Not yet implemented.*
 
 ---
 
@@ -341,7 +333,6 @@ Each evidence item tracks the following state:
 | `lab_status` | `none` / `submitted` / `complete` | For raw evidence only |
 | `sent_to_board` | bool | Whether "Send to Board" has been clicked |
 | `player_notes` | string | Free-text notes written by the player |
-| `player_tags` | string[] | Custom tags added by the player |
 
 ### State Transitions
 | From | To | Trigger |
@@ -393,7 +384,6 @@ All Evidence Tab activities are **passive (0 action cost)** unless otherwise not
 | Comparing evidence | 0 |
 | Classifying statement verdict | 0 |
 | Writing notes | 0 |
-| Adding tags | 0 |
 | Pinning | 0 |
 | Sending to Board | 0 |
 
@@ -501,7 +491,6 @@ Send to board
   "legal_categories": ["PRESENCE"],
   "linked_statements": ["stmt_mark_departure_time", "stmt_mark_corrected_departure", "stmt_mark_lied_to_hide_argument"],
   "hint_text": "Check the security camera in the parking lot.",
-  "tags": ["surveillance", "timeline", "alibi", "contradiction"]
 }
 ```
 
@@ -534,7 +523,6 @@ State is split across multiple systems. Fields below show what IS currently trac
     "reviewed": true,
     "sent_to_board": true,
     "player_notes": "",
-    "player_tags": []
   }
 }
 ```
@@ -549,7 +537,7 @@ All design questions have been resolved. Decisions are final.
 
 **D1 — Invalid evidence comparisons:** Silent inline message only — no junk evidence items are generated. ✅ *Already implemented in `EvidenceManager.compare_evidence()`.*
 
-**D2 — Manually linked statements:** Manually linked statements show a small pen icon ("player-tagged" indicator) to visually distinguish them from data-driven links. Player-created links are stored separately in `EvidenceManager` state. 🚧 *Not yet implemented.*
+**D2 — Manually linked statements:** Manually linked statements show a small pen icon ("player-linked" indicator) to visually distinguish them from data-driven links. Player-created links are stored separately in `EvidenceManager` state. 🚧 *Not yet implemented.*
 
 **D3 — "Send to Board" placement:** Auto-place in an inbox zone at a predefined position on the board canvas. The player repositions it in the Board tab. `BoardManager.send_to_board()` is already called from `evidence_archive.gd` — the inbox zone coordinates need to be finalized. 🚧 *Inbox zone position not yet finalized.*
 

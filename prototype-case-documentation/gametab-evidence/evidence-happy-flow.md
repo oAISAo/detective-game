@@ -113,7 +113,6 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] Related Persons: Julia Ross (Suspect)
 - [ ] No statements yet (Julia hasn't been interrogated)
 - [ ] No lab analysis required
-- [ ] Tags include: `digital`, `timeline`, `connection`
 
 ---
 
@@ -160,7 +159,6 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] Evidentiary Weight bar shows high value (80–85%) in amber (no contradiction set yet)
 - [ ] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
 - [ ] No "Submit to Lab" section
-- [ ] Tags: `forensic`, `presence`, `contradiction`
 
 > Note: Julia's statements will appear here AFTER interrogation (Day 2, Actions 5–8 in the combined flow). See Step 16.
 
@@ -288,7 +286,6 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] Detail loads: "Email From Daniel to Mark"
 - [ ] Subject line visible in description: "We need to fix this before tomorrow."
 - [ ] Related Persons: Mark Bennett
-- [ ] Tags: `document`, `financial`, `timeline`
 
 ---
 
@@ -339,7 +336,6 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] Description: documents revealing the full extent of Mark's financial crimes and Daniel's plan to expose him
 - [ ] Importance: **CRITICAL**
 - [ ] Related Persons: Mark Bennett (and potentially Julia Ross, as her financial situation is referenced)
-- [ ] Tags: `document`, `motive`, `financial`
 
 ---
 

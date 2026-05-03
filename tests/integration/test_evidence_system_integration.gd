@@ -40,7 +40,6 @@ var _test_case_data: Dictionary = {
 			"type": "FORENSIC",
 			"location_found": "loc_house",
 			"related_persons": ["p_suspect_a"],
-			"tags": ["blood", "forensic", "entrance"],
 			"weight": 0.9,
 			"importance_level": "CRITICAL",
 			"hint_text": "Check near the entrance for biological traces.",
@@ -53,7 +52,6 @@ var _test_case_data: Dictionary = {
 			"type": "DOCUMENT",
 			"location_found": "loc_store",
 			"related_persons": ["p_suspect_b"],
-			"tags": ["receipt", "purchase", "rope"],
 			"weight": 0.7,
 			"importance_level": "CRITICAL",
 			"legal_categories": ["OPPORTUNITY"],
@@ -65,7 +63,6 @@ var _test_case_data: Dictionary = {
 			"type": "RECORDING",
 			"location_found": "loc_house",
 			"related_persons": ["p_suspect_b"],
-			"tags": ["video", "surveillance", "night"],
 			"weight": 0.6,
 			"importance_level": "SUPPORTING",
 			"legal_categories": ["PRESENCE"],
@@ -77,7 +74,6 @@ var _test_case_data: Dictionary = {
 			"type": "DOCUMENT",
 			"location_found": "loc_house",
 			"related_persons": ["p_suspect_a"],
-			"tags": ["diary", "personal", "planning"],
 			"weight": 0.5,
 			"importance_level": "SUPPORTING",
 		},
@@ -304,7 +300,7 @@ func test_pin_survives_serialize_deserialize() -> void:
 	GameManager.discover_evidence("ev_blood")
 	EvidenceManager.pin_evidence("ev_blood")
 
-	var em_data: Dictionary = EvidenceManager.serialize()
+	var _em_data: Dictionary = EvidenceManager.serialize()
 	var gm_data: Dictionary = GameManager.serialize()
 
 	GameManager.new_game()  # Resets EvidenceManager too

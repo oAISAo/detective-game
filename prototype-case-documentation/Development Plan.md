@@ -657,7 +657,7 @@ Create all 25 evidence items (E1–E25) as JSON data imported into Resources:
 - Evidence checklist view showing discovery status of all 25 items
 
 ### Deliverables
-- Evidence Archive UI with filtering, search, and tags
+- Evidence Archive UI with filtering and search
 - Evidence Detail View with relationships panel
 - Evidence pinning system
 - Evidence comparison → Insight system

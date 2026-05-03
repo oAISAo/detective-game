@@ -22,9 +22,6 @@ extends Resource
 ## IDs of persons related to this evidence.
 @export var related_persons: Array[String] = []
 
-## Descriptive tags for categorization.
-@export var tags: Array[String] = []
-
 ## Current lab analysis status.
 @export var lab_status: Enums.LabStatus = Enums.LabStatus.NOT_SUBMITTED
 
@@ -69,7 +66,6 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 	) as Enums.EvidenceType
 	res.location_found = data.get("location_found", "")
 	res.related_persons.assign(data.get("related_persons", []))
-	res.tags.assign(data.get("tags", []))
 	res.lab_status = EnumHelper.parse_enum(
 		Enums.LabStatus,
 		data.get("lab_status", "NOT_SUBMITTED"),
@@ -119,7 +115,6 @@ func to_dict() -> Dictionary:
 		"type": EnumHelper.enum_to_string(Enums.EvidenceType, type),
 		"location_found": location_found,
 		"related_persons": related_persons.duplicate(),
-		"tags": tags.duplicate(),
 		"lab_status": EnumHelper.enum_to_string(Enums.LabStatus, lab_status),
 		"lab_result_text": lab_result_text,
 		"requires_lab_analysis": requires_lab_analysis,

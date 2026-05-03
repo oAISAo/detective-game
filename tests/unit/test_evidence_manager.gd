@@ -316,19 +316,6 @@ func test_filter_by_type_multiple_results() -> void:
 	assert_eq(result[0].id, "ev_photo")
 
 
-func test_filter_by_tag() -> void:
-	GameManager.discover_evidence("ev_fingerprint")
-	GameManager.discover_evidence("ev_knife")
-	GameManager.discover_evidence("ev_camera")
-	var result: Array[EvidenceData] = EvidenceManager.filter_by_tag("kitchen")
-	assert_eq(result.size(), 2, "Should find 2 items tagged 'kitchen'")
-	var ids: Array[String] = []
-	for ev: EvidenceData in result:
-		ids.append(ev.id)
-	assert_has(ids, "ev_fingerprint")
-	assert_has(ids, "ev_knife")
-
-
 # ============================================================
 # §5.1 — Search
 # ============================================================
@@ -348,12 +335,11 @@ func test_search_by_description() -> void:
 	assert_eq(result[0].id, "ev_document")
 
 
-func test_search_by_tag() -> void:
+func test_search_does_not_match_tag_only_query() -> void:
 	GameManager.discover_evidence("ev_knife")
 	GameManager.discover_evidence("ev_camera")
 	var result: Array[EvidenceData] = EvidenceManager.search_evidence("weapon")
-	assert_eq(result.size(), 1, "Should find by tag")
-	assert_eq(result[0].id, "ev_knife")
+	assert_eq(result.size(), 0, "Search should no longer match tag-only queries")
 
 
 func test_search_empty_query_returns_all() -> void:
@@ -787,6 +773,7 @@ func test_serialize_returns_dictionary() -> void:
 	var data: Dictionary = EvidenceManager.serialize()
 	assert_true(data.has("pinned_evidence"))
 	assert_true(data.has("detected_contradictions"))
+	assert_false(data.has("player_tags"))
 
 
 func test_deserialize_restores_state() -> void:
@@ -813,6 +800,17 @@ func test_serialize_round_trip() -> void:
 	assert_eq(EvidenceManager.get_pinned_evidence().size(), 2)
 	assert_true(EvidenceManager.is_pinned("ev_fingerprint"))
 	assert_true(EvidenceManager.is_pinned("ev_camera"))
+
+
+func test_deserialize_ignores_legacy_player_tags_key() -> void:
+	var legacy_state: Dictionary = {
+		"player_tags": {
+			"ev_fingerprint": ["legacy_tag"],
+		}
+	}
+	EvidenceManager.deserialize(legacy_state)
+	var serialized: Dictionary = EvidenceManager.serialize()
+	assert_false(serialized.has("player_tags"), "Legacy player_tags data should be ignored on load.")
 
 
 func test_reset_clears_all_state() -> void:
@@ -937,106 +935,6 @@ func test_player_notes_serializes_and_restores() -> void:
 	EvidenceManager.deserialize(data)
 	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "My key note.",
 		"Notes should be restored after deserialize.")
-
-
-# ============================================================
-# §8 — Player Tags
-# ============================================================
-
-func test_player_tags_empty_by_default() -> void:
-	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
-	assert_eq(tags.size(), 0, "get_player_tags should return an empty array by default.")
-
-
-func test_add_player_tag_success() -> void:
-	var added: bool = EvidenceManager.add_player_tag("ev_fingerprint", "alibi")
-	assert_true(added, "add_player_tag should return true when adding a new tag.")
-	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
-	assert_eq(tags.size(), 1)
-	assert_eq(tags[0], "alibi")
-
-
-func test_add_player_tag_prevents_duplicates() -> void:
-	EvidenceManager.add_player_tag("ev_fingerprint", "key")
-	var second_add: bool = EvidenceManager.add_player_tag("ev_fingerprint", "key")
-	assert_false(second_add, "Adding an identical tag a second time should return false.")
-	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 1,
-		"Duplicate tag must not be stored.")
-
-
-func test_add_player_tag_trims_whitespace() -> void:
-	EvidenceManager.add_player_tag("ev_fingerprint", "  motive  ")
-	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
-	assert_eq(tags[0], "motive", "Tag should be stored trimmed of surrounding whitespace.")
-
-
-func test_add_player_tag_rejects_empty_string() -> void:
-	var added: bool = EvidenceManager.add_player_tag("ev_fingerprint", "")
-	assert_false(added, "Empty string should be rejected.")
-	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0)
-
-
-func test_add_player_tag_rejects_whitespace_only() -> void:
-	var added: bool = EvidenceManager.add_player_tag("ev_fingerprint", "   ")
-	assert_false(added, "Whitespace-only string should be rejected.")
-	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0)
-
-
-func test_add_player_tag_emits_signal() -> void:
-	watch_signals(EvidenceManager)
-	EvidenceManager.add_player_tag("ev_fingerprint", "timeline")
-	assert_signal_emitted(EvidenceManager, "player_tag_added")
-	assert_signal_emitted_with_parameters(EvidenceManager, "player_tag_added",
-		["ev_fingerprint", "timeline"])
-
-
-func test_remove_player_tag() -> void:
-	EvidenceManager.add_player_tag("ev_fingerprint", "motive")
-	EvidenceManager.add_player_tag("ev_fingerprint", "alibi")
-	EvidenceManager.remove_player_tag("ev_fingerprint", "motive")
-	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
-	assert_eq(tags.size(), 1)
-	assert_eq(tags[0], "alibi", "Only the non-removed tag should remain.")
-
-
-func test_remove_player_tag_emits_signal() -> void:
-	EvidenceManager.add_player_tag("ev_fingerprint", "key")
-	watch_signals(EvidenceManager)
-	EvidenceManager.remove_player_tag("ev_fingerprint", "key")
-	assert_signal_emitted(EvidenceManager, "player_tag_removed")
-	assert_signal_emitted_with_parameters(EvidenceManager, "player_tag_removed",
-		["ev_fingerprint", "key"])
-
-
-func test_remove_nonexistent_tag_is_safe() -> void:
-	# Should not crash or raise an error.
-	EvidenceManager.remove_player_tag("ev_fingerprint", "ghost_tag")
-	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0,
-		"Removing a tag that never existed must not corrupt state.")
-
-
-func test_player_tags_serializes_and_restores() -> void:
-	EvidenceManager.add_player_tag("ev_fingerprint", "motive")
-	EvidenceManager.add_player_tag("ev_fingerprint", "key")
-	var data: Dictionary = EvidenceManager.serialize()
-	EvidenceManager.reset()
-	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0,
-		"Tags should be absent after reset.")
-	EvidenceManager.deserialize(data)
-	var tags: Array[String] = EvidenceManager.get_player_tags("ev_fingerprint")
-	assert_eq(tags.size(), 2, "Both tags should be restored after deserialize.")
-	assert_has(tags, "motive")
-	assert_has(tags, "key")
-
-
-func test_reset_clears_player_notes_and_tags() -> void:
-	EvidenceManager.set_player_notes("ev_fingerprint", "Important!")
-	EvidenceManager.add_player_tag("ev_fingerprint", "critical")
-	EvidenceManager.reset()
-	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
-		"reset() must clear all player notes.")
-	assert_eq(EvidenceManager.get_player_tags("ev_fingerprint").size(), 0,
-		"reset() must clear all player tags.")
 
 
 # ============================================================

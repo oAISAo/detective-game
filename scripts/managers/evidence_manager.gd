@@ -35,12 +35,6 @@ signal evidence_reviewed(evidence_id: String)
 ## Emitted when the player saves a note for an evidence item.
 signal player_notes_changed(evidence_id: String)
 
-## Emitted when the player adds a custom tag to an evidence item.
-signal player_tag_added(evidence_id: String, tag: String)
-
-## Emitted when the player removes a custom tag from an evidence item.
-signal player_tag_removed(evidence_id: String, tag: String)
-
 ## Emitted when the player manually links a statement to an evidence item.
 signal statement_manually_linked(evidence_id: String, statement_id: String)
 
@@ -77,9 +71,6 @@ var _player_notes: Dictionary = {}
 
 ## Tracks which evidence items have been sent to the detective board.
 var _sent_to_board: Dictionary = {}
-
-## Player-added tags per evidence item. Key: evidence_id, Value: Array of tag strings.
-var _player_tags: Dictionary = {}
 
 ## Manually linked statements per evidence item. Key: evidence_id, Value: Array of statement_id strings.
 var _manually_linked_statements: Dictionary = {}
@@ -121,18 +112,9 @@ func filter_by_type(type: Enums.EvidenceType) -> Array[EvidenceData]:
 	return result
 
 
-## Filters discovered evidence by tag.
-func filter_by_tag(tag: String) -> Array[EvidenceData]:
-	var result: Array[EvidenceData] = []
-	for ev: EvidenceData in get_discovered_evidence_data():
-		if tag in ev.tags:
-			result.append(ev)
-	return result
-
-
 # --- Search --- #
 
-## Searches discovered evidence by name, description, or tags (case-insensitive).
+## Searches discovered evidence by name and description (case-insensitive).
 func search_evidence(query: String) -> Array[EvidenceData]:
 	if query.is_empty():
 		return get_discovered_evidence_data()
@@ -144,17 +126,7 @@ func search_evidence(query: String) -> Array[EvidenceData]:
 			result.append(ev)
 		elif lower_query in ev.description.to_lower():
 			result.append(ev)
-		elif _matches_tags(ev, lower_query):
-			result.append(ev)
 	return result
-
-
-## Checks if any tag on the evidence matches the query.
-func _matches_tags(ev: EvidenceData, query: String) -> bool:
-	for tag: String in ev.tags:
-		if query in tag.to_lower():
-			return true
-	return false
 
 
 # --- Pinning --- #
@@ -552,48 +524,6 @@ func set_player_notes(evidence_id: String, notes: String) -> void:
 	else:
 		_player_notes[evidence_id] = notes
 	player_notes_changed.emit(evidence_id)
-
-
-# --- Player Tags --- #
-
-## Returns all player-added tags for this evidence item. Returns [] if none exist.
-func get_player_tags(evidence_id: String) -> Array[String]:
-	var raw: Array = _player_tags.get(evidence_id, [])
-	var result: Array[String] = []
-	result.assign(raw)
-	return result
-
-
-## Adds a custom tag to an evidence item. Trims whitespace; rejects empty strings
-## and exact duplicates. Returns true if the tag was added, false otherwise.
-func add_player_tag(evidence_id: String, tag: String) -> bool:
-	var trimmed: String = tag.strip_edges()
-	if trimmed.is_empty():
-		return false
-	var existing: Array = _player_tags.get(evidence_id, [])
-	if trimmed in existing:
-		return false
-	existing.append(trimmed)
-	_player_tags[evidence_id] = existing
-	player_tag_added.emit(evidence_id, trimmed)
-	return true
-
-
-## Removes a player-added tag from an evidence item. Safe to call with a tag
-## that does not exist. Emits player_tag_removed regardless.
-func remove_player_tag(evidence_id: String, tag: String) -> void:
-	var existing: Array = _player_tags.get(evidence_id, [])
-	if tag not in existing:
-		player_tag_removed.emit(evidence_id, tag)
-		return
-	existing.erase(tag)
-	if existing.is_empty():
-		_player_tags.erase(evidence_id)
-	else:
-		_player_tags[evidence_id] = existing
-	player_tag_removed.emit(evidence_id, tag)
-
-
 # --- Serialization --- #
 
 ## Returns the evidence manager state as a dictionary for saving.
@@ -604,7 +534,6 @@ func serialize() -> Dictionary:
 		"statement_verdicts": _serialize_verdicts(),
 		"reviewed_evidence": _reviewed_evidence.duplicate(),
 		"player_notes": _player_notes.duplicate(),
-		"player_tags": _player_tags.duplicate(true),
 		"manually_linked_statements": _manually_linked_statements.duplicate(true),
 		"sent_to_board": _sent_to_board.duplicate(),
 	}
@@ -632,7 +561,6 @@ func deserialize(data: Dictionary) -> void:
 		_statement_verdicts[key] = vd
 	_reviewed_evidence = data.get("reviewed_evidence", {}).duplicate()
 	_player_notes = data.get("player_notes", {}).duplicate()
-	_player_tags = data.get("player_tags", {}).duplicate(true)
 	_manually_linked_statements = data.get("manually_linked_statements", {}).duplicate(true)
 	_sent_to_board = data.get("sent_to_board", {}).duplicate()
 	state_loaded.emit()
@@ -645,6 +573,5 @@ func reset() -> void:
 	_statement_verdicts.clear()
 	_reviewed_evidence.clear()
 	_player_notes.clear()
-	_player_tags.clear()
 	_manually_linked_statements.clear()
 	_sent_to_board.clear()

@@ -31,7 +31,6 @@ var _handwriting_font: Font = null
 @onready var evidence_image: TextureRect = %EvidenceImage
 @onready var description_label: RichTextLabel = %DescriptionLabel
 @onready var info_grid: GridContainer = %InfoGrid
-@onready var tags_container: HFlowContainer = %TagsContainer
 
 @onready var related_persons_list: VBoxContainer = %RelatedPersonsList
 @onready var related_statements_list: VBoxContainer = %RelatedStatementsList
@@ -45,7 +44,6 @@ var _comparing: bool = false
 var _lab_section: VBoxContainer = null
 var _weight_section: Node = null
 var _notes_section: Node = null
-var _tag_input_section: Node = null
 var _statements_panel: Node = null
 ## Maps evidence_id → EvidencePolaroid card node for targeted badge refreshes.
 var _card_nodes: Dictionary = {}  # evidence_id: String → EvidencePolaroid
@@ -323,10 +321,6 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	# Lab submission section
 	_populate_lab_section()
 
-	# Tags (case-data tags + player-added tags with remove button)
-	_populate_tags(ev)
-	_populate_tag_input(ev)
-
 	# Related persons
 	_populate_related_persons(ev)
 
@@ -379,64 +373,6 @@ func _add_info_row(key: String, value: String) -> void:
 	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info_grid.add_child(value_label)
-
-
-func _populate_tags(ev: EvidenceData) -> void:
-	UIHelper.clear_children(tags_container)
-
-	for tag: String in ev.tags:
-		var tag_label: Label = Label.new()
-		tag_label.text = "  %s  " % tag
-		tag_label.add_theme_color_override("font_color", UIColors.TEXT_HIGHLIGHTED)
-		tags_container.add_child(tag_label)
-
-	# Player-added tags rendered after case-data tags, with a remove button each.
-	for tag: String in EvidenceManager.get_player_tags(ev.id):
-		var tag_row: HBoxContainer = HBoxContainer.new()
-		var tag_label: Label = Label.new()
-		tag_label.text = "  %s  " % tag
-		tag_label.add_theme_color_override("font_color", UIColors.GREEN)
-		tag_row.add_child(tag_label)
-		var remove_btn: Button = Button.new()
-		remove_btn.text = "×"
-		remove_btn.flat = true
-		remove_btn.add_theme_color_override("font_color", UIColors.TEXT_GREY)
-		remove_btn.pressed.connect(func() -> void:
-			EvidenceManager.remove_player_tag(ev.id, tag)
-			_populate_tags(ev))
-		tag_row.add_child(remove_btn)
-		tags_container.add_child(tag_row)
-
-
-func _populate_tag_input(ev: EvidenceData) -> void:
-	if _tag_input_section != null:
-		_tag_input_section.queue_free()
-		_tag_input_section = null
-
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-
-	var line_edit: LineEdit = LineEdit.new()
-	line_edit.placeholder_text = "Add tag…"
-	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	line_edit.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-	row.add_child(line_edit)
-
-	var add_btn: Button = Button.new()
-	add_btn.text = "+"
-	add_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(add_btn)
-
-	var do_add := func() -> void:
-		if EvidenceManager.add_player_tag(ev.id, line_edit.text):
-			line_edit.text = ""
-			_populate_tags(ev)
-
-	line_edit.text_submitted.connect(func(_t: String) -> void: do_add.call())
-	add_btn.pressed.connect(do_add)
-
-	_tag_input_section = row
-	tags_container.get_parent().add_child(row)
 
 
 func _populate_notes_section(ev: EvidenceData) -> void:

@@ -10,12 +10,6 @@
 			"related_persons": [
 				"p_victim"
 			],
-			"tags": [
-				"autopsy",
-				"cause_of_death",
-				"forensic",
-				"time_of_death"
-			],
 			"weight": 0.9,
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
@@ -34,11 +28,6 @@
 			"related_persons": [
 				"p_victim"
 			],
-			"tags": [
-				"crime_scene",
-				"murder_weapon",
-				"forensic"
-			],
 			"weight": 0.9,
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
@@ -55,11 +44,6 @@
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"crime_scene",
-				"visitor",
-				"fingerprints"
-			],
 			"weight": 0.5,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -80,12 +64,6 @@
 			"location_found": "loc_victim_apartment",
 			"related_persons": [
 				"p_julia"
-			],
-			"tags": [
-				"forensic",
-				"fingerprint",
-				"contradiction",
-				"critical"
 			],
 			"weight": 0.9,
 			"importance_level": "CRITICAL",
@@ -110,11 +88,6 @@
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"forensic",
-				"fingerprint",
-				"unanalyzed"
-			],
 			"weight": 0.2,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -130,10 +103,6 @@
 			"location_found": "loc_victim_apartment",
 			"related_persons": [
 				"p_mark"
-			],
-			"tags": [
-				"forensic",
-				"fingerprint"
 			],
 			"weight": 0.4,
 			"importance_level": "SUPPORTING",
@@ -159,11 +128,6 @@
 				"p_victim",
 				"p_julia"
 			],
-			"tags": [
-				"crime_scene",
-				"argument",
-				"relationship"
-			],
 			"weight": 0.4,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -186,11 +150,6 @@
 			"related_persons": [
 				"p_julia",
 				"p_victim"
-			],
-			"tags": [
-				"digital",
-				"timeline",
-				"motive"
 			],
 			"weight": 0.6,
 			"importance_level": "SUPPORTING",
@@ -217,12 +176,6 @@
 				"p_victim",
 				"p_julia"
 			],
-			"tags": [
-				"digital",
-				"warrant",
-				"motive",
-				"hidden"
-			],
 			"weight": 0.7,
 			"importance_level": "CRITICAL",
 			"discovery_method": "TOOL",
@@ -247,12 +200,6 @@
 			"related_persons": [
 				"p_mark",
 				"p_victim"
-			],
-			"tags": [
-				"digital",
-				"phone",
-				"financial",
-				"motive"
 			],
 			"weight": 0.5,
 			"importance_level": "SUPPORTING",
@@ -279,12 +226,6 @@
 				"p_victim",
 				"p_mark"
 			],
-			"tags": [
-				"digital",
-				"email",
-				"financial",
-				"motive"
-			],
 			"weight": 0.6,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -307,11 +248,6 @@
 			"location_found": "loc_victim_office",
 			"related_persons": [
 				"p_mark"
-			],
-			"tags": [
-				"financial",
-				"embezzlement",
-				"motive"
 			],
 			"weight": 0.8,
 			"importance_level": "CRITICAL",
@@ -337,11 +273,6 @@
 				"p_mark",
 				"p_victim"
 			],
-			"tags": [
-				"financial",
-				"embezzlement",
-				"motive"
-			],
 			"weight": 0.7,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -364,11 +295,6 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"financial",
-				"debt",
-				"motive"
-			],
 			"weight": 0.5,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -390,12 +316,6 @@
 			"location_found": "loc_parking_lot",
 			"related_persons": [
 				"p_mark"
-			],
-			"tags": [
-				"surveillance",
-				"timeline",
-				"alibi",
-				"contradiction"
 			],
 			"weight": 0.7,
 			"importance_level": "CRITICAL",
@@ -420,11 +340,6 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"surveillance",
-				"timeline",
-				"blurry"
-			],
 			"weight": 0.6,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -447,12 +362,6 @@
 			"location_found": "loc_hallway",
 			"related_persons": [
 				"p_julia"
-			],
-			"tags": [
-				"digital",
-				"timeline",
-				"access",
-				"critical"
 			],
 			"weight": 0.8,
 			"importance_level": "CRITICAL",
@@ -479,11 +388,6 @@
 			"related_persons": [
 				"p_lucas"
 			],
-			"tags": [
-				"alibi",
-				"work_log",
-				"contradiction"
-			],
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -503,11 +407,6 @@
 			"type": "FORENSIC",
 			"location_found": "loc_hallway",
 			"related_persons": [],
-			"tags": [
-				"forensic",
-				"shoe_print",
-				"unanalyzed"
-			],
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -523,11 +422,6 @@
 			"location_found": "loc_hallway",
 			"related_persons": [
 				"p_julia"
-			],
-			"tags": [
-				"forensic",
-				"shoe_print",
-				"critical"
 			],
 			"weight": 0.8,
 			"importance_level": "CRITICAL",
@@ -555,12 +449,6 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"forensic",
-				"shoe_match",
-				"warrant",
-				"critical"
-			],
 			"weight": 0.8,
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
@@ -583,10 +471,6 @@
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"crime_scene",
-				"visitor"
-			],
 			"weight": 0.2,
 			"importance_level": "OPTIONAL",
 			"discovery_method": "VISUAL",
@@ -601,10 +485,6 @@
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"crime_scene",
-				"murder_weapon"
-			],
 			"weight": 0.3,
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
@@ -622,19 +502,13 @@
 				"p_mark",
 				"p_victim"
 			],
-			"tags": [
-				"hidden",
-				"embezzlement",
-				"motive",
-				"critical"
-			],
 			"weight": 0.85,
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Look carefully around Daniel's office \u2014 there may be hidden compartments.",
+			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments.",
 			"linked_statements": [
 				"stmt_mark_money_admission",
 				"stmt_mark_deeper_admission",
@@ -652,12 +526,6 @@
 				"p_victim",
 				"p_mark",
 				"p_julia"
-			],
-			"tags": [
-				"personal",
-				"motive",
-				"critical",
-				"journal"
 			],
 			"weight": 0.85,
 			"importance_level": "CRITICAL",

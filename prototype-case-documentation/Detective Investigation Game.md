@@ -182,7 +182,6 @@ The board contains several components.
 Evidence Archive
 The archive stores all collected evidence.
 Players can:
-tag items
 highlight text
 add notes
 The archive does not automatically organize conclusions.
@@ -872,7 +871,6 @@ Evidence
     locationFound
     discoveredDay
     relatedPersons[]
-    tags[]
     labStatus
 
 Evidence Types
@@ -896,7 +894,7 @@ Important:
 Evidence does not automatically prove anything.
 It only becomes meaningful when connected to statements or events.
 
-4. Statement Entity
+1. Statement Entity
 Statements are extremely important because they create lies and contradictions.
 Every interrogation produces statements.
 Statement Fields
