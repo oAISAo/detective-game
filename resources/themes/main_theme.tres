@@ -92,7 +92,7 @@ content_margin_top = 1.0
 content_margin_bottom = 1.0
 bg_color = Color(0.3, 0.28, 0.25, 0.4)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0wthw"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_listbutton_disabled"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
@@ -105,9 +105,9 @@ corner_radius_top_right = 8
 expand_margin_left = -6.0
 expand_margin_right = -6.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dagba"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_listbutton_focus"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xtbu8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_listbutton_hover"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
@@ -120,7 +120,7 @@ corner_radius_top_right = 8
 expand_margin_left = -6.0
 expand_margin_right = -6.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hf3i3"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_listbutton_hover_pressed"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
@@ -140,7 +140,7 @@ expand_margin_right = -6.0
 shadow_color = Color(1, 1, 1, 0.35)
 shadow_size = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1nr78"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_listbutton_normal"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
@@ -153,7 +153,7 @@ corner_radius_top_right = 8
 expand_margin_left = -6.0
 expand_margin_right = -6.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7adcq"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_listbutton_pressed"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
@@ -452,12 +452,12 @@ ListButton/colors/font_hover_color = Color(1, 0.95, 0.88, 1)
 ListButton/colors/font_hover_pressed_color = Color(1, 0.95, 0.88, 1)
 ListButton/colors/font_pressed_color = Color(1, 0.95, 0.88, 1)
 ListButton/font_sizes/font_size = 18
-ListButton/styles/disabled = SubResource("StyleBoxFlat_0wthw")
-ListButton/styles/focus = SubResource("StyleBoxEmpty_dagba")
-ListButton/styles/hover = SubResource("StyleBoxFlat_xtbu8")
-ListButton/styles/hover_pressed = SubResource("StyleBoxFlat_hf3i3")
-ListButton/styles/normal = SubResource("StyleBoxFlat_1nr78")
-ListButton/styles/pressed = SubResource("StyleBoxFlat_7adcq")
+ListButton/styles/disabled = SubResource("StyleBoxFlat_listbutton_disabled")
+ListButton/styles/focus = SubResource("StyleBoxEmpty_listbutton_focus")
+ListButton/styles/hover = SubResource("StyleBoxFlat_listbutton_hover")
+ListButton/styles/hover_pressed = SubResource("StyleBoxFlat_listbutton_hover_pressed")
+ListButton/styles/normal = SubResource("StyleBoxFlat_listbutton_normal")
+ListButton/styles/pressed = SubResource("StyleBoxFlat_listbutton_pressed")
 MenuButton/font_sizes/font_size = 22
 MetadataLabel/base_type = &"Label"
 MetadataLabel/colors/font_color = Color(0.5, 0.48, 0.45, 1)

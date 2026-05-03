@@ -26,6 +26,8 @@ var _handwriting_font: Font = null
 @onready var send_to_board_button: Button = %SendToBoardButton
 
 @onready var _header_badges_row: HBoxContainer = %HeaderBadgesRow
+@onready var _detail_column1_scroll: ScrollContainer = %Column1Scroll
+@onready var _detail_column1_content: VBoxContainer = %Column1Content
 @onready var evidence_image: TextureRect = %EvidenceImage
 @onready var description_label: RichTextLabel = %DescriptionLabel
 @onready var info_grid: GridContainer = %InfoGrid
@@ -58,8 +60,9 @@ var _on_evidence_sent_to_board_cb: Callable
 
 func _ready() -> void:
 	$MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/EvidenceContent/CardScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
-	$MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
-	$MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
+	_detail_column1_scroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
+	$MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
+	$MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 
 	if ResourceLoader.exists(_HANDWRITING_FONT_PATH):
 		_handwriting_font = load(_HANDWRITING_FONT_PATH) as Font
@@ -486,8 +489,7 @@ func _populate_notes_section(ev: EvidenceData) -> void:
 		EvidenceManager.set_player_notes(ev.id, text_edit.text))
 
 	# Append to the end of MainContent (after CompareSection).
-	var main_content: Node = comparison_panel.get_parent().get_parent()
-	main_content.add_child(_notes_section)
+	_detail_column1_content.add_child(_notes_section)
 
 
 func _populate_related_persons(ev: EvidenceData) -> void:

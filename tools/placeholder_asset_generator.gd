@@ -118,6 +118,7 @@ static func _evidence_assets() -> Array[Dictionary]:
 		["knife_block", "E23 - Knife Block"],
 		["hidden_safe", "E24 - Hidden Safe"],
 		["personal_journal", "E25 - Personal Journal"],
+		["autopsy_report", "E26 - Autopsy Report"],
 	]
 	var assets: Array[Dictionary] = []
 	for item in items:

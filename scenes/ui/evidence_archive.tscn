@@ -178,21 +178,26 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-split_offset = 300
-
-[node name="MainScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer"]
+[node name="DetailColumns" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
 
-[node name="MainContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll"]
+[node name="Column1Scroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1
+
+[node name="Column1Content" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/Column1Scroll"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="EvidenceImage" type="TextureRect" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+[node name="EvidenceImage" type="TextureRect" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/Column1Scroll/Column1Content"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -201,106 +206,120 @@ custom_minimum_size = Vector2(0, 250)
 expand_mode = 3
 stretch_mode = 5
 
-[node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+[node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/Column1Scroll/Column1Content"]
 unique_name_in_owner = true
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 text = "No description available."
+theme_type_variation = &"SectionText"
 
-[node name="InfoSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+[node name="MainScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1
+
+[node name="MainContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="InfoSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent"]
 layout_mode = 2
 
-[node name="InfoHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/InfoSection"]
+[node name="InfoHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/InfoSection"]
 layout_mode = 2
 text = "Details"
 theme_type_variation = &"SectionHeader"
 
-[node name="InfoGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/InfoSection"]
+[node name="InfoGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/InfoSection"]
 unique_name_in_owner = true
 layout_mode = 2
 columns = 2
 theme_override_constants/h_separation = 24
 theme_override_constants/v_separation = 8
 
-[node name="TagsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+[node name="TagsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent"]
 layout_mode = 2
 
-[node name="TagsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/TagsSection"]
+[node name="TagsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/TagsSection"]
 layout_mode = 2
 text = "Tags"
 theme_type_variation = &"SectionHeader"
 
-[node name="TagsContainer" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/TagsSection"]
+[node name="TagsContainer" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/TagsSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="CompareSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent"]
+[node name="CompareSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CompareButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection"]
+[node name="CompareButton" type="Button" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/CompareSection"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 text = "🔍 Compare Evidence"
 
-[node name="ComparisonPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection"]
+[node name="ComparisonPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/CompareSection"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"SurfacePanel"
 
-[node name="ComparisonScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel"]
+[node name="ComparisonScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/CompareSection/ComparisonPanel"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 120)
 
-[node name="ComparisonList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/MainScroll/MainContent/CompareSection/ComparisonPanel/ComparisonScroll"]
+[node name="ComparisonList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/CompareSection/ComparisonPanel/ComparisonScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RelationshipsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer"]
+[node name="RelationshipsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns"]
 layout_mode = 2
-custom_minimum_size = Vector2(250, 0)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1
 
-[node name="RelationshipsContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll"]
+[node name="RelationshipsContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 24
 
-[node name="PersonsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+[node name="PersonsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
 layout_mode = 2
 
-[node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
+[node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/PersonsSection"]
 layout_mode = 2
 text = "Related Persons"
 theme_type_variation = &"SectionHeader"
 
-[node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/PersonsSection"]
+[node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/PersonsSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="StatementsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+[node name="StatementsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
 layout_mode = 2
 
-[node name="StatementsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+[node name="StatementsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/StatementsSection"]
 layout_mode = 2
 text = "Referenced Statements"
 theme_type_variation = &"SectionHeader"
 
-[node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+[node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/StatementsSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="LegalSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent"]
+[node name="LegalSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
 layout_mode = 2
 
-[node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
+[node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/LegalSection"]
 layout_mode = 2
 text = "Legal Categories"
 theme_type_variation = &"SectionHeader"
 
-[node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/HSplitContainer/RelationshipsScroll/RelationshipsContent/LegalSection"]
+[node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/LegalSection"]
 unique_name_in_owner = true
 layout_mode = 2

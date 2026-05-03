@@ -6,7 +6,7 @@
 			"trigger_day": 1,
 			"conditions": [],
 			"actions": [
-				"discover_evidence:ev_autopsy_report",
+				"unlock_evidence:ev_autopsy_report",
 				"notify:Morning Briefing - A man has been found dead in his apartment from a knife wound. Victim identified as Daniel Ross, age 42, financial consultant. The crime scene and building are now available for investigation. Sarah Klein is available for questioning. Coroner's report received: preliminary autopsy results",
 				"unlock_location:loc_victim_apartment",
 				"unlock_location:loc_hallway",

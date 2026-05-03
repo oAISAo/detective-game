@@ -1,3 +1,4 @@
+Please use relevant documentation files located in the godot-docs-master project 
 Please use relevant skill files located in: .agents/skills
 Codex will review your output once you are done.
 

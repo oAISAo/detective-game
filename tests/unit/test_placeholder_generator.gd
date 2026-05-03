@@ -28,7 +28,16 @@ func test_portrait_asset_count() -> void:
 
 func test_evidence_asset_count() -> void:
 	var assets := PlaceholderAssetGenerator._evidence_assets()
-	assert_eq(assets.size(), 25, "Should define 25 evidence images")
+	assert_eq(assets.size(), 26, "Should define 26 evidence images")
+
+
+func test_evidence_asset_includes_autopsy_report() -> void:
+	var assets := PlaceholderAssetGenerator._evidence_assets()
+	var filenames: Array[String] = []
+	for asset in assets:
+		filenames.append(asset.filename)
+	assert_has(filenames, "placeholder_evidence_autopsy_report.png",
+		"Evidence placeholders should include the autopsy report")
 
 
 func test_ui_asset_count() -> void:
@@ -43,7 +52,7 @@ func test_icon_asset_count() -> void:
 
 func test_total_asset_count() -> void:
 	var assets := PlaceholderAssetGenerator.get_all_asset_definitions()
-	assert_eq(assets.size(), 64, "Should define 64 total assets (5+24+25+7+3)")
+	assert_eq(assets.size(), 65, "Should define 65 total assets (5+24+26+7+3)")
 
 
 # --- Naming Convention Tests ---
@@ -191,8 +200,8 @@ func test_generate_with_empty_label_succeeds() -> void:
 
 func test_generate_all_returns_correct_totals() -> void:
 	var results := PlaceholderAssetGenerator.generate_all_placeholders(TEST_OUTPUT_DIR)
-	assert_eq(results.total, 64, "Should attempt 64 assets")
-	assert_eq(results.generated, 64, "Should generate 64 assets")
+	assert_eq(results.total, 65, "Should attempt 65 assets")
+	assert_eq(results.generated, 65, "Should generate 65 assets")
 	assert_eq(results.failed, 0, "Should have 0 failures")
 
 

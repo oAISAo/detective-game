@@ -21,6 +21,29 @@ func after_each() -> void:
 	CaseManager.unload_case()
 
 
+func test_day1_morning_briefing_discovers_autopsy_report() -> void:
+	watch_signals(GameManager)
+
+	var briefing: Array[String] = DaySystem.process_morning()
+
+	assert_true(GameManager.has_evidence("ev_autopsy_report"),
+		"Day 1 morning briefing should discover the autopsy report")
+	assert_signal_emitted_with_parameters(GameManager, "evidence_discovered", ["ev_autopsy_report"])
+
+	var discovered_ids: Array[String] = []
+	for ev: EvidenceData in EvidenceManager.get_discovered_evidence_data():
+		discovered_ids.append(ev.id)
+	assert_has(discovered_ids, "ev_autopsy_report",
+		"Autopsy report should be present in the evidence archive source list")
+
+	var briefing_mentions_autopsy: bool = false
+	for line: String in briefing:
+		if "Autopsy Report" in line:
+			briefing_mentions_autopsy = true
+			break
+	assert_true(briefing_mentions_autopsy, "Morning briefing should mention the autopsy report")
+
+
 # =========================================================================
 # Test 1: CaseManager lab request lookup by evidence ID
 # =========================================================================
