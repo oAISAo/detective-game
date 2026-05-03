@@ -202,8 +202,8 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 250)
-expand_mode = 3
+custom_minimum_size = Vector2(0, 0)
+expand_mode = 1
 stretch_mode = 5
 
 [node name="DescriptionLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/Column1Scroll/Column1Content"]
@@ -239,6 +239,30 @@ layout_mode = 2
 columns = 2
 theme_override_constants/h_separation = 24
 theme_override_constants/v_separation = 8
+
+[node name="PersonsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent"]
+layout_mode = 2
+
+[node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/PersonsSection"]
+layout_mode = 2
+text = "Related Persons"
+theme_type_variation = &"SectionHeader"
+
+[node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/PersonsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LegalSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent"]
+layout_mode = 2
+
+[node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/LegalSection"]
+layout_mode = 2
+text = "Legal Categories"
+theme_type_variation = &"SectionHeader"
+
+[node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent/LegalSection"]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="CompareSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll/MainContent"]
 layout_mode = 2
@@ -276,18 +300,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 24
 
-[node name="PersonsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
-layout_mode = 2
-
-[node name="PersonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/PersonsSection"]
-layout_mode = 2
-text = "Related Persons"
-theme_type_variation = &"SectionHeader"
-
-[node name="RelatedPersonsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/PersonsSection"]
-unique_name_in_owner = true
-layout_mode = 2
-
 [node name="StatementsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
 layout_mode = 2
 
@@ -300,14 +312,3 @@ theme_type_variation = &"SectionHeader"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="LegalSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
-layout_mode = 2
-
-[node name="LegalHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/LegalSection"]
-layout_mode = 2
-text = "Legal Categories"
-theme_type_variation = &"SectionHeader"
-
-[node name="LegalCategoriesList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/LegalSection"]
-unique_name_in_owner = true
-layout_mode = 2

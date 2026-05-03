@@ -10,6 +10,5 @@ Replace current text icons with out material icons:
 ## Submit To Lab button -> WaitButton
 WaitButton should look similar to ActionButton. Color should be Amber, icon should be hourglass. ActionButton icon should be changed to thunder.
 
-## Compare Evidence should cost 1 action
-
-## Visual Inspection should cost 2 or 3
+## Lab Tag
+The Lab Tag should appear immediately on the evidence polaroid as soon as the player clicks "Submit to Lab"

@@ -4,7 +4,7 @@
 
 The Evidence Tab is the player's investigation workspace for all collected evidence. Where the Map tab is about *gathering* — going out and finding things — the Evidence tab is about *understanding*: reading, connecting, analyzing, and drawing conclusions from what's been found.
 
-**Core loop:** Discover evidence (via Map / Lab / Interrogation) → Review in Evidence Archive → Submit to Lab if raw → Link statements → Classify contradictions → Compare items → Build understanding
+**Core loop:** Discover evidence (via Map / Lab / Interrogation) → Review in Evidence Archive → Submit to Lab if raw → Classify contradictions → Compare items → Build understanding
 
 **Key principle:** The Evidence tab never interprets evidence for the player. It presents facts. The player decides what they mean. The game's job is to make analysis feel like a detective's workflow, not a database query.
 
@@ -21,12 +21,13 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 │  [Type filter]          │  │  Title · Badges · Pin · Board        │  │
 │                         │  └────────────────────────────────────────────┘ │
 │  Polaroid grid of all   │  ┌─ Main col ─────────┐  ┌─ Side col ───────┐  │
-│  discovered evidence    │  │  Image              │  │  Related Persons │  │
-│                         │  │  Description        │  │  Statements /    │  │
-│  Click → loads detail   │  │  Metadata grid      │  │  Contradiction   │  │
-│                         │  │  Weight bar         │  │  Engine          │  │
-│                         │  │                     │  │  Send to Board   │  │
-│                         │  │  Compare button     │  └──────────────────┘  │
+│  discovered evidence    │  │  Image              │  │  Statements      │  │
+│                         │  │  Description        │  │  / Contradiction │  │
+│  Click → loads detail   │  │  Metadata grid      │  │  Engine          │  │
+│                         │  │  Weight bar         │  │  Send to Board   │  │
+│                         │  │  Related Persons    │  └──────────────────┘  │
+│                         │  │  Legal Categories   │                       │
+│                         │  │  Compare button     │                       │
 │                         │  └────────────────────────────────────────────┘  │
 └─────────────────────────┴─────────────────────────────────────────────────┘
 ```
@@ -89,7 +90,7 @@ The detail panel is split into a header, a main content column, and a side colum
 │  Location / Discovery /      │  │  [stmt item]                 │
 │  Day Found / Lab Status      │  │  [stmt item]                 │
 │                               │  │                              │
-│  EVIDENTIARY WEIGHT          │  │  [+ Link Statement]          │
+│  EVIDENTIARY WEIGHT          │  │  [My Notes]                  │
 │  ████████░░ 70%              │  │  [Send to Board ↗]           │
 │  "Strong corroborating..."   │  └──────────────────────────────┘
 │                               │
@@ -156,9 +157,9 @@ See **Evidence Comparison** section below.
 
 ---
 
-## Side Column — Related Persons
+## Main Column — Related Persons
 
-A compact list of all persons linked to this evidence in the case data.
+A compact list of all persons linked to this evidence in the case data. It sits below the evidentiary weight bar in the second column.
 
 Each person entry shows:
 - Avatar circle with initials (color-coded: red for suspects, blue for witnesses, grey for other)
@@ -166,6 +167,14 @@ Each person entry shows:
 - Role label (Suspect / Witness / Victim / etc.)
 
 Clicking a person navigates to their profile in the Suspects tab.
+
+## Main Column — Legal Categories
+
+A compact list of the evidence's legal categories in the case data. It appears directly below Related Persons in the second column.
+
+Each entry shows:
+- A bullet label for the legal category
+- The same case-data-driven category labels used elsewhere in the UI
 
 ---
 
@@ -231,14 +240,8 @@ The player sets the verdict by clicking the current verdict pill and selecting f
 - Contradiction
 - Supports
 - Unresolved
-- (Remove link — hides the statement from this evidence item)
 
 **Design principle:** Classifying a contradiction is a meaningful investigative action. The game tracks which contradictions have been identified — this feeds into the Prosecutor Confidence evaluation at case submission.
-
-### "+ Link Statement" Button
-If the player wants to manually link a statement that wasn't pre-linked in the data, they can use this button to search for statements and attach them. This supports player-driven connections the data didn't anticipate.
-
-> **Decided (D2):** Manually linked statements show a small pen icon ("player-linked" indicator) so the player can distinguish their own inference from a data-driven link. 🚧 *Not yet implemented.*
 
 ---
 
@@ -360,7 +363,7 @@ When the player clicks **Send to Board**:
 
 ## Player Notes
 
-The statement expansion section includes a **free-text notes field** per statement link. The main evidence detail panel also has a **notes area** accessible via a small notes toggle icon near the bottom.
+The statement expansion section includes a **free-text notes field** per statement link. The main evidence detail panel also has a **notes area** accessible via a small notes toggle icon near the bottom, positioned below the evidentiary weight bar in the first column.
 
 Player notes are:
 - Stored per evidence item in game state
@@ -536,8 +539,6 @@ State is split across multiple systems. Fields below show what IS currently trac
 All design questions have been resolved. Decisions are final.
 
 **D1 — Invalid evidence comparisons:** Silent inline message only — no junk evidence items are generated. ✅ *Already implemented in `EvidenceManager.compare_evidence()`.*
-
-**D2 — Manually linked statements:** Manually linked statements show a small pen icon ("player-linked" indicator) to visually distinguish them from data-driven links. Player-created links are stored separately in `EvidenceManager` state. 🚧 *Not yet implemented.*
 
 **D3 — "Send to Board" placement:** Auto-place in an inbox zone at a predefined position on the board canvas. The player repositions it in the Board tab. `BoardManager.send_to_board()` is already called from `evidence_archive.gd` — the inbox zone coordinates need to be finalized. 🚧 *Inbox zone position not yet finalized.*
 

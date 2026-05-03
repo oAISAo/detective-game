@@ -61,6 +61,7 @@ func _ready() -> void:
 	_detail_column1_scroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 	$MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/MainScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 	$MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
+	evidence_image.resized.connect(_sync_evidence_image_square)
 
 	if ResourceLoader.exists(_HANDWRITING_FONT_PATH):
 		_handwriting_font = load(_HANDWRITING_FONT_PATH) as Font
@@ -282,6 +283,7 @@ func _clear_detail() -> void:
 	_header_badges_row.visible = false
 	UIHelper.clear_children(_header_badges_row)
 	evidence_image.visible = false
+	evidence_image.custom_minimum_size = Vector2.ZERO
 	comparison_panel.visible = false
 	detail_panel.visible = false
 	description_label.text = ""
@@ -312,11 +314,11 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	# Description
 	description_label.text = ev.description
 
+	# Evidentiary weight bar (inserted in the first column below the description)
+	_populate_weight_section(ev)
+
 	# Info grid (key-value pairs)
 	_populate_info_grid(ev)
-
-	# Evidentiary weight bar (inserted inside InfoSection after InfoGrid)
-	_populate_weight_section(ev)
 
 	# Lab submission section
 	_populate_lab_section()
@@ -339,6 +341,19 @@ func _show_evidence_detail(evidence_id: String) -> void:
 		image_path = "res://assets/evidence_images/%s.png" % ev.id
 	evidence_image.texture = AssetFallback.get_texture(image_path)
 	evidence_image.visible = true
+	_sync_evidence_image_square()
+
+
+func _sync_evidence_image_square(image_width: float = -1.0) -> void:
+	if image_width <= 0.0:
+		image_width = evidence_image.size.x
+	if image_width <= 0.0:
+		return
+	var minimum_size: Vector2 = evidence_image.custom_minimum_size
+	if is_equal_approx(minimum_size.y, image_width):
+		return
+	minimum_size.y = image_width
+	evidence_image.custom_minimum_size = minimum_size
 
 
 func _populate_info_grid(ev: EvidenceData) -> void:
@@ -349,7 +364,7 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Discovery", _get_discovery_method_label(ev.discovery_method))
 	_add_info_row("Day Found", "Day %d" % GameManager.get_evidence_discovery_day(ev.id))
 	_add_info_row("Importance", _get_importance_label(ev.importance_level))
-	# weight rendered by _populate_weight_section() below the grid
+	# weight rendered by _populate_weight_section() in the first column
 
 	if ev.requires_lab_analysis:
 		if not ev.lab_result_text.is_empty():
@@ -424,7 +439,7 @@ func _populate_notes_section(ev: EvidenceData) -> void:
 	text_edit.text_changed.connect(func() -> void:
 		EvidenceManager.set_player_notes(ev.id, text_edit.text))
 
-	# Append to the end of MainContent (after CompareSection).
+	# Append to the end of the first column.
 	_detail_column1_content.add_child(_notes_section)
 
 
@@ -516,10 +531,9 @@ func _populate_weight_section(ev: EvidenceData) -> void:
 	prose_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_weight_section.add_child(prose_label)
 
-	# Insert into InfoSection right after InfoGrid
-	var info_section: Node = info_grid.get_parent()
-	info_section.add_child(_weight_section)
-	info_section.move_child(_weight_section, info_grid.get_index() + 1)
+	# Insert into the first column right after the description.
+	_detail_column1_content.add_child(_weight_section)
+	_detail_column1_content.move_child(_weight_section, description_label.get_index() + 1)
 
 
 func _get_weight_bar_color(ev: EvidenceData) -> Color:

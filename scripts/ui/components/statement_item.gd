@@ -1,6 +1,6 @@
 ## statement_item.gd
-## Displays a single statement with expand/collapse, verdict popup, per-statement note,
-## and pen icon for manually linked statements. Built programmatically — no .tscn needed.
+## Displays a single statement with expand/collapse, verdict popup, and per-statement note.
+## Built programmatically — no .tscn needed.
 class_name StatementItem
 extends VBoxContainer
 
@@ -9,7 +9,6 @@ const HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
 
 var _evidence_id: String = ""
 var _statement_id: String = ""
-var _is_manually_linked: bool = false
 var _verdict_button: Button = null
 var _verdict_popup: PopupMenu = null
 var _body: VBoxContainer = null
@@ -18,12 +17,11 @@ var _note_edit: TextEdit = null
 var _is_expanded: bool = false
 
 
-## Initializes this item with its evidence context, statement data, and link origin.
+## Initializes this item with its evidence context and statement data.
 ## Must be called after add_child().
-func setup(evidence_id: String, stmt: StatementData, is_manually_linked: bool) -> void:
+func setup(evidence_id: String, stmt: StatementData, _legacy_manual_link: bool = false) -> void:
 	_evidence_id = evidence_id
 	_statement_id = stmt.id
-	_is_manually_linked = is_manually_linked
 
 	add_theme_constant_override("separation", 4)
 
@@ -42,14 +40,6 @@ func setup(evidence_id: String, stmt: StatementData, is_manually_linked: bool) -
 	_toggle_button.custom_minimum_size = Vector2(20, 0)
 	_toggle_button.pressed.connect(_on_toggle_pressed)
 	header.add_child(_toggle_button)
-
-	if is_manually_linked:
-		var pen: Label = Label.new()
-		pen.text = "✎"
-		pen.tooltip_text = "Manually linked by you"
-		pen.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-		pen.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
-		header.add_child(pen)
 
 	var name_label: Label = Label.new()
 	name_label.text = person_name
@@ -79,9 +69,6 @@ func setup(evidence_id: String, stmt: StatementData, is_manually_linked: bool) -
 	_verdict_popup.add_item("Supports", 1)
 	_verdict_popup.add_item("Unresolved", 2)
 	_verdict_popup.add_item("Unclassified", 3)
-	if is_manually_linked:
-		_verdict_popup.add_separator()
-		_verdict_popup.add_item("Remove link", 4)
 	_verdict_popup.id_pressed.connect(_on_verdict_popup_id_pressed)
 	add_child(_verdict_popup)
 
@@ -179,9 +166,6 @@ func _on_verdict_popup_id_pressed(id: int) -> void:
 		1: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "supports")
 		2: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "unresolved")
 		3: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "unclassified")
-		4:
-			EvidenceManager.unlink_statement_manually(_evidence_id, _statement_id)
-			queue_free()
 
 
 func _on_note_changed() -> void:

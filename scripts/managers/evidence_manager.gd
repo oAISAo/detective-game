@@ -35,12 +35,6 @@ signal evidence_reviewed(evidence_id: String)
 ## Emitted when the player saves a note for an evidence item.
 signal player_notes_changed(evidence_id: String)
 
-## Emitted when the player manually links a statement to an evidence item.
-signal statement_manually_linked(evidence_id: String, statement_id: String)
-
-## Emitted when the player removes a manually linked statement from an evidence item.
-signal statement_manually_unlinked(evidence_id: String, statement_id: String)
-
 ## Emitted the first time a piece of evidence is sent to the detective board.
 signal evidence_sent_to_board(evidence_id: String)
 
@@ -71,9 +65,6 @@ var _player_notes: Dictionary = {}
 
 ## Tracks which evidence items have been sent to the detective board.
 var _sent_to_board: Dictionary = {}
-
-## Manually linked statements per evidence item. Key: evidence_id, Value: Array of statement_id strings.
-var _manually_linked_statements: Dictionary = {}
 
 
 # --- Lifecycle --- #
@@ -283,11 +274,10 @@ func is_contradicted(evidence_id: String) -> bool:
 
 
 ## Returns StatementData items visible for a given evidence item.
-## Includes both case-data linked statements and player-manually-linked statements.
+## Includes case-data linked statements only.
 ## Only returns statements that are unlocked by the player.
 func get_statements_for_evidence(evidence_id: String) -> Array[StatementData]:
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
-	var seen: Dictionary = {}
 	var result: Array[StatementData] = []
 	if ev != null:
 		for stmt_id: String in ev.linked_statements:
@@ -295,16 +285,7 @@ func get_statements_for_evidence(evidence_id: String) -> Array[StatementData]:
 				continue
 			var stmt: StatementData = CaseManager.get_statement(stmt_id)
 			if stmt != null:
-				seen[stmt_id] = true
 				result.append(stmt)
-	for stmt_id: String in get_manually_linked_statements(evidence_id):
-		if seen.has(stmt_id):
-			continue
-		if not is_statement_unlocked(stmt_id):
-			continue
-		var stmt: StatementData = CaseManager.get_statement(stmt_id)
-		if stmt != null:
-			result.append(stmt)
 	return result
 
 
@@ -347,51 +328,6 @@ func get_statement_note(evidence_id: String, statement_id: String) -> String:
 	var key: String = "%s:%s" % [evidence_id, statement_id]
 	var vd: StatementVerdictData = _statement_verdicts.get(key, null)
 	return vd.player_note if vd != null else ""
-
-
-# --- Manually Linked Statements --- #
-
-## Manually links a statement to an evidence item.
-## Returns false if already linked via case data or manually. Otherwise emits signal and returns true.
-func link_statement_manually(evidence_id: String, statement_id: String) -> bool:
-	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
-	if ev != null and statement_id in ev.linked_statements:
-		return false
-	if is_manually_linked(evidence_id, statement_id):
-		return false
-	if not _manually_linked_statements.has(evidence_id):
-		_manually_linked_statements[evidence_id] = []
-	_manually_linked_statements[evidence_id].append(statement_id)
-	statement_manually_linked.emit(evidence_id, statement_id)
-	return true
-
-
-## Removes a manually linked statement. Safe to call even if the link does not exist.
-func unlink_statement_manually(evidence_id: String, statement_id: String) -> void:
-	if not _manually_linked_statements.has(evidence_id):
-		return
-	var arr: Array = _manually_linked_statements[evidence_id]
-	var idx: int = arr.find(statement_id)
-	if idx == -1:
-		return
-	arr.remove_at(idx)
-	statement_manually_unlinked.emit(evidence_id, statement_id)
-
-
-## Returns true if the given statement was manually linked by the player to the given evidence.
-func is_manually_linked(evidence_id: String, statement_id: String) -> bool:
-	var arr: Array = _manually_linked_statements.get(evidence_id, [])
-	return statement_id in arr
-
-
-## Returns the manually linked statement IDs for the given evidence item.
-func get_manually_linked_statements(evidence_id: String) -> Array[String]:
-	var raw: Array = _manually_linked_statements.get(evidence_id, [])
-	var result: Array[String] = []
-	result.assign(raw)
-	return result
-
-
 # --- Lab Analysis --- #
 
 ## Submits evidence for lab analysis. Returns true if the request was accepted.
@@ -534,7 +470,6 @@ func serialize() -> Dictionary:
 		"statement_verdicts": _serialize_verdicts(),
 		"reviewed_evidence": _reviewed_evidence.duplicate(),
 		"player_notes": _player_notes.duplicate(),
-		"manually_linked_statements": _manually_linked_statements.duplicate(true),
 		"sent_to_board": _sent_to_board.duplicate(),
 	}
 
@@ -561,7 +496,6 @@ func deserialize(data: Dictionary) -> void:
 		_statement_verdicts[key] = vd
 	_reviewed_evidence = data.get("reviewed_evidence", {}).duplicate()
 	_player_notes = data.get("player_notes", {}).duplicate()
-	_manually_linked_statements = data.get("manually_linked_statements", {}).duplicate(true)
 	_sent_to_board = data.get("sent_to_board", {}).duplicate()
 	state_loaded.emit()
 
@@ -573,5 +507,4 @@ func reset() -> void:
 	_statement_verdicts.clear()
 	_reviewed_evidence.clear()
 	_player_notes.clear()
-	_manually_linked_statements.clear()
 	_sent_to_board.clear()
