@@ -108,9 +108,12 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	GameManager.evidence_discovered.disconnect(_on_evidence_discovered_cb)
-	EvidenceManager.evidence_pinned.disconnect(_on_evidence_pinned_cb)
-	EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
+	if GameManager.evidence_discovered.is_connected(_on_evidence_discovered_cb):
+		GameManager.evidence_discovered.disconnect(_on_evidence_discovered_cb)
+	if EvidenceManager.evidence_pinned.is_connected(_on_evidence_pinned_cb):
+		EvidenceManager.evidence_pinned.disconnect(_on_evidence_pinned_cb)
+	if EvidenceManager.evidence_unpinned.is_connected(_on_evidence_unpinned_cb):
+		EvidenceManager.evidence_unpinned.disconnect(_on_evidence_unpinned_cb)
 	if EvidenceManager.evidence_reviewed.is_connected(_on_evidence_reviewed_cb):
 		EvidenceManager.evidence_reviewed.disconnect(_on_evidence_reviewed_cb)
 	if EvidenceManager.evidence_sent_to_board.is_connected(_on_evidence_sent_to_board_cb):
@@ -145,16 +148,19 @@ func _add_search_icon() -> void:
 
 
 ## Configures the filter dropdown with all evidence types.
+## Each type item's ID is set to its EvidenceType enum value so that the filter
+## comparison is robust against future item reordering. The "All Types" sentinel
+## uses no explicit ID (Godot auto-assigns one); it is detected by index == 0 instead.
 func _setup_filter_options() -> void:
 	filter_option.clear()
-	filter_option.add_item("All Types", 0)
-	filter_option.add_item("Forensic", 1)
-	filter_option.add_item("Document", 2)
-	filter_option.add_item("Photo", 3)
-	filter_option.add_item("Recording", 4)
-	filter_option.add_item("Financial", 5)
-	filter_option.add_item("Digital", 6)
-	filter_option.add_item("Object", 7)
+	filter_option.add_item("All Types")  # index 0 — always the "no filter" sentinel
+	filter_option.add_item("Forensic", Enums.EvidenceType.FORENSIC)
+	filter_option.add_item("Document", Enums.EvidenceType.DOCUMENT)
+	filter_option.add_item("Photo", Enums.EvidenceType.PHOTO)
+	filter_option.add_item("Recording", Enums.EvidenceType.RECORDING)
+	filter_option.add_item("Financial", Enums.EvidenceType.FINANCIAL)
+	filter_option.add_item("Digital", Enums.EvidenceType.DIGITAL)
+	filter_option.add_item("Object", Enums.EvidenceType.OBJECT)
 
 
 ## Populates the evidence grid with card components.
@@ -199,9 +205,11 @@ func _get_filtered_evidence() -> Array[EvidenceData]:
 	else:
 		items = EvidenceManager.search_evidence(query)
 
-	# Apply type filter if not "All Types"
+	# Apply type filter. Index 0 is always "All Types" (no filter).
+	# For all other items, read the stored ID (the EvidenceType enum value) so the
+	# comparison is robust against items being added or reordered in the future.
 	if type_idx > 0:
-		var type_filter: Enums.EvidenceType = (type_idx - 1) as Enums.EvidenceType
+		var type_filter: Enums.EvidenceType = filter_option.get_item_id(type_idx) as Enums.EvidenceType
 		var filtered: Array[EvidenceData] = []
 		for ev: EvidenceData in items:
 			if ev.type == type_filter:
@@ -242,9 +250,11 @@ func _sort_evidence(items: Array[EvidenceData]) -> Array[EvidenceData]:
 
 ## Populates the pinned evidence bar.
 func _populate_pinned_bar() -> void:
-	# Clear everything except the first child (the "PINNED" label)
-	while pinned_bar.get_child_count() > 1:
-		var child: Node = pinned_bar.get_child(pinned_bar.get_child_count() - 1)
+	# Clear all dynamically added children, keeping only the static "PinnedLabel" node.
+	var pinned_label: Label = pinned_bar.get_node_or_null("PinnedLabel") as Label
+	for child: Node in pinned_bar.get_children():
+		if child == pinned_label:
+			continue
 		pinned_bar.remove_child(child)
 		child.queue_free()
 
@@ -295,6 +305,10 @@ func _show_evidence_detail(evidence_id: String) -> void:
 	if ev == null:
 		_clear_detail()
 		return
+
+	# Reset comparison state whenever a new evidence item is selected.
+	_comparing = false
+	comparison_panel.visible = false
 
 	_selected_evidence_id = evidence_id
 	EvidenceManager.mark_reviewed(evidence_id)
@@ -436,7 +450,7 @@ func _populate_related_persons(ev: EvidenceData) -> void:
 
 	if ev.related_persons.is_empty():
 		var none_label: Label = Label.new()
-		none_label.text = "No related persons yet. No related persons yet. No related persons yet. No related persons yet."
+		none_label.text = "No related persons yet."
 		none_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		none_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		related_persons_list.add_child(none_label)
