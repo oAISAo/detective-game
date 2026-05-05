@@ -43,29 +43,24 @@ func clear() -> void:
 
 
 func _build_completed_state(lab_req: LabRequestData) -> void:
-	var status_label := Label.new()
-	status_label.text = "Lab analysis complete."
-	add_child(status_label)
-
 	var output_ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
 	if output_ev == null:
 		return
 
-	var result_label := Label.new()
-	result_label.text = "Result: %s" % output_ev.name
-	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(result_label)
+	var status_label := Label.new()
+	status_label.text = "Fingerprint identified on the glass."
+	add_child(status_label)
 
 	var view_btn := Button.new()
-	view_btn.text = "\u2192 View: %s" % output_ev.name
+	view_btn.text = "\u2192 %s" % output_ev.name
 	view_btn.flat = true
 	view_btn.add_theme_color_override("font_color", UIColors.BLUE)
 	view_btn.clip_text = true
+	var empty_style := StyleBoxEmpty.new()
+	for state: StringName in [&"normal", &"hover", &"pressed", &"focus", &"disabled"]:
+		view_btn.add_theme_stylebox_override(state, empty_style)
 	var out_id: String = lab_req.output_evidence_id
-	view_btn.pressed.connect(
-		func() -> void:
-			output_evidence_requested.emit(out_id)
-	)
+	view_btn.pressed.connect(func() -> void: output_evidence_requested.emit(out_id))
 	add_child(view_btn)
 
 
