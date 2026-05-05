@@ -16,3 +16,5 @@ The Lab Tag should appear immediately on the evidence polaroid as soon as the pl
 ## Selected Evidence
 the evidence polaroid needs a blue border when it's selected (same as location card hover)
 
+## Remove Lab Status from details
+In Details metadata we get Lab Status: Processing... we should remove that

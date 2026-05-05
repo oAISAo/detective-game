@@ -7,6 +7,7 @@ extends VBoxContainer
 
 
 var _evidence_id: String = ""
+var _handwriting_font: Font = null
 
 ## Maps statement_id -> StatementItem for targeted updates.
 var _items: Dictionary = {}
@@ -18,6 +19,12 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if EvidenceManager.statement_verdict_changed.is_connected(_on_verdict_changed):
 		EvidenceManager.statement_verdict_changed.disconnect(_on_verdict_changed)
+
+
+## Stores the handwriting font for use when creating StatementItems.
+## Call once after adding to the scene tree, before set_evidence().
+func setup(handwriting_font: Font) -> void:
+	_handwriting_font = handwriting_font
 
 
 ## Loads and renders all visible statements for the given evidence item.
@@ -43,7 +50,7 @@ func _reload() -> void:
 		for stmt: StatementData in statements:
 			var item: StatementItem = StatementItem.new()
 			add_child(item)
-			item.setup(_evidence_id, stmt, false)
+			item.setup(_evidence_id, stmt, _handwriting_font)
 			_items[stmt.id] = item
 
 

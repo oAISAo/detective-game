@@ -14,6 +14,7 @@ const _BOTTOM_PADDING: int = 6
 const _IMAGE_MIN_HEIGHT: int = 120
 const _SHADOW_SIZE: int = 8
 const _HOVER_DIMNESS: float = 0.88
+const _SELECTED_BORDER_WIDTH: int = 2
 
 @onready var _image_area: Control = $VBox/ImageArea
 @onready var _image_clip: Control = %ImageClip
@@ -24,6 +25,7 @@ const _HOVER_DIMNESS: float = 0.88
 
 var _evidence_id: String = ""
 var _base_modulate: Color = Color.WHITE
+var _selected: bool = false
 
 
 func _ready() -> void:
@@ -55,7 +57,8 @@ func setup(ev: EvidenceData, handwriting_font: Font = null) -> void:
 		_name_label.add_theme_font_override("font", handwriting_font)
 		
 	# Force label to exactly two lines of height so 1-line vs 2-line names don't change polaroid size
-	var line_height: float = _name_label.get_theme_font("font").get_height(UIFonts.SIZE_TITLE)
+	var font: Font = _name_label.get_theme_font("font")
+	var line_height: float = font.get_height(UIFonts.SIZE_TITLE) if font else 20.0
 	var line_spacing: int = _name_label.get_theme_constant("line_spacing")
 	_name_label.custom_minimum_size.y = (line_height * 2) + line_spacing
 	_name_label.lines_skipped = 0
@@ -70,10 +73,18 @@ func refresh_badges() -> void:
 	_update_badges()
 
 
+## Sets the visual selected state. Called by the parent grid when this card
+## becomes the active evidence or is deselected.
+func set_selected(is_selected: bool) -> void:
+	if _selected == is_selected:
+		return
+	_selected = is_selected
+	_apply_card_style()
+
+
 ## Builds badge pills reflecting the current evidence state.
 func _update_badges() -> void:
-	for child in _badge_row.get_children():
-		child.queue_free()
+	UIHelper.clear_children(_badge_row)
 
 	if _evidence_id.is_empty():
 		_badge_row.visible = false
@@ -146,16 +157,16 @@ func _on_mouse_exited() -> void:
 func _apply_card_style() -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = UIColors.POLAROID_BG
-	style.corner_radius_top_left = _CORNER_RADIUS
-	style.corner_radius_top_right = _CORNER_RADIUS
-	style.corner_radius_bottom_left = _CORNER_RADIUS
-	style.corner_radius_bottom_right = _CORNER_RADIUS
+	style.set_corner_radius_all(_CORNER_RADIUS)
 	style.content_margin_left = _PADDING
 	style.content_margin_top = _PADDING
 	style.content_margin_right = _PADDING
 	style.content_margin_bottom = _BOTTOM_PADDING
 	style.shadow_color = UIColors.LOCATION_CARD_SHADOW
 	style.shadow_size = _SHADOW_SIZE
+	if _selected:
+		style.border_color = UIColors.AMBER
+		style.set_border_width_all(_SELECTED_BORDER_WIDTH)
 	add_theme_stylebox_override("panel", style)
 
 

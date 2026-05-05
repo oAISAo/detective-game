@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/evidence_archive.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/ui/components/evidence_detail_panel.gd" id="2_detail_panel"]
+[ext_resource type="Script" path="res://scripts/ui/components/evidence_pinned_bar.gd" id="3_pinned_bar"]
 
 [node name="EvidenceArchive" type="Control"]
 layout_mode = 3
@@ -73,6 +75,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
+script = ExtResource("3_pinned_bar")
 
 [node name="PinnedLabel" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/PinnedBar"]
 layout_mode = 2
@@ -85,6 +88,7 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/EvidenceContent"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 vertical_scroll_mode = 2
@@ -129,8 +133,10 @@ size_flags_stretch_ratio = 0.6
 theme_type_variation = &"SurfacePanel"
 
 [node name="RightVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 20
+script = ExtResource("2_detail_panel")
 
 [node name="RightHeader" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox"]
 layout_mode = 2
@@ -220,6 +226,14 @@ bbcode_enabled = true
 fit_content = true
 text = "No description available."
 theme_type_variation = &"SectionText"
+
+[node name="LabSectionAnchor" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/Column1Scroll/Column1Content"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="WeightSectionAnchor" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/Column1Scroll/Column1Content"]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="MainScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns"]
 unique_name_in_owner = true
@@ -313,6 +327,10 @@ text = "Referenced Statements"
 theme_type_variation = &"SectionHeader"
 
 [node name="RelatedStatementsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent/StatementsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NotesSectionAnchor" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/RightPanel/RightVBox/DetailPanel/DetailColumns/RelationshipsScroll/RelationshipsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 

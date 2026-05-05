@@ -5,7 +5,9 @@ class_name StatementItem
 extends VBoxContainer
 
 
-const HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
+enum _VerdictId { CONTRADICTION, SUPPORTS, UNRESOLVED, UNCLASSIFIED }
+
+const _VERDICT_STRINGS: Array[String] = ["contradiction", "supports", "unresolved", "unclassified"]
 
 var _evidence_id: String = ""
 var _statement_id: String = ""
@@ -19,16 +21,28 @@ var _is_expanded: bool = false
 
 ## Initializes this item with its evidence context and statement data.
 ## Must be called after add_child().
-func setup(evidence_id: String, stmt: StatementData, _legacy_manual_link: bool = false) -> void:
+func setup(evidence_id: String, stmt: StatementData, handwriting_font: Font = null) -> void:
 	_evidence_id = evidence_id
 	_statement_id = stmt.id
-
 	add_theme_constant_override("separation", 4)
 
 	var person: PersonData = CaseManager.get_person(stmt.person_id)
 	var person_name: String = person.name if person else stmt.person_id
 
-	# --- Header row --- #
+	_build_header(person_name, stmt.day_given)
+	_build_verdict_popup()
+	_build_quote(stmt.text)
+	_build_note_body(handwriting_font)
+	add_child(HSeparator.new())
+	_refresh_verdict()
+
+
+## Updates the verdict button label and color to reflect the current stored verdict.
+func update_verdict() -> void:
+	_refresh_verdict()
+
+
+func _build_header(person_name: String, day: int) -> void:
 	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 6)
 	add_child(header)
@@ -47,7 +61,7 @@ func setup(evidence_id: String, stmt: StatementData, _legacy_manual_link: bool =
 	header.add_child(name_label)
 
 	var day_label: Label = Label.new()
-	day_label.text = " · Day %d" % stmt.day_given
+	day_label.text = " · Day %d" % day
 	day_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	day_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
 	header.add_child(day_label)
@@ -63,28 +77,31 @@ func setup(evidence_id: String, stmt: StatementData, _legacy_manual_link: bool =
 	_verdict_button.pressed.connect(_on_verdict_button_pressed)
 	header.add_child(_verdict_button)
 
-	# Verdict popup
+
+func _build_verdict_popup() -> void:
 	_verdict_popup = PopupMenu.new()
-	_verdict_popup.add_item("Contradiction", 0)
-	_verdict_popup.add_item("Supports", 1)
-	_verdict_popup.add_item("Unresolved", 2)
-	_verdict_popup.add_item("Unclassified", 3)
+	_verdict_popup.add_item("Contradiction", _VerdictId.CONTRADICTION)
+	_verdict_popup.add_item("Supports", _VerdictId.SUPPORTS)
+	_verdict_popup.add_item("Unresolved", _VerdictId.UNRESOLVED)
+	_verdict_popup.add_item("Unclassified", _VerdictId.UNCLASSIFIED)
 	_verdict_popup.id_pressed.connect(_on_verdict_popup_id_pressed)
 	add_child(_verdict_popup)
 
-	# --- Quote label (always visible) --- #
+
+func _build_quote(text: String) -> void:
 	var quote_margin: MarginContainer = MarginContainer.new()
 	quote_margin.add_theme_constant_override("margin_left", 20)
 	add_child(quote_margin)
 
 	var quote_label: Label = Label.new()
-	quote_label.text = "\"%s\"" % stmt.text
+	quote_label.text = "\"%s\"" % text
 	quote_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quote_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	quote_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	quote_margin.add_child(quote_label)
 
-	# --- Collapsible body --- #
+
+func _build_note_body(handwriting_font: Font) -> void:
 	_body = VBoxContainer.new()
 	_body.add_theme_constant_override("separation", 4)
 	_body.visible = false
@@ -109,28 +126,15 @@ func setup(evidence_id: String, stmt: StatementData, _legacy_manual_link: bool =
 	_note_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	_note_edit.text = EvidenceManager.get_statement_note(_evidence_id, _statement_id)
 	_note_edit.text_changed.connect(_on_note_changed)
-	if ResourceLoader.exists(HANDWRITING_FONT_PATH):
-		var hw_font: Font = ResourceLoader.load(HANDWRITING_FONT_PATH)
-		_note_edit.add_theme_font_override("font", hw_font)
+	if handwriting_font != null:
+		_note_edit.add_theme_font_override("font", handwriting_font)
 		_note_edit.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	body_inner.add_child(_note_edit)
 
-	# Expand automatically if a note already exists
 	if not _note_edit.text.is_empty():
 		_is_expanded = true
 		_body.visible = true
 		_toggle_button.text = "▼"
-
-	# Bottom separator
-	var sep: HSeparator = HSeparator.new()
-	add_child(sep)
-
-	_refresh_verdict()
-
-
-## Updates the verdict button label and color to reflect the current stored verdict.
-func update_verdict() -> void:
-	_refresh_verdict()
 
 
 func _refresh_verdict() -> void:
@@ -161,11 +165,8 @@ func _on_verdict_button_pressed() -> void:
 
 
 func _on_verdict_popup_id_pressed(id: int) -> void:
-	match id:
-		0: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "contradiction")
-		1: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "supports")
-		2: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "unresolved")
-		3: EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, "unclassified")
+	if id >= 0 and id < _VERDICT_STRINGS.size():
+		EvidenceManager.set_statement_verdict(_evidence_id, _statement_id, _VERDICT_STRINGS[id])
 
 
 func _on_note_changed() -> void:

@@ -366,3 +366,71 @@ static func _apply_material_icon_font(icon_label: Label) -> void:
 ## BG_SURFACE background and subtler border defined in main_theme.tres.
 static func apply_surface_style(panel: PanelContainer) -> void:
 	panel.theme_type_variation = &"SurfacePanel"
+
+
+## Returns a human-readable label for a discovery method.
+static func get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
+	match method:
+		Enums.DiscoveryMethod.VISUAL:       return "Visual Inspection"
+		Enums.DiscoveryMethod.TOOL:         return "Tool Analysis"
+		Enums.DiscoveryMethod.COMPARISON:   return "Evidence Comparison"
+		Enums.DiscoveryMethod.LAB:          return "Lab Analysis"
+		Enums.DiscoveryMethod.SURVEILLANCE: return "Surveillance"
+	return "Unknown"
+
+
+## Returns a human-readable label for an importance level.
+static func get_importance_label(level: Enums.ImportanceLevel) -> String:
+	match level:
+		Enums.ImportanceLevel.CRITICAL:   return "Critical"
+		Enums.ImportanceLevel.KEY:        return "Key"
+		Enums.ImportanceLevel.SUPPORTING: return "Supporting"
+		Enums.ImportanceLevel.OPTIONAL:   return "Optional"
+	return "Unknown"
+
+
+## Returns a human-readable label for a lab status.
+static func get_lab_status_label(status: Enums.LabStatus) -> String:
+	match status:
+		Enums.LabStatus.NOT_SUBMITTED: return "Not Submitted"
+		Enums.LabStatus.PROCESSING:    return "Processing..."
+		Enums.LabStatus.COMPLETED:     return "Complete"
+	return "Unknown"
+
+
+## Returns the badge accent color for an importance level.
+static func get_importance_badge_color(level: Enums.ImportanceLevel) -> Color:
+	match level:
+		Enums.ImportanceLevel.CRITICAL:   return UIColors.RED
+		Enums.ImportanceLevel.KEY:        return UIColors.AMBER
+		Enums.ImportanceLevel.SUPPORTING: return UIColors.BLUE
+		Enums.ImportanceLevel.OPTIONAL:   return UIColors.TEXT_GREY
+	return UIColors.TEXT_GREY
+
+
+## Creates a styled badge pill (PanelContainer with a Label).
+## Shared across evidence screens for type, importance, and category badges.
+static func make_badge_pill(text: String, color: Color) -> PanelContainer:
+	var pill := PanelContainer.new()
+	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	var bg: Color = color
+	bg.a = 0.12
+	style.bg_color = bg
+	var border: Color = color
+	border.a = 0.5
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	pill.add_theme_stylebox_override("panel", style)
+	var label := Label.new()
+	label.text = text.to_upper()
+	label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	label.add_theme_color_override("font_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(label)
+	return pill

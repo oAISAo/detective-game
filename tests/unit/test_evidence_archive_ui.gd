@@ -94,9 +94,14 @@ func _instantiate_screen() -> Control:
 	return screen
 
 
+func _get_detail_panel(screen: Control) -> EvidenceDetailPanel:
+	return screen.get_node("%RightVBox") as EvidenceDetailPanel
+
+
 func test_square_helper_sets_height_from_width() -> void:
 	var screen: Control = _instantiate_screen()
-	screen.call("_sync_evidence_image_square", 420.0)
+	var detail: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail.call("_sync_evidence_image_square", 420.0)
 
 	var evidence_image: TextureRect = screen.get_node("%EvidenceImage")
 	assert_eq(evidence_image.custom_minimum_size.y, 420.0,
@@ -105,38 +110,42 @@ func test_square_helper_sets_height_from_width() -> void:
 
 func test_header_compare_button_and_forensic_analysis_layout() -> void:
 	var screen: Control = _instantiate_screen()
-	screen.call("_show_evidence_detail", "ev_photo")
+	_get_detail_panel(screen).show_evidence("ev_photo")
 
 	var compare_button: Button = screen.get_node("%CompareButton")
 	assert_eq(compare_button.get_parent().name, "TitleRow",
 		"Compare Evidence should live in the header button row.")
 
 	var description_label: RichTextLabel = screen.get_node("%DescriptionLabel")
-	var weight_section: VBoxContainer = screen.find_child("WeightSection", true, false) as VBoxContainer
-	var forensic_section: VBoxContainer = screen.find_child("ForensicAnalysisSection", true, false) as VBoxContainer
-	assert_not_null(weight_section)
-	assert_not_null(forensic_section)
-	assert_eq(forensic_section.get_parent(), description_label.get_parent(),
-		"Forensic Analysis should live in the first column.")
-	assert_gt(forensic_section.get_index(), description_label.get_index(),
+	var lab_anchor: VBoxContainer = screen.get_node("%LabSectionAnchor") as VBoxContainer
+	var weight_anchor: VBoxContainer = screen.get_node("%WeightSectionAnchor") as VBoxContainer
+	assert_not_null(lab_anchor)
+	assert_not_null(weight_anchor)
+	assert_eq(lab_anchor.get_parent(), description_label.get_parent(),
+		"LabSectionAnchor should live in the first column.")
+	assert_gt(lab_anchor.get_index(), description_label.get_index(),
 		"Forensic Analysis should appear below Description.")
-	assert_gt(weight_section.get_index(), forensic_section.get_index(),
+	assert_gt(weight_anchor.get_index(), lab_anchor.get_index(),
 		"Evidentiary Weight should appear below Forensic Analysis.")
 
 
 func test_notes_section_lives_in_third_column_and_stays_open() -> void:
 	var screen: Control = _instantiate_screen()
-	screen.call("_show_evidence_detail", "ev_photo")
+	_get_detail_panel(screen).show_evidence("ev_photo")
 
 	var statements_section: VBoxContainer = screen.find_child("StatementsSection", true, false) as VBoxContainer
-	var notes_section: VBoxContainer = screen.find_child("NotesSection", true, false) as VBoxContainer
+	var notes_anchor: VBoxContainer = screen.get_node("%NotesSectionAnchor") as VBoxContainer
 	assert_not_null(statements_section)
-	assert_not_null(notes_section)
-	assert_eq(notes_section.get_parent(), statements_section.get_parent(),
-		"Notes should live in the same third-column container as Referenced Statements.")
-	assert_gt(notes_section.get_index(), statements_section.get_index(),
+	assert_not_null(notes_anchor)
+	assert_eq(notes_anchor.get_parent(), statements_section.get_parent(),
+		"NotesSectionAnchor should live in the same third-column container as Referenced Statements.")
+	assert_gt(notes_anchor.get_index(), statements_section.get_index(),
 		"Notes should appear below Referenced Statements.")
 
+	assert_eq(notes_anchor.get_child_count(), 1,
+		"NotesSectionAnchor should contain exactly one EvidenceNotesSection child.")
+	var notes_section: VBoxContainer = notes_anchor.get_child(0) as VBoxContainer
+	assert_not_null(notes_section)
 	var header_label: Label = notes_section.get_child(0) as Label
 	var notes_edit: TextEdit = notes_section.get_child(1) as TextEdit
 	assert_eq(header_label.text, "My Notes")
