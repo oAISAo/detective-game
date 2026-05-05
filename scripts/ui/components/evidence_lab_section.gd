@@ -48,20 +48,27 @@ func _build_completed_state(lab_req: LabRequestData) -> void:
 		return
 
 	var status_label := Label.new()
-	status_label.text = "Fingerprint identified on the glass."
+	status_label.text = _get_completed_status_text(lab_req, output_ev)
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(status_label)
 
-	var view_btn := Button.new()
+	var view_btn := LinkButton.new()
 	view_btn.text = "\u2192 %s" % output_ev.name
-	view_btn.flat = true
-	view_btn.add_theme_color_override("font_color", UIColors.BLUE)
-	view_btn.clip_text = true
-	var empty_style := StyleBoxEmpty.new()
-	for state: StringName in [&"normal", &"hover", &"pressed", &"focus", &"disabled"]:
-		view_btn.add_theme_stylebox_override(state, empty_style)
+	view_btn.underline = LinkButton.UNDERLINE_MODE_NEVER
+	view_btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var out_id: String = lab_req.output_evidence_id
 	view_btn.pressed.connect(func() -> void: output_evidence_requested.emit(out_id))
 	add_child(view_btn)
+
+
+func _get_completed_status_text(lab_req: LabRequestData, output_ev: EvidenceData) -> String:
+	if not lab_req.completed_status_text.is_empty():
+		return lab_req.completed_status_text
+	if not output_ev.lab_result_text.is_empty():
+		return output_ev.lab_result_text
+
+	push_warning("[EvidenceLabSection] Missing completed_status_text for lab request: %s" % lab_req.id)
+	return "Analysis complete. Result ready for review."
 
 
 func _build_pending_state() -> void:

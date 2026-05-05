@@ -575,6 +575,7 @@
 			"day_submitted": 0,
 			"completion_day": 2,
 			"output_evidence_id": "ev_julia_fingerprint_glass",
+			"completed_status_text": "Fingerprint analysis complete. A matched print is now available for review.",
 			"lab_transform": "derive"
 		},
 		{
@@ -584,6 +585,7 @@
 			"day_submitted": 0,
 			"completion_day": 2,
 			"output_evidence_id": "ev_mark_fingerprint_desk",
+			"completed_status_text": "Fingerprint analysis complete. The desk print identification is ready for review.",
 			"lab_transform": "upgrade"
 		},
 		{
@@ -593,6 +595,7 @@
 			"day_submitted": 0,
 			"completion_day": 2,
 			"output_evidence_id": "ev_shoe_print",
+			"completed_status_text": "Footwear analysis complete. The hallway shoe print comparison is ready for review.",
 			"lab_transform": "upgrade"
 		}
 	],

@@ -33,6 +33,18 @@ var _test_case_data: Dictionary = {
 			"weight": 0.5,
 			"importance_level": "SUPPORTING",
 		},
+		{
+			"id": "ev_photo_result",
+			"name": "Enhanced Test Photo",
+			"description": "An enhanced version of the original test photo.",
+			"type": "PHOTO",
+			"location_found": "loc_room",
+			"related_persons": [],
+			"weight": 0.7,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "LAB",
+			"lab_result_text": "Output evidence lab_result_text should remain separate from the completed banner.",
+		},
 	],
 	"lab_requests": [
 		{
@@ -43,6 +55,7 @@ var _test_case_data: Dictionary = {
 			"completion_day": 2,
 			"output_evidence_id": "ev_photo_result",
 			"lab_transform": "derive",
+			"completed_status_text": "Image enhancement complete. The processed photo is ready for review.",
 		},
 	],
 	"statements": [],
@@ -127,6 +140,29 @@ func test_header_compare_button_and_forensic_analysis_layout() -> void:
 		"Forensic Analysis should appear below Description.")
 	assert_gt(weight_anchor.get_index(), lab_anchor.get_index(),
 		"Evidentiary Weight should appear below Forensic Analysis.")
+
+
+func test_completed_lab_state_uses_lab_request_status_text() -> void:
+	GameManager.discover_evidence("ev_photo")
+	GameManager.discover_evidence("ev_photo_result")
+
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo")
+
+	var lab_anchor: VBoxContainer = screen.get_node("%LabSectionAnchor") as VBoxContainer
+	assert_eq(lab_anchor.get_child_count(), 1,
+		"LabSectionAnchor should contain the EvidenceLabSection instance.")
+
+	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
+	assert_not_null(lab_section)
+	assert_eq(lab_section.get_child_count(), 3,
+		"Completed lab state should render a header, status label, and result link.")
+
+	var status_label: Label = lab_section.get_child(1) as Label
+	assert_not_null(status_label)
+	assert_eq(status_label.text,
+		"Image enhancement complete. The processed photo is ready for review.",
+		"Completed lab banner text should come from lab request case data, not a hardcoded UI string.")
 
 
 func test_notes_section_lives_in_third_column_and_stays_open() -> void:

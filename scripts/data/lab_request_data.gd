@@ -22,6 +22,9 @@ extends Resource
 ## ID of the new evidence produced by the analysis.
 @export var output_evidence_id: String = ""
 
+## Evidence-specific summary shown when the lab analysis is complete.
+@export var completed_status_text: String = ""
+
 ## How the lab result relates to the input evidence.
 ## "upgrade" — raw input is replaced by the analyzed output (e.g. ev_shoe_print_raw → ev_shoe_print).
 ## "derive"  — input evidence stays in the player's collection; the output is added alongside
@@ -38,6 +41,7 @@ static func from_dict(data: Dictionary) -> LabRequestData:
 	res.day_submitted = int(data.get("day_submitted", 0))
 	res.completion_day = int(data.get("completion_day", 0))
 	res.output_evidence_id = data.get("output_evidence_id", "")
+	res.completed_status_text = data.get("completed_status_text", "")
 	res.lab_transform = data.get("lab_transform", "upgrade")
 	return res
 
@@ -65,5 +69,6 @@ func to_dict() -> Dictionary:
 		"day_submitted": day_submitted,
 		"completion_day": completion_day,
 		"output_evidence_id": output_evidence_id,
+		"completed_status_text": completed_status_text,
 		"lab_transform": lab_transform,
 	}
