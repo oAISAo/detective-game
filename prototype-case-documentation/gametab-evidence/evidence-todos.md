@@ -18,3 +18,12 @@ the evidence polaroid needs a blue border when it's selected (same as location c
 
 ## Remove Lab Status from details
 In Details metadata we get Lab Status: Processing... we should remove that
+
+## Test Coverage
+Improve test coverage.
+`test_evidence_archive_ui.gd` tests layout structure but not behavioral state:
+- No test for `_comparing` flag not being reset when switching evidence
+- No test for card badge refresh after pin/unpin
+- No test for filter + search interaction
+- No test for notes persistence across evidence switches
+- No test for the pinned bar reconstruction

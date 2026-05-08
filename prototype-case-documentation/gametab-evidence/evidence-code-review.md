@@ -34,18 +34,6 @@ The function returns `null` when no matching insight exists *and* when the insig
 
 ---
 
-## 🔵 Test Coverage Gaps
-
-### 24. UI test doesn't cover behavioral state
-`test_evidence_archive_ui.gd` tests layout structure but not behavioral state:
-- No test for `_comparing` flag not being reset when switching evidence
-- No test for card badge refresh after pin/unpin
-- No test for filter + search interaction
-- No test for notes persistence across evidence switches
-- No test for the pinned bar reconstruction
-
----
-
 ## Summary
 
 | Severity | Count | Items |

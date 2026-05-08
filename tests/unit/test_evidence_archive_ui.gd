@@ -31,7 +31,9 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"requires_lab_analysis": true,
 			"weight": 0.5,
+			"evidentiary_value_text": "Suggests the photo captures a meaningful detail from the scene.",
 			"importance_level": "SUPPORTING",
+			"linked_statements": ["stmt_photo_claim"],
 		},
 		{
 			"id": "ev_photo_result",
@@ -41,6 +43,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_room",
 			"related_persons": [],
 			"weight": 0.7,
+			"evidentiary_value_text": "Clarifies a previously obscured visual detail for closer review.",
 			"importance_level": "SUPPORTING",
 			"discovery_method": "LAB",
 			"lab_result_text": "Output evidence lab_result_text should remain separate from the completed banner.",
@@ -58,7 +61,17 @@ var _test_case_data: Dictionary = {
 			"completed_status_text": "Image enhancement complete. The processed photo is ready for review.",
 		},
 	],
-	"statements": [],
+	"statements": [
+		{
+			"id": "stmt_photo_claim",
+			"person_id": "p_dummy",
+			"text": "I never went into that room.",
+			"day_given": 1,
+			"related_evidence": ["ev_photo"],
+			"contradicting_evidence": ["ev_photo"],
+			"importance": "SUPPORTING",
+		},
+	],
 	"locations": [
 		{
 			"id": "loc_room",
@@ -111,6 +124,22 @@ func _get_detail_panel(screen: Control) -> EvidenceDetailPanel:
 	return screen.get_node("%RightVBox") as EvidenceDetailPanel
 
 
+func _get_value_section(screen: Control) -> VBoxContainer:
+	var value_anchor: VBoxContainer = screen.get_node("%WeightSectionAnchor") as VBoxContainer
+	assert_eq(value_anchor.get_child_count(), 1,
+		"WeightSectionAnchor should contain the evidentiary value section instance.")
+	return value_anchor.get_child(0) as VBoxContainer
+
+
+func _collect_label_texts(root: Node) -> Array[String]:
+	var texts: Array[String] = []
+	if root is Label:
+		texts.append((root as Label).text)
+	for child: Node in root.get_children():
+		texts.append_array(_collect_label_texts(child))
+	return texts
+
+
 func test_square_helper_sets_height_from_width() -> void:
 	var screen: Control = _instantiate_screen()
 	var detail: EvidenceDetailPanel = _get_detail_panel(screen)
@@ -139,7 +168,39 @@ func test_header_compare_button_and_forensic_analysis_layout() -> void:
 	assert_gt(lab_anchor.get_index(), description_label.get_index(),
 		"Forensic Analysis should appear below Description.")
 	assert_gt(weight_anchor.get_index(), lab_anchor.get_index(),
-		"Evidentiary Weight should appear below Forensic Analysis.")
+		"Evidentiary Value should appear below Forensic Analysis.")
+
+
+func test_evidentiary_value_section_uses_tier_and_case_data_text() -> void:
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo")
+
+	var value_section: VBoxContainer = _get_value_section(screen)
+	var label_texts: Array[String] = _collect_label_texts(value_section)
+
+	assert_has(label_texts, "Evidentiary Value",
+		"The section header should use the new Evidentiary Value concept.")
+	assert_has(label_texts, "Supporting",
+		"The section should show the qualitative tier derived from internal weight.")
+	assert_has(label_texts, "Suggests the photo captures a meaningful detail from the scene.",
+		"The section should render the evidence-specific interpretation from case data.")
+	assert_false("50%" in label_texts,
+		"The Evidentiary Value section should not expose numeric percentages.")
+	assert_eq(value_section.find_children("*", "ProgressBar", true, false).size(), 0,
+		"The Evidentiary Value section should not render a progress bar.")
+
+
+func test_evidentiary_value_section_shows_contested_warning_for_credible_contradiction() -> void:
+	EvidenceManager.set_statement_verdict("ev_photo", "stmt_photo_claim", "contradiction")
+
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo")
+
+	var value_section: VBoxContainer = _get_value_section(screen)
+	var label_texts: Array[String] = _collect_label_texts(value_section)
+
+	assert_has(label_texts, "Contested by a credible statement",
+		"Credible contradictions should appear as a subtle warning in the value section.")
 
 
 func test_completed_lab_state_uses_lab_request_status_text() -> void:

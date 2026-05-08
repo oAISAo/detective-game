@@ -1,9 +1,12 @@
 ## EvidenceDetailPanel
 ## Coordinator for the evidence detail right panel.
 ## Attaches to the RightVBox node in evidence_archive.tscn.
-## Owns WeightSection, LabSection, NotesSection, and StatementsPanel sub-components.
+## Owns ValueSection, LabSection, NotesSection, and StatementsPanel sub-components.
 class_name EvidenceDetailPanel
 extends VBoxContainer
+
+
+const EvidenceValueSectionScript := preload("res://scripts/ui/components/evidence_value_section.gd")
 
 
 signal pin_toggled(evidence_id: String)
@@ -32,7 +35,7 @@ signal evidence_requested(evidence_id: String)
 var _selected_id: String = ""
 var _comparing: bool = false
 var _handwriting_font: Font = null
-var _weight_section: EvidenceWeightSection = null
+var _value_section: VBoxContainer = null
 var _lab_section: EvidenceLabSection = null
 var _notes_section: EvidenceNotesSection = null
 var _statements_panel: EvidenceStatementsPanel = null
@@ -82,8 +85,8 @@ func _exit_tree() -> void:
 func setup(handwriting_font: Font) -> void:
 	_handwriting_font = handwriting_font
 
-	_weight_section = EvidenceWeightSection.new()
-	_weight_anchor.add_child(_weight_section)
+	_value_section = EvidenceValueSectionScript.new()
+	_weight_anchor.add_child(_value_section)
 
 	_lab_section = EvidenceLabSection.new()
 	_lab_anchor.add_child(_lab_section)
@@ -126,7 +129,7 @@ func show_evidence(evidence_id: String) -> void:
 	_description_label.text = ev.description
 	_populate_info_grid(ev)
 	_lab_section.populate(evidence_id)
-	_weight_section.populate(ev)
+	_value_section.populate(ev)
 	_populate_related_persons(ev)
 	_statements_panel.set_evidence(evidence_id)
 	_populate_legal_categories(ev)

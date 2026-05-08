@@ -6,7 +6,7 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 
 **Core loop:** Discover evidence (via Map / Lab / Interrogation) → Review in Evidence Archive → Submit to Lab if raw → Classify contradictions → Compare items → Build understanding
 
-**Key principle:** The Evidence tab never interprets evidence for the player. It presents facts. The player decides what they mean. The game's job is to make analysis feel like a detective's workflow, not a database query.
+**Key principle:** The Evidence tab should not pretend certainty can be measured with fake precision. It presents facts plus authored investigative context, while leaving the final deduction to the player.
 
 ---
 
@@ -24,7 +24,7 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 │  discovered evidence    │  │  Image              │  │  Statements      │  │
 │                         │  │  Description        │  │  / Contradiction │  │
 │  Click → loads detail   │  │  Metadata grid      │  │  Engine          │  │
-│                         │  │  Weight bar         │  │  Send to Board   │  │
+│                         │  │  Evidentiary Value  │  │  Send to Board   │  │
 │                         │  │  Related Persons    │  └──────────────────┘  │
 │                         │  │  Legal Categories   │                       │
 │                         │  │  Compare button     │                       │
@@ -87,9 +87,12 @@ The detail panel is split into a header and three scrollable columns.
 │  FORENSIC ANALYSIS             │ │  RELATED PERSONS                     │ │  [stmt item]                     │
 │  [submit / pending / complete] │ │  LEGAL CATEGORIES                    │ │                                  │
 │                                │ │                                      │ │  MY NOTES                        │
-│  EVIDENTIARY WEIGHT            │ │                                      │ │  [always-visible TextEdit]       │
-│  ████████░░ 70%                │ │                                      │ │                                  │
-│  "Strong corroborating..."     │ │                                      │ └──────────────────────────────────┘
+│  EVIDENTIARY VALUE             │ │                                      │ │  [always-visible TextEdit]       │
+│  Supporting                    │ │                                      │ │                                  │
+│  Suggests the victim had       │ │                                      │ └──────────────────────────────────┘
+│  company before the murder.    │ │                                      │                                    
+│  Contested by a credible       │ │                                      │                                    
+│  statement (if applicable)     │ │                                      │                                    
 └────────────────────────────────┘ └──────────────────────────────────────┘ └──────────────────────────────────┘
 ```
 
@@ -117,16 +120,41 @@ The detail panel is split into a header and three scrollable columns.
 | Day Found | Investigation day |
 | Lab Status | Not required / Pending / Complete |
 
-### Evidentiary Weight Bar
-- Percentage drawn from evidence data (`weight` field)
+### Evidentiary Value
 - This lives in the first column below the description and the forensic-analysis block.
-- **Color rules:**
-  - Red: `EvidenceManager.is_contradicted(evidence_id)` returns true — at least one linked statement has a player CONTRADICTION verdict and `statement.importance <= ImportanceLevel.SUPPORTING` (i.e. CRITICAL or SUPPORTING importance)
-  - Teal: evidence is supporting a strong confirmed theory (🚧 not yet implemented)
-  - Amber: default
-- One-sentence prosecutor assessment below the bar
+- It is an interpretation, not a measurement.
+- The section uses the internal `weight` field only to derive a qualitative tier.
+- The player sees three layers of information:
+  - **Qualitative tier** — the primary signal shown in the UI
+  - **Case-specific interpretation** — evidence-authored reasoning text
+  - **Optional dynamic modifier** — a subtle contested warning when the evidence is challenged by a credible contradiction
 
-The check in code:
+Qualitative tiers are derived internally from `weight`, but the number itself is never shown:
+
+| Internal Weight | Player-Facing Label |
+|----------------|---------------------|
+| 0.85–1.0 | Airtight |
+| 0.65–0.84 | Strong |
+| 0.40–0.64 | Supporting |
+| 0.20–0.39 | Weak |
+| 0.01–0.19 | Marginal |
+
+Example presentation:
+
+```text
+Evidentiary Value
+
+Supporting
+Suggests the victim had company before the murder.
+```
+
+If the evidence is contested, the section adds a subtle warning instead of shifting into an aggressive visual alarm state:
+
+```text
+Contested by a credible statement
+```
+
+The contested modifier uses the existing contradiction check:
 ```gdscript
 # In EvidenceManager:
 func is_contradicted(evidence_id: String) -> bool:
@@ -140,14 +168,11 @@ func is_contradicted(evidence_id: String) -> bool:
     return false
 ```
 
-Weight thresholds and their prose labels:
-| Weight | Label |
-|--------|-------|
-| 85–100% | Airtight. Will convict on its own. |
-| 65–84% | Strong. Holds up under cross-examination. |
-| 40–64% | Corroborating. Strengthens the case when combined with other evidence. |
-| 20–39% | Weak. Circumstantial — the defense will challenge this. |
-| 1–19% | Marginal. Context only. |
+    The section deliberately removes:
+    - percentage display
+    - progress bars
+    - bar-color severity states
+    - generic prosecutor-style prose reused across unrelated evidence items
 
 ### Compare Evidence Button
 The compare button lives in the header button row with Pin and Send to Board. It still opens the comparison selector in the right panel.
@@ -260,7 +285,7 @@ Some evidence discovered on the Map tab is raw and requires forensic laboratory 
 **Lab submission costs 0 actions** (passive activity). It represents the detective packaging up the sample and sending it off — a routine administrative step, not an investigation decision. The meaningful decision is *which evidence* to submit and *when* — submitting something wastes nothing, so the player is always incentivized to submit promptly.
 
 ### Raw Evidence
-Evidence with `requires_lab_analysis: true` in its data displays a **Forensic Analysis** block in the first column, between the Description and Evidentiary Weight sections:
+Evidence with `requires_lab_analysis: true` in its data displays a **Forensic Analysis** block in the first column, between the Description and Evidentiary Value sections:
 
 ```
 ┌─────────────────────────────────────────┐
@@ -484,7 +509,7 @@ Send to board
 
 ### Evidence Data Fields (from `evidence.json`)
 
-> **Note:** `weight` is stored as a float from 0.0–1.0 (not a percentage integer). Multiply by 100 for display. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
+> **Note:** `weight` is stored as a float from 0.0–1.0 and is used internally for qualitative tiering and prosecutor scoring. It is not shown numerically in the Evidence tab. `evidentiary_value_text` stores the evidence-specific reasoning sentence shown to the player. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
 
 ```json
 {
@@ -494,6 +519,7 @@ Send to board
   "type": "RECORDING",
   "importance_level": "CRITICAL",
   "weight": 0.7,
+  "evidentiary_value_text": "Fixes Mark's departure time and tests whether his timeline is truthful.",
   "location_found": "loc_parking_lot",
   "requires_lab_analysis": false,
   "discovery_method": "VISUAL",
@@ -563,13 +589,16 @@ All design questions have been resolved. Decisions are final.
 
 | File | Purpose |
 |------|---------|
-| `scripts/ui/screens/evidence_archive.gd` | **Main evidence screen** — merged left panel (archive grid) + right panel (detail); `_populate_lab_section()` and `_populate_comparison_targets()` are built inline here |
+| `scripts/ui/screens/evidence_archive.gd` | **Main evidence screen** — owns the archive grid shell and wires the evidence detail panel |
 | `scenes/ui/evidence_archive.tscn` | Scene for the evidence screen |
+| `scripts/ui/components/evidence_detail_panel.gd` | Right-panel coordinator for the selected evidence item |
+| `scripts/ui/components/evidence_lab_section.gd` | Forensic analysis block for raw / pending / completed lab states |
+| `scripts/ui/components/evidence_value_section.gd` | Evidentiary Value component showing qualitative tier, case-authored interpretation, and contested warning |
 | `scripts/ui/components/evidence_polaroid.gd` | Polaroid card used in the evidence grid (`EvidencePolaroid` class) |
 | `scripts/ui/components/evidence_statements_panel.gd` | Container component that renders all statement items for the selected evidence (`EvidenceStatementsPanel` class) |
 | `scripts/ui/components/statement_item.gd` | Single statement row with verdict cycle button (`StatementItem` class) |
 
-> **Note:** There are no separate `evidence_tab.gd`, `evidence_archive.gd` (component), `evidence_detail.gd`, `lab_submit_section.gd`, or `compare_selector.gd` files — the full screen is implemented in `scripts/ui/screens/evidence_archive.gd`. `scripts/ui/components/evidence_card.gd` has been **deleted** — `EvidencePolaroid` (`scripts/ui/components/evidence_polaroid.gd`) is the canonical evidence card component.
+> **Note:** There are no separate `evidence_tab.gd`, `evidence_archive.gd` (component), `lab_submit_section.gd`, or `compare_selector.gd` files. `scripts/ui/components/evidence_card.gd` has been **deleted** — `EvidencePolaroid` (`scripts/ui/components/evidence_polaroid.gd`) is the canonical evidence card component.
 
 ### Managers
 

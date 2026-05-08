@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "godot-debugging": {
+      "source": "zate/cc-godot",
+      "sourceType": "github",
+      "skillPath": "plugins/gd/skills/godot-debugging/SKILL.md",
+      "computedHash": "3169dfe4d9502026658eb7e7cdcf2c78880370c905a3d1db731c94c5e841c4c5"
+    },
+    "godot-signal-architecture": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-signal-architecture/SKILL.md",
+      "computedHash": "b65a6fa2594fb6060e709ed3d5c26aff667bc4c5daba8cb1f7d61fbd45fe7057"
+    }
+  }
+}

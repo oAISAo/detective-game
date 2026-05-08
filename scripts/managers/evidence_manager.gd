@@ -256,7 +256,8 @@ func is_statement_unlocked(statement_id: String) -> bool:
 ## Returns true if this evidence has at least one linked statement where the player
 ## has set a CONTRADICTION verdict AND the statement importance is SUPPORTING or higher
 ## (i.e. importance <= Enums.ImportanceLevel.SUPPORTING in enum order: CRITICAL=0, SUPPORTING=1).
-## Used to determine whether the weight bar should be shown in red.
+## Used to determine whether the Evidentiary Value section should show a
+## contested warning for this evidence item.
 func is_contradicted(evidence_id: String) -> bool:
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
 	if ev == null:

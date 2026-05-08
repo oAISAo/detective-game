@@ -37,6 +37,9 @@ extends Resource
 ## Relative weight/importance as a float (0.0–1.0).
 @export var weight: float = 0.5
 
+## Evidence-specific interpretation shown in the Evidentiary Value section.
+@export var evidentiary_value_text: String = ""
+
 ## How important this evidence is to the case.
 @export var importance_level: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
 
@@ -75,6 +78,7 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 	res.requires_lab_analysis = data.get("requires_lab_analysis", false)
 	res.image = data.get("image", "")
 	res.weight = float(data.get("weight", 0.5))
+	res.evidentiary_value_text = data.get("evidentiary_value_text", "")
 	res.importance_level = EnumHelper.parse_enum(
 		Enums.ImportanceLevel,
 		data.get("importance_level", "SUPPORTING"),
@@ -120,6 +124,7 @@ func to_dict() -> Dictionary:
 		"requires_lab_analysis": requires_lab_analysis,
 		"image": image,
 		"weight": weight,
+		"evidentiary_value_text": evidentiary_value_text,
 		"importance_level": EnumHelper.enum_to_string(Enums.ImportanceLevel, importance_level),
 		"discovery_method": EnumHelper.enum_to_string(Enums.DiscoveryMethod, discovery_method),
 		"hint_text": hint_text,
