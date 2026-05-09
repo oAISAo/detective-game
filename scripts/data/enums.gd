@@ -53,11 +53,15 @@ enum PersonalityTrait {
 
 ## Shared materiality scale used for evidence case role and statement credibility.
 ## This is separate from evidence `weight`, which measures persuasive strength.
+## Aisa TODO remove legacy "CRITICAL"/"SUPPORTING"/"OPTIONAL" values in favor of this unified scale.
 enum ImportanceLevel {
-	CRITICAL,
-	SUPPORTING,
-	OPTIONAL,
-	KEY,
+	REQUIRED = 0,
+	MAJOR = 1,
+	MINOR = 2,
+	KEY = 3,
+	CRITICAL = 0,
+	SUPPORTING = 1,
+	OPTIONAL = 2,
 }
 
 ## How the evidence was discovered.

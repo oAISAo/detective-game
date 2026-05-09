@@ -48,7 +48,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_scene",
 			"related_persons": [],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 		{
@@ -96,7 +96,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_suspect_a"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["MOTIVE", "CONNECTION"],
 		},
 		{
@@ -108,7 +108,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_suspect_a", "p_suspect_b"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["CONNECTION"],
 		},
 	],

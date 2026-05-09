@@ -49,7 +49,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 		},
 		{
@@ -60,7 +60,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_parking",
 			"related_persons": ["p_mark"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 		},
 		{
@@ -71,7 +71,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark", "p_victim"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 		},
 	],
@@ -260,7 +260,7 @@ func test_get_evidence_returns_typed_resource() -> void:
 	assert_eq(ev.type, Enums.EvidenceType.FORENSIC)
 	assert_eq(ev.location_found, "loc_apartment")
 	assert_almost_eq(ev.weight, 0.8, 0.001)
-	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(ev.importance_level, Enums.ImportanceLevel.REQUIRED)
 
 
 func test_get_evidence_returns_null_for_invalid_id() -> void:

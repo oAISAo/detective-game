@@ -32,7 +32,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["note"],
 			"weight": 0.4,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 	],

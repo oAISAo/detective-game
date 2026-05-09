@@ -78,7 +78,7 @@ The detail panel is split into a header and three scrollable columns.
 ```
 ┌─ Header ────────────────────────────────────────────────────────────────────┐
 │  Parking Lot Camera Footage                         [Pinned] [Compare] [Board] │
-│  [CRITICAL] [Recording] [Presence]                                          │
+│  [REQUIRED] [Recording] [Presence]                                          │
 └──────────────────────────────────────────────────────────────────────────────┘
 ┌─ Column 1: Evidence View ─────┐ ┌─ Column 2: Details ───────────────────┐ ┌─ Column 3: Analysis ─────────────┐
 │  [Square Image / Placeholder] │ │  DETAILS                              │ │  REFERENCED STATEMENTS           │
@@ -98,7 +98,7 @@ The detail panel is split into a header and three scrollable columns.
 
 ### Header
 - **Title** — serif large type
-- **Badges row** — Case Relevance badge (CRITICAL / SUPPORTING / OPTIONAL / KEY) + Type badge + Legal Category badge(s)
+- **Badges row** — Case Relevance badge (REQUIRED / MAJOR / MINOR / KEY) + Type badge + Legal Category badge(s)
 - **Pin button** — toggles pinned state; purely a player convenience bookmark
 - **Compare button** — opens the comparison selector in the right panel header button row
 - **Board button** — sends evidence to the Detective Board (see Board tab integration below)
@@ -140,9 +140,9 @@ The detail panel is split into a header and three scrollable columns.
 - It comes from `EvidenceData.importance_level`.
 - It answers: **How essential is this evidence to the case's authored guidance role?**
 - Current runtime uses are intentionally narrow: progressive hint targeting, archive ordering tie-breaks, and evidence-detail badge/metadata presentation.
-- It is not a strength meter. A case-critical clue can still be weak or only supporting in the Evidentiary Value section if its `weight` is low.
+- It is not a strength meter. A required clue can still be weak or only supporting in the Evidentiary Value section if its `weight` is low.
 - `StatementData.importance` reuses the same enum family for contradiction credibility, but that is a statement-materiality rule, not evidence strength.
-- Prosecutor coverage remains a separate case-authored list through `CaseData.critical_evidence_ids`; it is not derived from every evidence item marked `CRITICAL`.
+- Prosecutor coverage remains a separate case-authored list through `CaseData.critical_evidence_ids`; it is not derived from every evidence item marked `REQUIRED`.
 
 ### Evidentiary Value
 - This lives in the first column below the description and the forensic-analysis block.
@@ -187,8 +187,8 @@ func is_contradicted(evidence_id: String) -> bool:
         if get_statement_verdict(evidence_id, stmt_id) != "contradiction":
             continue
         var stmt: StatementData = CaseManager.get_statement(stmt_id)
-        # CRITICAL (0) and SUPPORTING (1) are material; OPTIONAL (2) and KEY (3) are not
-        if stmt.importance <= Enums.ImportanceLevel.SUPPORTING:
+        # REQUIRED (0) and MAJOR (1) are material; MINOR (2) and KEY (3) are not
+        if stmt.importance <= Enums.ImportanceLevel.MAJOR:
             return true
     return false
 ```
@@ -554,7 +554,7 @@ Send to board
   "name": "Parking Lot Camera Footage",
   "description": "Security camera footage from the parking lot showing Mark Bennett leaving the building at 20:40.",
   "type": "RECORDING",
-  "importance_level": "CRITICAL",
+  "importance_level": "REQUIRED",
   "weight": 0.7,
   "evidentiary_value_text": "Fixes Mark's departure time and tests whether his timeline is truthful.",
   "location_found": "loc_parking_lot",

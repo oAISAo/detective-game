@@ -54,7 +54,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_julia"],
 			"tags": ["fingerprint"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -67,7 +67,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["blood"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -79,7 +79,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["letter"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 		{
@@ -91,7 +91,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["digital"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 		{
@@ -103,7 +103,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["medication"],
 			"weight": 0.4,
-			"importance_level": "OPTIONAL",
+			"importance_level": "MINOR",
 			"legal_categories": [],
 		},
 		{
@@ -115,7 +115,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["key"],
 			"weight": 0.3,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["OPPORTUNITY"],
 		},
 		# Building Hallway evidence
@@ -128,7 +128,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_julia"],
 			"tags": ["video"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -141,7 +141,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["footprint"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -153,7 +153,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["log"],
 			"weight": 0.4,
-			"importance_level": "OPTIONAL",
+			"importance_level": "MINOR",
 			"legal_categories": [],
 		},
 		# Parking Lot evidence
@@ -166,7 +166,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark"],
 			"tags": ["video", "parking"],
 			"weight": 0.6,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		# Neighbor's Apartment evidence
@@ -179,7 +179,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["audio"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 		{
@@ -191,7 +191,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_julia"],
 			"tags": ["photo"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE"],
 		},
 		# Victim's Office evidence
@@ -204,7 +204,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark", "p_victim"],
 			"tags": ["financial"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["MOTIVE"],
 		},
 		{
@@ -216,7 +216,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["digital"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 		{
@@ -228,7 +228,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark"],
 			"tags": ["document", "shredded"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["MOTIVE"],
 		},
 		{
@@ -241,7 +241,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["hidden", "uv"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["CONNECTION"],
 		},
 	],

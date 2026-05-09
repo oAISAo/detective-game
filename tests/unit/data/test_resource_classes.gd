@@ -19,7 +19,7 @@ func test_evidence_from_dict_full() -> void:
 		"lab_status": "NOT_SUBMITTED",
 		"lab_analysis_results": ["ev_knife_prints", "ev_knife_dna"],
 		"weight": 0.9,
-		"importance_level": "CRITICAL",
+		"importance_level": "REQUIRED",
 		"discovery_method": "VISUAL",
 		"derived_from": "ev_sink_sample",
 		"legal_categories": ["PRESENCE", "OPPORTUNITY"],
@@ -36,7 +36,7 @@ func test_evidence_from_dict_full() -> void:
 	assert_eq(ev.lab_analysis_results[0], "ev_knife_prints")
 	assert_eq(ev.lab_analysis_results[1], "ev_knife_dna")
 	assert_almost_eq(ev.weight, 0.9, 0.001)
-	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(ev.importance_level, Enums.ImportanceLevel.REQUIRED)
 	assert_eq(ev.discovery_method, Enums.DiscoveryMethod.VISUAL)
 	assert_eq(ev.derived_from, "ev_sink_sample")
 	assert_eq(ev.legal_categories.size(), 2)
@@ -47,7 +47,7 @@ func test_evidence_from_dict_defaults() -> void:
 	assert_eq(ev.id, "")
 	assert_eq(ev.name, "")
 	assert_eq(ev.type, Enums.EvidenceType.OBJECT)
-	assert_eq(ev.importance_level, Enums.ImportanceLevel.SUPPORTING)
+	assert_eq(ev.importance_level, Enums.ImportanceLevel.MAJOR)
 	assert_almost_eq(ev.weight, 0.5, 0.001)
 	assert_eq(ev.lab_analysis_results.size(), 0)
 	var errors := ev.validate()
@@ -116,26 +116,46 @@ func test_evidence_weight_and_importance_level_remain_independent() -> void:
 		"name": "Weak But Critical",
 		"discovery_method": "VISUAL",
 		"weight": 0.2,
-		"importance_level": "CRITICAL",
+		"importance_level": "REQUIRED",
 	})
 	var optional_but_strong := EvidenceData.from_dict({
 		"id": "ev_optional_strong",
 		"name": "Strong But Optional",
 		"discovery_method": "VISUAL",
 		"weight": 0.95,
-		"importance_level": "OPTIONAL",
+		"importance_level": "MINOR",
 	})
 
-	assert_eq(plot_critical.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(plot_critical.importance_level, Enums.ImportanceLevel.REQUIRED)
 	assert_almost_eq(plot_critical.weight, 0.2, 0.001)
 	assert_eq(plot_critical.validate(), [])
 
-	assert_eq(optional_but_strong.importance_level, Enums.ImportanceLevel.OPTIONAL)
+	assert_eq(optional_but_strong.importance_level, Enums.ImportanceLevel.MINOR)
 	assert_almost_eq(optional_but_strong.weight, 0.95, 0.001)
 	assert_eq(optional_but_strong.validate(), [])
 
-	assert_eq(plot_critical.to_dict()["importance_level"], "CRITICAL")
-	assert_eq(optional_but_strong.to_dict()["importance_level"], "OPTIONAL")
+	assert_eq(plot_critical.to_dict()["importance_level"], "REQUIRED")
+	assert_eq(optional_but_strong.to_dict()["importance_level"], "MINOR")
+
+
+func test_evidence_importance_level_legacy_names_still_parse() -> void:
+	var legacy_critical := EvidenceData.from_dict({
+		"id": "ev_legacy_required",
+		"name": "Legacy Critical",
+		"discovery_method": "VISUAL",
+		"importance_level": "REQUIRED",
+	})
+	var legacy_optional := EvidenceData.from_dict({
+		"id": "ev_legacy_minor",
+		"name": "Legacy Optional",
+		"discovery_method": "VISUAL",
+		"importance_level": "MINOR",
+	})
+
+	assert_eq(legacy_critical.importance_level, Enums.ImportanceLevel.REQUIRED)
+	assert_eq(legacy_optional.importance_level, Enums.ImportanceLevel.MINOR)
+	assert_eq(legacy_critical.to_dict()["importance_level"], "REQUIRED")
+	assert_eq(legacy_optional.to_dict()["importance_level"], "MINOR")
 
 func test_evidence_to_dict_roundtrip() -> void:
 	var original := {
@@ -144,7 +164,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 		"description": "Testing roundtrip",
 		"type": "DOCUMENT",
 		"weight": 0.7,
-		"importance_level": "CRITICAL",
+		"importance_level": "REQUIRED",
 		"discovery_method": "ADMINISTRATIVE",
 		"derived_from": "ev_parent",
 		"lab_analysis_results": ["ev_rt_result"],
@@ -154,7 +174,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 	assert_eq(result["id"], "ev_rt")
 	assert_eq(result["name"], "Roundtrip Evidence")
 	assert_eq(result["type"], "DOCUMENT")
-	assert_eq(result["importance_level"], "CRITICAL")
+	assert_eq(result["importance_level"], "REQUIRED")
 	assert_eq(result["discovery_method"], "ADMINISTRATIVE")
 	assert_eq(result["derived_from"], "ev_parent")
 	assert_eq(result["lab_analysis_results"], ["ev_rt_result"])

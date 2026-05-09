@@ -47,7 +47,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_restaurant",
 			"related_persons": ["p_alice"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_cctv",
@@ -69,7 +69,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_carol"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 	],
 	"statements": [],

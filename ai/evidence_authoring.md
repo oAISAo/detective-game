@@ -39,8 +39,8 @@ Current runtime uses:
 - evidence badge and metadata presentation in the Evidence detail UI
 
 Do use it for:
-- whether the item should be treated as case-critical guidance
-- whether it is a major supporting clue versus a lower-priority one
+- whether the item should be treated as required case guidance
+- whether it is a major clue versus a lower-priority one
 - authored relevance in UI and hint systems
 
 Do not use it for:
@@ -58,15 +58,15 @@ It is not an evidence-strength field.
 ### `CaseData.critical_evidence_ids`
 
 This is the current source of truth for prosecutor coverage and critical-evidence completion checks.
-Do not assume evidence `importance_level == CRITICAL` automatically places an item in `critical_evidence_ids`.
+Do not assume evidence `importance_level == REQUIRED` automatically places an item in `critical_evidence_ids`.
 
 ## Independence Rule
 
 These systems must remain independent.
 
 Valid combinations:
-- Weak but plot-critical clue: low `weight`, high `importance_level`
-- Strong optional evidence: high `weight`, low `importance_level`
+- Weak but required clue: low `weight`, high `importance_level`
+- Strong minor clue: high `weight`, low `importance_level`
 - Background flavor item: low `weight`, low `importance_level`
 
 Do not add validation or authoring rules that force the two fields to correlate.
@@ -80,5 +80,5 @@ Do not add validation or authoring rules that force the two fields to correlate.
 
 ## Current Naming Note
 
-The enum names `CRITICAL`, `SUPPORTING`, `OPTIONAL`, and `KEY` remain in use for now.
-A later rename pass may revisit these names, but that is separate from the meaning defined here.
+The canonical enum names are `REQUIRED`, `MAJOR`, `MINOR`, and `KEY`.
+Legacy names `CRITICAL`, `SUPPORTING`, and `OPTIONAL` still parse for compatibility, but new authored data should use the canonical names.

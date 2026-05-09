@@ -34,7 +34,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_scene",
 			"related_persons": [],
 			"weight": 0.5,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_lab_output",
@@ -45,7 +45,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "",
 			"related_persons": [],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 	],
 	"statements": [],

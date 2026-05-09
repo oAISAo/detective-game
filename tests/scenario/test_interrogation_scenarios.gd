@@ -51,7 +51,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_parking",
 			"related_persons": ["p_mark"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_financial",
@@ -61,7 +61,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_safe",
@@ -71,7 +71,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_fingerprint",
@@ -81,7 +81,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_elevator_log",
@@ -91,7 +91,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_hallway",
 			"related_persons": ["p_julia"],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_shoe_print",
@@ -101,7 +101,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_journal",
@@ -111,7 +111,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 	],
 	"statements": [

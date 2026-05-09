@@ -383,10 +383,10 @@ static func get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
 ## Returns a human-readable label for a case-role/materiality level.
 static func get_importance_label(level: Enums.ImportanceLevel) -> String:
 	match level:
-		Enums.ImportanceLevel.CRITICAL:   return "Critical"
+		Enums.ImportanceLevel.REQUIRED:   return "Required"
 		Enums.ImportanceLevel.KEY:        return "Key"
-		Enums.ImportanceLevel.SUPPORTING: return "Supporting"
-		Enums.ImportanceLevel.OPTIONAL:   return "Optional"
+		Enums.ImportanceLevel.MAJOR:      return "Major"
+		Enums.ImportanceLevel.MINOR:      return "Minor"
 	return "Unknown"
 
 
@@ -402,10 +402,10 @@ static func get_lab_status_label(status: Enums.LabStatus) -> String:
 ## Returns the badge accent color for an importance level.
 static func get_importance_badge_color(level: Enums.ImportanceLevel) -> Color:
 	match level:
-		Enums.ImportanceLevel.CRITICAL:   return UIColors.RED
+		Enums.ImportanceLevel.REQUIRED:   return UIColors.RED
 		Enums.ImportanceLevel.KEY:        return UIColors.AMBER
-		Enums.ImportanceLevel.SUPPORTING: return UIColors.BLUE
-		Enums.ImportanceLevel.OPTIONAL:   return UIColors.TEXT_GREY
+		Enums.ImportanceLevel.MAJOR:      return UIColors.BLUE
+		Enums.ImportanceLevel.MINOR:      return UIColors.TEXT_GREY
 	return UIColors.TEXT_GREY
 
 

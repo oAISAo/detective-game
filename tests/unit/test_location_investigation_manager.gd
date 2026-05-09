@@ -36,7 +36,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["fingerprint"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -48,7 +48,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["note"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": [],
 		},
 		{
@@ -61,7 +61,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["chemical"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -73,7 +73,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["video"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE"],
 		},
 	],

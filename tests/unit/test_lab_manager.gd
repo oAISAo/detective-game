@@ -45,7 +45,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"lab_analysis_results": ["ev_prints_result"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_blood",
@@ -56,7 +56,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": [],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_fiber",
@@ -67,7 +67,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": [],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_knife_result",
@@ -91,7 +91,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "lab",
 			"related_persons": [],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_prints_result",
@@ -125,7 +125,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "lab",
 			"related_persons": [],
 			"weight": 0.8,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 	],
 	"statements": [],

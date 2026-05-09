@@ -68,7 +68,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apt",
 			"related_persons": ["p_mark"],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_prints_julia",
@@ -79,7 +79,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apt",
 			"related_persons": ["p_julia"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_camera",
@@ -101,7 +101,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_julia"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_noise",
@@ -112,7 +112,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_neighbor",
 			"related_persons": ["p_sarah"],
 			"weight": 0.4,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 	],
 	"statements": [],

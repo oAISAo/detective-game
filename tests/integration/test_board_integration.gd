@@ -32,7 +32,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apt",
 			"related_persons": ["p_julia"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_letter",
@@ -43,7 +43,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apt",
 			"related_persons": [],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 	],
 	"statements": [],

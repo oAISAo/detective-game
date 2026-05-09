@@ -45,8 +45,8 @@ extends Resource
 @export var evidentiary_value_text: String = ""
 
 ## Case-role materiality used for evidence guidance and presentation.
-## Independent from `weight`; a clue can be weak evidence but still case-critical.
-@export var importance_level: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
+## Independent from `weight`; a clue can be weak evidence but still required.
+@export var importance_level: Enums.ImportanceLevel = Enums.ImportanceLevel.MAJOR
 
 ## How the player originally acquired this evidence.
 @export var discovery_method: Enums.DiscoveryMethod = Enums.DiscoveryMethod.VISUAL
@@ -95,8 +95,8 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 	res.evidentiary_value_text = data.get("evidentiary_value_text", "")
 	res.importance_level = EnumHelper.parse_enum(
 		Enums.ImportanceLevel,
-		data.get("importance_level", "SUPPORTING"),
-		Enums.ImportanceLevel.SUPPORTING
+		data.get("importance_level", "MAJOR"),
+		Enums.ImportanceLevel.MAJOR
 	) as Enums.ImportanceLevel
 	res._set_discovery_method_from_string(str(data.get("discovery_method", "")))
 	res.derived_from = str(data.get("derived_from", "")).strip_edges()

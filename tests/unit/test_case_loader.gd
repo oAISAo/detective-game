@@ -595,7 +595,7 @@ func test_case_manager_folder_query_evidence() -> void:
 	var fingerprint := CaseManager.get_evidence("ev_julia_fingerprint_glass")
 	assert_not_null(fingerprint)
 	assert_eq(fingerprint.type, Enums.EvidenceType.FORENSIC)
-	assert_eq(fingerprint.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(fingerprint.importance_level, Enums.ImportanceLevel.REQUIRED)
 	_reset_case_manager()
 
 

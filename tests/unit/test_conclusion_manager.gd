@@ -50,7 +50,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_scene",
 			"related_persons": ["p_mark"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -61,7 +61,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["MOTIVE"],
 		},
 		{
@@ -72,7 +72,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -83,7 +83,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_bar",
 			"related_persons": ["p_mark"],
 			"weight": 0.4,
-			"importance_level": "OPTIONAL",
+			"importance_level": "MINOR",
 			"legal_categories": [],
 		},
 		{
@@ -94,7 +94,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["MOTIVE"],
 		},
 	],
@@ -259,7 +259,7 @@ func test_evidence_score_with_low_weight() -> void:
 
 func test_evidence_score_uses_weight_not_importance_level() -> void:
 	var knife: EvidenceData = CaseManager.get_evidence("ev_knife")
-	knife.importance_level = Enums.ImportanceLevel.OPTIONAL
+	knife.importance_level = Enums.ImportanceLevel.MINOR
 	GameManager.discover_evidence("ev_knife")
 
 	var report: Dictionary = _make_report("p_mark", "Insurance", "Knife", "1260 1", "Key")
@@ -448,7 +448,7 @@ func test_coverage_none_critical_discovered() -> void:
 
 func test_coverage_bonus_uses_critical_evidence_ids_not_importance_level() -> void:
 	var prints_evidence: EvidenceData = CaseManager.get_evidence("ev_prints")
-	prints_evidence.importance_level = Enums.ImportanceLevel.CRITICAL
+	prints_evidence.importance_level = Enums.ImportanceLevel.REQUIRED
 	GameManager.discover_evidence("ev_prints")
 
 	var report: Dictionary = _make_report("p_mark", "Insurance", "Knife", "1260 1", "Key")

@@ -27,7 +27,7 @@ extends Resource
 
 ## How material this statement is when contradiction credibility is evaluated.
 ## This is not an evidentiary-strength score.
-@export var importance: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
+@export var importance: Enums.ImportanceLevel = Enums.ImportanceLevel.MAJOR
 
 
 ## Creates a StatementData from a JSON dictionary.
@@ -42,8 +42,8 @@ static func from_dict(data: Dictionary) -> StatementData:
 	res.contradicting_evidence.assign(data.get("contradicting_evidence", []))
 	res.importance = EnumHelper.parse_enum(
 		Enums.ImportanceLevel,
-		data.get("importance", "SUPPORTING"),
-		Enums.ImportanceLevel.SUPPORTING
+		data.get("importance", "MAJOR"),
+		Enums.ImportanceLevel.MAJOR
 	) as Enums.ImportanceLevel
 	return res
 

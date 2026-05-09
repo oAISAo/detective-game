@@ -33,7 +33,7 @@ var _test_case_data: Dictionary = {
 			"lab_analysis_results": ["ev_photo_result"],
 			"weight": 0.5,
 			"evidentiary_value_text": "Suggests the photo captures a meaningful detail from the scene.",
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"linked_statements": ["stmt_photo_claim"],
 		},
 		{
@@ -45,7 +45,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"weight": 0.7,
 			"evidentiary_value_text": "Clarifies a previously obscured visual detail for closer review.",
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"discovery_method": "FORENSIC",
 			"derived_from": "ev_photo",
 			"lab_result_text": "Output evidence lab_result_text should remain separate from the completed banner.",
@@ -71,7 +71,7 @@ var _test_case_data: Dictionary = {
 			"day_given": 1,
 			"related_evidence": ["ev_photo"],
 			"contradicting_evidence": ["ev_photo"],
-			"importance": "SUPPORTING",
+			"importance": "MAJOR",
 		},
 	],
 	"locations": [
@@ -232,7 +232,7 @@ func test_info_grid_labels_importance_as_case_relevance() -> void:
 
 	assert_has(label_texts, "Case Relevance:",
 		"The evidence metadata label should distinguish case-role importance from evidentiary strength.")
-	assert_has(label_texts, "Supporting")
+	assert_has(label_texts, "Major")
 
 
 func test_completed_lab_state_uses_lab_request_status_text() -> void:

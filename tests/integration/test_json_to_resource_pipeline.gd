@@ -41,7 +41,7 @@ var _full_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"lab_analysis_results": ["ev_knife_prints"],
 			"legal_categories": ["PRESENCE", "OPPORTUNITY"],
@@ -54,7 +54,7 @@ var _full_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"discovery_method": "FORENSIC",
 			"derived_from": "ev_knife",
 		},
@@ -217,7 +217,7 @@ func test_pipeline_evidence_enums_converted() -> void:
 	var ev: EvidenceData = CaseManager.get_evidence("ev_knife")
 	assert_not_null(ev)
 	assert_eq(ev.type, Enums.EvidenceType.FORENSIC)
-	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(ev.importance_level, Enums.ImportanceLevel.REQUIRED)
 	assert_eq(ev.discovery_method, Enums.DiscoveryMethod.VISUAL)
 	assert_eq(ev.lab_analysis_results, ["ev_knife_prints"])
 	# Verify legal_categories enum array conversion

@@ -254,8 +254,8 @@ func is_statement_unlocked(statement_id: String) -> bool:
 
 
 ## Returns true if this evidence has at least one linked statement where the player
-## has set a CONTRADICTION verdict AND the statement importance is SUPPORTING or higher
-## (i.e. importance <= Enums.ImportanceLevel.SUPPORTING in enum order: CRITICAL=0, SUPPORTING=1).
+## has set a CONTRADICTION verdict AND the statement importance is MAJOR or higher
+## (i.e. importance <= Enums.ImportanceLevel.MAJOR in enum order: REQUIRED=0, MAJOR=1).
 ## Used to determine whether the Evidentiary Value section should show a
 ## contested warning for this evidence item.
 func is_contradicted(evidence_id: String) -> bool:
@@ -268,8 +268,8 @@ func is_contradicted(evidence_id: String) -> bool:
 		var stmt: StatementData = CaseManager.get_statement(stmt_id)
 		if stmt == null:
 			continue
-		# CRITICAL (0) and SUPPORTING (1) are both material; OPTIONAL (2) and KEY (3) are not.
-		if stmt.importance <= Enums.ImportanceLevel.SUPPORTING:
+		# REQUIRED (0) and MAJOR (1) are both material; MINOR (2) and KEY (3) are not.
+		if stmt.importance <= Enums.ImportanceLevel.MAJOR:
 			return true
 	return false
 
@@ -363,11 +363,11 @@ func request_hint() -> Dictionary:
 	return hint
 
 
-## Finds the best available hint based on undiscovered critical evidence.
+## Finds the best available hint based on undiscovered required evidence.
 func _find_best_hint() -> Dictionary:
 	var all_evidence: Array[EvidenceData] = CaseManager.get_all_evidence()
 	for ev: EvidenceData in all_evidence:
-		if ev.importance_level != Enums.ImportanceLevel.CRITICAL:
+		if ev.importance_level != Enums.ImportanceLevel.REQUIRED:
 			continue
 		if GameManager.has_evidence(ev.id):
 			continue

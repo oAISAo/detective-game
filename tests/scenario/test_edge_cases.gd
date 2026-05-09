@@ -18,9 +18,9 @@ var _test_case_data: Dictionary = {
 		{"id": "p_julia", "name": "Julia", "role": "SUSPECT", "personality_traits": [], "relationships": [], "pressure_threshold": 5},
 	],
 	"evidence": [
-		{"id": "ev_weapon", "name": "Weapon", "description": "Murder weapon.", "type": "OBJECT", "discovery_method": "VISUAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["PRESENCE"]},
-		{"id": "ev_motive", "name": "Motive Doc", "description": "Financial motive.", "type": "DOCUMENT", "discovery_method": "VISUAL", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "CRITICAL", "legal_categories": ["MOTIVE"]},
-		{"id": "ev_extra", "name": "Extra Evidence", "description": "Additional evidence.", "type": "OBJECT", "discovery_method": "VISUAL", "location_found": "loc_scene", "related_persons": [], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": []},
+		{"id": "ev_weapon", "name": "Weapon", "description": "Murder weapon.", "type": "OBJECT", "discovery_method": "VISUAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "REQUIRED", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_motive", "name": "Motive Doc", "description": "Financial motive.", "type": "DOCUMENT", "discovery_method": "VISUAL", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "REQUIRED", "legal_categories": ["MOTIVE"]},
+		{"id": "ev_extra", "name": "Extra Evidence", "description": "Additional evidence.", "type": "OBJECT", "discovery_method": "VISUAL", "location_found": "loc_scene", "related_persons": [], "weight": 0.5, "importance_level": "MAJOR", "legal_categories": []},
 	],
 	"locations": [
 		{"id": "loc_scene", "name": "Scene", "description": "Crime scene.", "type": "CRIME_SCENE", "evidence_ids": ["ev_weapon"]},

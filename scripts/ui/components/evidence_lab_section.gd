@@ -123,7 +123,7 @@ func _add_submit_option(lab_req: LabRequestData) -> void:
 		add_child(expected_label)
 
 	var submit_btn := Button.new()
-	submit_btn.text = "Submit to Lab \u2014 %s" % _format_analysis_type(lab_req.analysis_type)
+	submit_btn.text = "LAB: %s" % _format_analysis_type(lab_req.analysis_type)
 	submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	submit_btn.pressed.connect(_on_submit_pressed.bind(lab_req.id))
 	add_child(submit_btn)

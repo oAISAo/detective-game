@@ -4,6 +4,14 @@
 class_name EnumHelper
 
 
+const _IMPORTANCE_LEVEL_CANONICAL_NAMES: Dictionary = {
+	Enums.ImportanceLevel.REQUIRED: "REQUIRED",
+	Enums.ImportanceLevel.MAJOR: "MAJOR",
+	Enums.ImportanceLevel.MINOR: "MINOR",
+	Enums.ImportanceLevel.KEY: "KEY",
+}
+
+
 ## Converts a string name to an enum integer value.
 ## enum_type: the enum dictionary (e.g., Enums.EvidenceType)
 ## value: the string key to parse (e.g., "FORENSIC")
@@ -20,6 +28,8 @@ static func parse_enum(enum_type, value: String, default_value: int = 0) -> int:
 
 ## Converts an enum integer value back to its string name.
 static func enum_to_string(enum_type, value: int) -> String:
+	if enum_type == Enums.ImportanceLevel and _IMPORTANCE_LEVEL_CANONICAL_NAMES.has(value):
+		return _IMPORTANCE_LEVEL_CANONICAL_NAMES[value]
 	for key: String in enum_type:
 		if enum_type[key] == value:
 			return key
