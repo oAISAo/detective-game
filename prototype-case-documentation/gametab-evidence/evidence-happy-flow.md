@@ -22,6 +22,8 @@ Discovery method labels describe original acquisition source only. Lab progress 
 
 Derived evidence now has explicit lineage. Child evidence can show `Derived From` in metadata, while raw evidence uses `lab_analysis_results` to drive the Forensic Analysis section: available analyses, expected result previews, pending status, and completed result links. Upgrade-style lab outputs still keep lineage even when the raw parent is replaced in the archive.
 
+The header badge and metadata row describe **Case Relevance** from `importance_level`. The **Evidentiary Value** tier comes from `weight`. These systems are independent, so a clue can be case-critical while still having only weak or supporting persuasive strength.
+
 ---
 
 ## DAY 1 — First Review & Lab Submissions
@@ -48,7 +50,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 - [ ] Right panel loads autopsy detail
 - [ ] Header shows: *"Case File"* as discovery method
 - [ ] Description: cause of death (knife wound), estimated time of death (~21:00), forensic findings
-- [ ] Importance badge: **CRITICAL**
+- [ ] Case Relevance badge: **CRITICAL**
 - [ ] **NEW** badge disappears from this card in the archive
 - [ ] No statements appear in side column (no interrogations have happened yet)
 - [ ] No "Submit to Lab" section (autopsy report does not require further analysis)
@@ -158,11 +160,12 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Action:** Click `ev_julia_fingerprint_glass` card
 **Expected:**
 - [ ] Detail loads: "Julia's Fingerprint on Wine Glass"
-- [ ] Importance badge: **CRITICAL**
+- [ ] Case Relevance badge: **CRITICAL**
 - [ ] Discovery method: *"Forensic Analysis"*
 - [ ] Metadata shows **Derived From: Two Wine Glasses on Table** as a navigation link
 - [ ] Related Persons: Julia Ross (Suspect)
 - [ ] Evidentiary Value shows **Airtight** with case-authored interpretation text
+- [ ] The CRITICAL badge and the Airtight value are separate systems: case relevance versus persuasive strength
 - [ ] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
 - [ ] No "Submit to Lab" section
 
@@ -187,7 +190,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Expected:**
 - [ ] Detail loads: "Elevator Logs"
 - [ ] Description: Julia Ross's key card used at 20:48 on the night of the murder
-- [ ] Importance: **CRITICAL**
+- [ ] Case Relevance: **CRITICAL**
 - [ ] Related Persons: Julia Ross (Suspect)
 - [ ] Legal Categories badge: **Presence**, **Opportunity**
 - [ ] No statements yet (Julia hasn't been interrogated yet at this point)
@@ -224,7 +227,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Expected:**
 - [ ] Pill changes to teal: **SUPPORTS**
 - [ ] Verdict change is saved in player state
-- [ ] Evidentiary Value adds *"Contested by a credible statement"* — `stmt_mark_departure_time` has a CONTRADICTION verdict and `importance = CRITICAL`, satisfying `EvidenceManager.is_contradicted()`
+- [ ] Evidentiary Value adds *"Contested by a credible statement"* — `stmt_mark_departure_time` has a CONTRADICTION verdict and `statement importance = CRITICAL`, satisfying `EvidenceManager.is_contradicted()`
 
 **Action:** Click verdict pill on `stmt_mark_lied_to_hide_argument` → select **Unresolved**
 **Expected:**
@@ -244,7 +247,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Expected:**
 - [ ] Pill turns red: **CONTRADICTION**
 - [ ] A key contradiction is now logged: Julia denied being there, but her fingerprint was on the wine glass
-- [ ] Evidentiary Value adds *"Contested by a credible statement"* (`stmt_julia_initial` has importance CRITICAL, satisfying `is_contradicted()`)
+- [ ] Evidentiary Value adds *"Contested by a credible statement"* (`stmt_julia_initial` has statement importance CRITICAL, satisfying `is_contradicted()`)
 
 ---
 
@@ -300,7 +303,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Action:** Click `ev_bank_transfer` card
 **Expected:**
 - [ ] Detail loads: "Suspicious Bank Transfer"
-- [ ] Importance: **CRITICAL**
+- [ ] Case Relevance: **CRITICAL**
 - [ ] Description: money moved from company account, destination unknown
 - [ ] **Compare Evidence** button available
 - [ ] Side column — Statements: Mark's `stmt_mark_argument` may appear ("we argued a little") — if so, set to UNRESOLVED
@@ -338,7 +341,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Expected:**
 - [ ] Detail loads: "Hidden Safe in Office"
 - [ ] Description: documents revealing the full extent of Mark's financial crimes and Daniel's plan to expose him
-- [ ] Importance: **CRITICAL**
+- [ ] Case Relevance: **CRITICAL**
 - [ ] Related Persons: Mark Bennett (and potentially Julia Ross, as her financial situation is referenced)
 
 ---
@@ -408,7 +411,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 - [ ] Detail loads: "Daniel's Personal Journal"
 - [ ] Discovery method: *"Visual Inspection"*
 - [ ] Description: recent entries mention confronting both Mark (embezzlement) and Julia (marriage). Last entry: "I have to tell Julia everything tomorrow."
-- [ ] Importance: **CRITICAL**
+- [ ] Case Relevance: **CRITICAL**
 - [ ] Related Persons: Daniel Ross, Mark Bennett, Julia Ross
 
 ---

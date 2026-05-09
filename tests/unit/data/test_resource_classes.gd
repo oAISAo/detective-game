@@ -110,6 +110,33 @@ func test_evidence_validate_invalid_weight() -> void:
 	assert_true(_has_error_containing(errors, "weight must be"))
 
 
+func test_evidence_weight_and_importance_level_remain_independent() -> void:
+	var plot_critical := EvidenceData.from_dict({
+		"id": "ev_plot_critical",
+		"name": "Weak But Critical",
+		"discovery_method": "VISUAL",
+		"weight": 0.2,
+		"importance_level": "CRITICAL",
+	})
+	var optional_but_strong := EvidenceData.from_dict({
+		"id": "ev_optional_strong",
+		"name": "Strong But Optional",
+		"discovery_method": "VISUAL",
+		"weight": 0.95,
+		"importance_level": "OPTIONAL",
+	})
+
+	assert_eq(plot_critical.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_almost_eq(plot_critical.weight, 0.2, 0.001)
+	assert_eq(plot_critical.validate(), [])
+
+	assert_eq(optional_but_strong.importance_level, Enums.ImportanceLevel.OPTIONAL)
+	assert_almost_eq(optional_but_strong.weight, 0.95, 0.001)
+	assert_eq(optional_but_strong.validate(), [])
+
+	assert_eq(plot_critical.to_dict()["importance_level"], "CRITICAL")
+	assert_eq(optional_but_strong.to_dict()["importance_level"], "OPTIONAL")
+
 func test_evidence_to_dict_roundtrip() -> void:
 	var original := {
 		"id": "ev_rt",

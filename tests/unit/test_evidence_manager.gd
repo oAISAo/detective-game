@@ -637,6 +637,21 @@ func test_request_hint_succeeds() -> void:
 	assert_eq(hint.get("target_evidence", ""), "ev_fingerprint")
 
 
+func test_request_hint_uses_importance_level_not_weight() -> void:
+	GameManager.current_day = 2
+	GameManager.visit_location("loc_apartment")
+
+	var critical_evidence: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	var supporting_evidence: EvidenceData = CaseManager.get_evidence("ev_photo")
+	critical_evidence.weight = 0.1
+	supporting_evidence.weight = 0.99
+
+	var hint: Dictionary = EvidenceManager.request_hint()
+	assert_false(hint.is_empty())
+	assert_eq(hint.get("target_evidence", ""), "ev_fingerprint",
+		"Hint selection should still follow importance_level rather than the heavier supporting clue.")
+
+
 func test_request_hint_budget_exceeded() -> void:
 	GameManager.current_day = 2
 	GameManager.visit_location("loc_apartment")

@@ -51,7 +51,8 @@ enum PersonalityTrait {
 	CALM,
 }
 
-## How important a piece of evidence is to the case.
+## Shared materiality scale used for evidence case role and statement credibility.
+## This is separate from evidence `weight`, which measures persuasive strength.
 enum ImportanceLevel {
 	CRITICAL,
 	SUPPORTING,

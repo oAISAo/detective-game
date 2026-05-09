@@ -56,7 +56,7 @@ Each card shows:
 ### Ordering
 - Default: discovery order (newest at top)
 - **NEW** items always float to the top until reviewed
-- Within same discovery day: critical evidence before supporting before noise
+- Within the same discovery day: higher case-relevance evidence before lower case-relevance evidence
 
 ### Evidence Card States (Badge)
 | Badge | Color | Meaning |
@@ -98,7 +98,7 @@ The detail panel is split into a header and three scrollable columns.
 
 ### Header
 - **Title** — serif large type
-- **Badges row** — Importance badge (CRITICAL / SUPPORTING / NOISE) + Type badge + Legal Category badge(s)
+- **Badges row** — Case Relevance badge (CRITICAL / SUPPORTING / OPTIONAL / KEY) + Type badge + Legal Category badge(s)
 - **Pin button** — toggles pinned state; purely a player convenience bookmark
 - **Compare button** — opens the comparison selector in the right panel header button row
 - **Board button** — sends evidence to the Detective Board (see Board tab integration below)
@@ -119,9 +119,10 @@ The detail panel is split into a header and three scrollable columns.
 | Discovery | Original acquisition source (Visual Inspection / Forensic Analysis / Search Warrant / Digital Recovery / Interrogation / Case File) |
 | Derived From | Shown when the evidence item explicitly comes from another evidence item |
 | Day Found | Investigation day |
+| Case Relevance | Case-role materiality from `importance_level` |
 | Lab Status | Not required / Pending / Complete |
 
-`discovery_method` is source-only metadata. Pending or completed lab work is represented by `lab_status`, and comparison outcomes are tracked in the insight system rather than becoming a new discovery label.
+`discovery_method` is source-only metadata. `importance_level` is separate case-role metadata used for guidance, ordering, and evidence-detail presentation. Pending or completed lab work is represented by `lab_status`, and comparison outcomes are tracked in the insight system rather than becoming a new discovery label.
 
 ### Evidence Lineage
 - Evidence lineage is explicit in case data through `EvidenceData.derived_from`.
@@ -134,10 +135,20 @@ The detail panel is split into a header and three scrollable columns.
 - Lineage is separate from lab state. `derived_from` answers "where did this evidence come from?" while `lab_status` answers "what is happening to this evidence right now?"
 - Evidence comparison does not create lineage. Successful comparisons unlock `InsightData`, not child evidence items.
 
+### Case Relevance
+- Case Relevance appears in the header badge row and the metadata grid.
+- It comes from `EvidenceData.importance_level`.
+- It answers: **How essential is this evidence to the case's authored guidance role?**
+- Current runtime uses are intentionally narrow: progressive hint targeting, archive ordering tie-breaks, and evidence-detail badge/metadata presentation.
+- It is not a strength meter. A case-critical clue can still be weak or only supporting in the Evidentiary Value section if its `weight` is low.
+- `StatementData.importance` reuses the same enum family for contradiction credibility, but that is a statement-materiality rule, not evidence strength.
+- Prosecutor coverage remains a separate case-authored list through `CaseData.critical_evidence_ids`; it is not derived from every evidence item marked `CRITICAL`.
+
 ### Evidentiary Value
 - This lives in the first column below the description and the forensic-analysis block.
 - It is an interpretation, not a measurement.
 - The section uses the internal `weight` field only to derive a qualitative tier.
+- Case Relevance and Evidentiary Value are independent; they are allowed to disagree.
 - The player sees three layers of information:
   - **Qualitative tier** — the primary signal shown in the UI
   - **Case-specific interpretation** — evidence-authored reasoning text
@@ -181,6 +192,8 @@ func is_contradicted(evidence_id: String) -> bool:
             return true
     return false
 ```
+
+      This contested-warning check depends on statement materiality, not evidence `weight`. It sits alongside the other two systems rather than replacing them.
 
     The section deliberately removes:
     - percentage display
@@ -533,7 +546,7 @@ Send to board
 
 ### Evidence Data Fields (from `evidence.json`)
 
-> **Note:** `weight` is stored as a float from 0.0–1.0 and is used internally for qualitative tiering and prosecutor scoring. It is not shown numerically in the Evidence tab. `evidentiary_value_text` stores the evidence-specific reasoning sentence shown to the player. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
+> **Note:** `weight` is stored as a float from 0.0–1.0 and is used internally for qualitative tiering and prosecutor scoring. `importance_level` is separate case-role metadata used for guidance and evidence-detail presentation. Prosecutor coverage remains separately authored through `CaseData.critical_evidence_ids`. `evidentiary_value_text` stores the evidence-specific reasoning sentence shown to the player. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
 
 ```json
 {

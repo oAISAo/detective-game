@@ -257,6 +257,20 @@ func test_evidence_score_with_low_weight() -> void:
 	assert_almost_eq(score, 0.4, 0.05, "Should reflect low weight")
 
 
+func test_evidence_score_uses_weight_not_importance_level() -> void:
+	var knife: EvidenceData = CaseManager.get_evidence("ev_knife")
+	knife.importance_level = Enums.ImportanceLevel.OPTIONAL
+	GameManager.discover_evidence("ev_knife")
+
+	var report: Dictionary = _make_report("p_mark", "Insurance", "Knife", "1260 1", "Key")
+	report["suspect"]["evidence"] = ["ev_knife"]
+	ConclusionManager.submit_report(report)
+
+	var score: float = ConclusionManager.get_evidence_score()
+	assert_almost_eq(score, 0.9, 0.05,
+		"Evidence score should continue to use weight even if importance_level changes.")
+
+
 # =========================================================================
 # Timeline Accuracy Score
 # =========================================================================
@@ -430,6 +444,19 @@ func test_coverage_none_critical_discovered() -> void:
 	ConclusionManager.submit_report(report)
 	var bonus: float = ConclusionManager.get_coverage_bonus()
 	assert_eq(bonus, 0.0, "No critical discovered should give 0 bonus")
+
+
+func test_coverage_bonus_uses_critical_evidence_ids_not_importance_level() -> void:
+	var prints_evidence: EvidenceData = CaseManager.get_evidence("ev_prints")
+	prints_evidence.importance_level = Enums.ImportanceLevel.CRITICAL
+	GameManager.discover_evidence("ev_prints")
+
+	var report: Dictionary = _make_report("p_mark", "Insurance", "Knife", "1260 1", "Key")
+	ConclusionManager.submit_report(report)
+
+	var bonus: float = ConclusionManager.get_coverage_bonus()
+	assert_eq(bonus, 0.0,
+		"Coverage should stay tied to critical_evidence_ids instead of every evidence item marked CRITICAL.")
 
 
 # =========================================================================

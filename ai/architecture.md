@@ -43,6 +43,7 @@ This document does not cover:
 - Case data is read through loaders and `CaseManager` queries.
 - Data objects define content, not runtime UI state.
 - Do not store player progress, selection state, or transient UI flags in data resources.
+- Evidence authoring semantics for `weight`, `importance_level`, statement materiality, and `critical_evidence_ids` live in `evidence_authoring.md`. Read that file before changing those fields or their meaning.
 
 ### Game Logic Layer
 

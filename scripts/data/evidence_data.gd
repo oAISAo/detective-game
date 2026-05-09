@@ -37,13 +37,15 @@ extends Resource
 ## Path to the evidence image resource.
 @export var image: String = ""
 
-## Relative weight/importance as a float (0.0–1.0).
+## Persuasive evidentiary strength as a float (0.0–1.0).
+## Used for evidentiary-value tiering and prosecutor-strength scoring.
 @export var weight: float = 0.5
 
 ## Evidence-specific interpretation shown in the Evidentiary Value section.
 @export var evidentiary_value_text: String = ""
 
-## How important this evidence is to the case.
+## Case-role materiality used for evidence guidance and presentation.
+## Independent from `weight`; a clue can be weak evidence but still case-critical.
 @export var importance_level: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
 
 ## How the player originally acquired this evidence.

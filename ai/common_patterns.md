@@ -27,6 +27,8 @@ When implementing a feature:
 3. Only combine patterns when the feature clearly needs both.
 4. If no pattern fits, extend the simplest one instead of building a new architecture style.
 
+When authoring or reviewing evidence data semantics, also read `evidence_authoring.md` before deciding how to use `weight`, `importance_level`, or `critical_evidence_ids`.
+
 
 ## Pattern Selection
 

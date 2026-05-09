@@ -223,6 +223,18 @@ func test_evidentiary_value_section_shows_contested_warning_for_credible_contrad
 		"Credible contradictions should appear as a subtle warning in the value section.")
 
 
+func test_info_grid_labels_importance_as_case_relevance() -> void:
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo")
+
+	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
+	var label_texts: Array[String] = _collect_label_texts(info_grid)
+
+	assert_has(label_texts, "Case Relevance:",
+		"The evidence metadata label should distinguish case-role importance from evidentiary strength.")
+	assert_has(label_texts, "Supporting")
+
+
 func test_completed_lab_state_uses_lab_request_status_text() -> void:
 	GameManager.discover_evidence("ev_photo")
 	GameManager.discover_evidence("ev_photo_result")

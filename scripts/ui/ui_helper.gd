@@ -380,7 +380,7 @@ static func get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
 	return "Unknown"
 
 
-## Returns a human-readable label for an importance level.
+## Returns a human-readable label for a case-role/materiality level.
 static func get_importance_label(level: Enums.ImportanceLevel) -> String:
 	match level:
 		Enums.ImportanceLevel.CRITICAL:   return "Critical"

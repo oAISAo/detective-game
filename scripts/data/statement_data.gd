@@ -25,8 +25,8 @@ extends Resource
 ## IDs of evidence items that potentially contradict this statement.
 @export var contradicting_evidence: Array[String] = []
 
-## How material this statement is to the case (used for contradiction credibility
-## checks in evidence analysis surfaces).
+## How material this statement is when contradiction credibility is evaluated.
+## This is not an evidentiary-strength score.
 @export var importance: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
 
 
