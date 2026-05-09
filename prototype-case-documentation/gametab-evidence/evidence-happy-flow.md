@@ -73,8 +73,7 @@ The header badge and metadata row describe **Case Relevance** from `importance_l
 **Expected:**
 - [ ] Detail loads: "Two Wine Glasses on Table"
 - [ ] Below the Compare Evidence button, a **Lab Analysis Available** section appears:
-  - Text includes: *"Expected result: Julia's Fingerprint on Wine Glass"*
-  - Button: **Submit to Lab — Fingerprint Analysis**
+  - Button: **LAB: Fingerprint Analysis**
 - [ ] Lab Status in metadata: *"Not submitted"* (amber)
 - [ ] No statements in side column yet
 
@@ -98,12 +97,12 @@ The header badge and metadata row describe **Case Relevance** from `importance_l
 - [ ] Description notes it needs analysis to determine size and pattern
 - [ ] **Lab Analysis Available** section appears:
   - Text includes: *"Expected result: Shoe Print in Hallway"*
-  - Button: **Submit to Lab — Footwear Analysis**
+  - Button: **LAB: Footwear Analysis**
 
 ---
 
 ### Step 7: Submit Shoe Print to Lab
-**Action:** Click "Submit to Lab — Footwear Analysis"
+**Action:** Click "LAB: Footwear Analysis"
 **Expected:**
 - [ ] Notification popup: *"Shoe print submitted for footwear analysis. Results expected tomorrow morning."*
 - [ ] Lab Status changes to *"Pending — results Day 2"*

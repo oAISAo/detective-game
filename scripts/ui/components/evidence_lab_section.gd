@@ -110,18 +110,10 @@ func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
 	add_child(desc_label)
 
 	for lab_req: LabRequestData in available_requests:
-		_add_submit_option(lab_req)
+		_add_submit_button(lab_req)
 
 
-func _add_submit_option(lab_req: LabRequestData) -> void:
-	var output_ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
-	if output_ev != null:
-		var expected_label := Label.new()
-		expected_label.text = "Expected result: %s" % output_ev.name
-		expected_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		expected_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-		add_child(expected_label)
-
+func _add_submit_button(lab_req: LabRequestData) -> void:
 	var submit_btn := Button.new()
 	submit_btn.text = "LAB: %s" % _format_analysis_type(lab_req.analysis_type)
 	submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN

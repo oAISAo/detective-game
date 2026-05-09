@@ -129,7 +129,7 @@ The detail panel is split into a header and three scrollable columns.
 - `derived_from` is a single parent evidence ID, not a list. It expresses authored origin, not player interpretation.
 - A child evidence detail can show **Derived From** as a navigation link when the parent is still present in the discovered archive.
 - Raw evidence declares forward lab targets through `EvidenceData.lab_analysis_results`.
-- The Forensic Analysis block uses `lab_analysis_results` plus matching `LabRequestData` templates to show available analyses, expected results, pending submissions, and completed result links.
+- The Forensic Analysis block uses `lab_analysis_results` plus matching `LabRequestData` templates to show available analyses, pending submissions, and completed result links.
 - For lab requests with `lab_transform: derive`, parent and child can coexist in the archive.
 - For lab requests with `lab_transform: upgrade`, the analyzed output still keeps `derived_from`, but the raw parent can be replaced in the discovered archive. In that case the child shows the parent name as plain metadata rather than an active navigation link.
 - Lineage is separate from lab state. `derived_from` answers "where did this evidence come from?" while `lab_status` answers "what is happening to this evidence right now?"
@@ -318,8 +318,6 @@ Evidence with non-empty `lab_analysis_results` in its data displays a **Forensic
 ┌─────────────────────────────────────────┐
 │  FORENSIC ANALYSIS                      │
 │  Possible forensic analyses available.  │
-│  Expected result: Julia's Fingerprint   │
-│  on Wine Glass                          │
 │                                         │
 │  [Submit to Lab — Fingerprint Analysis] │
 └─────────────────────────────────────────┘
@@ -330,11 +328,11 @@ Evidence with non-empty `lab_analysis_results` in its data displays a **Forensic
 ### Submission Steps
 1. Player opens raw evidence (e.g., `ev_wine_glasses`)
 2. The Forensic Analysis block appears in the first column with one entry per currently available lab target
-3. Each entry shows the expected result name and a submit button labeled from the matching `LabRequestData.analysis_type`
-3. Player clicks "Submit to Lab"
-4. Notification: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
-5. Evidence card in the archive gains **LAB** badge
-6. The "Submit to Lab" button changes to a status indicator: *"In analysis — Day 2 morning"*
+3. Each entry shows a submit button labeled from the matching `LabRequestData.analysis_type`
+4. Player clicks "Submit to Lab"
+5. Notification: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
+6. Evidence card in the archive gains **LAB** badge
+7. The "Submit to Lab" button changes to a status indicator: *"In analysis — Day 2 morning"*
 
 ### Lab Results Delivery
 - Results are delivered automatically at the **start of the next day's morning phase** (no player action needed)

@@ -269,10 +269,8 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 		"LabSectionAnchor should contain the EvidenceLabSection instance.")
 
 	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
-	var label_texts: Array[String] = _collect_label_texts(lab_section)
 	var button_texts: Array[String] = _collect_button_texts(lab_section)
 
-	assert_has(label_texts, "Expected result: Enhanced Test Photo")
 	assert_has(button_texts, "LAB: Photo Analysis")
 
 
