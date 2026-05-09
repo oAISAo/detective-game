@@ -273,7 +273,7 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 	var button_texts: Array[String] = _collect_button_texts(lab_section)
 
 	assert_has(label_texts, "Expected result: Enhanced Test Photo")
-	assert_has(button_texts, "Submit to Lab — Photo Analysis")
+	assert_has(button_texts, "LAB: Photo Analysis")
 
 
 func test_derived_from_row_uses_navigation_link_when_parent_is_discovered() -> void:

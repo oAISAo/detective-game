@@ -219,7 +219,7 @@ var _test_case_data: Dictionary = {
 			"analysis_type": "dna",
 			"day_submitted": 1,
 			"completion_day": 2,
-			"lab_transform": "derive",
+			"lab_transform": "upgrade",
 		},
 	],
 }
