@@ -18,6 +18,8 @@ Note:
 Statements shown in the Evidence tab originate from interrogations in the Suspects tab.
 They only appear here once both the statement and the linked evidence have been discovered.
 
+Discovery method labels describe original acquisition source only. Lab progress is shown through the LAB badge and lab-status metadata, while successful comparisons unlock insights instead of creating new archive evidence cards.
+
 ---
 
 ## DAY 1 — First Review & Lab Submissions
@@ -154,7 +156,7 @@ They only appear here once both the statement and the linked evidence have been 
 **Expected:**
 - [ ] Detail loads: "Julia's Fingerprint on Wine Glass"
 - [ ] Importance badge: **CRITICAL**
-- [ ] Discovery method: *"Lab Result"*
+- [ ] Discovery method: *"Forensic Analysis"*
 - [ ] Related Persons: Julia Ross (Suspect)
 - [ ] Evidentiary Value shows **Airtight** with case-authored interpretation text
 - [ ] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
@@ -169,7 +171,7 @@ They only appear here once both the statement and the linked evidence have been 
 **Expected:**
 - [ ] Detail loads: "Shoe Print in Hallway"
 - [ ] Description: Women's shoe, size 38, distinctive sole pattern
-- [ ] Discovery method: *"Lab Result"*
+- [ ] Discovery method: *"Forensic Analysis"*
 - [ ] **Compare Evidence** button is available — but no valid comparison exists yet (Julia's shoes not in evidence)
 - [ ] Compare attempt with any current evidence produces: *"No forensic connection found between these items."*
 
@@ -310,22 +312,19 @@ They only appear here once both the statement and the linked evidence have been 
 **Action:** Select `ev_accounting_files` from the comparison selector
 **Expected:**
 - [ ] System checks for a valid comparison pair
-- [ ] Valid pair found: generates `ev_financial_link`
-- [ ] Notification popup: *"Forensic connection confirmed: the bank transfer is consistent with the embezzlement pattern in the accounting files."*
-- [ ] `ev_financial_link` appears in the archive with **NEW** badge
+- [ ] Valid pair found: discovers insight `ins_embezzlement_scheme`
+- [ ] Notification popup: *"New insight: Mark was embezzling money from the company. Daniel discovered the missing funds and planned to expose him."*
+- [ ] No new evidence card is added to the archive
 - [ ] Comparison selector closes
 
 ---
 
-### Step 23: Review Financial Link (Generated Evidence)
-**Action:** Click `ev_financial_link` card
+### Step 23: Confirm Comparison Does Not Add Archive Evidence
+**Action:** Stay in the Evidence tab after the comparison resolves
 **Expected:**
-- [ ] Detail loads: "Financial Connection Confirmed"
-- [ ] Discovery method: *"Evidence Comparison"*
-- [ ] Description: links the bank transfer to the embezzlement pattern in the accounting files
-- [ ] Related Persons: Mark Bennett
-- [ ] Importance: **CRITICAL**
-- [ ] Evidentiary Value: **Strong**
+- [ ] No `ev_financial_link` card appears in the archive
+- [ ] `ev_bank_transfer` and `ev_accounting_files` retain their original discovery labels
+- [ ] The comparison outcome is treated as an insight for downstream systems, not as new archive evidence
 
 ---
 
@@ -357,7 +356,7 @@ They only appear here once both the statement and the linked evidence have been 
 ## DAY 4 — Final Analysis & Case Preparation
 
 > Day 4 map action (Personal Items / Journal) and final interrogations happen before or alongside these steps.
-> New evidence: ev_personal_journal (map), ev_julia_shoes (search warrant), ev_shoe_match (comparison)
+> New evidence: ev_personal_journal (map), ev_julia_shoes (search warrant)
 
 ---
 
@@ -383,21 +382,18 @@ They only appear here once both the statement and the linked evidence have been 
 ### Step 28: Compare Shoe Print with Julia's Shoes
 **Action:** With `ev_julia_shoes` open, click **Compare Evidence** → select `ev_shoe_print`
 **Expected:**
-- [ ] Valid pair found
-- [ ] Notification: *"Forensic match confirmed: the hallway shoe print matches Julia Ross's shoes (size 38, identical sole pattern)."*
-- [ ] `ev_shoe_match` generated and added to archive with **NEW** badge
+- [ ] No valid comparison insight is authored for this pair in the current slice
+- [ ] UI shows the standard no-match response: *"No forensic connection found between these items."*
+- [ ] No new evidence card is added to the archive
 
 ---
 
-### Step 29: Review Shoe Match Result
-**Action:** Click `ev_shoe_match`
+### Step 29: Confirm Archive Is Unchanged After Shoe Comparison
+**Action:** Review the archive after the no-match response
 **Expected:**
-- [ ] Detail loads: "Shoe Print Match — Julia Ross"
-- [ ] Discovery method: *"Evidence Comparison"*
-- [ ] Importance: **CRITICAL**
-- [ ] Evidentiary Value: **Airtight**
-- [ ] Related Persons: Julia Ross
-- [ ] Legal Categories: **Presence**, **Opportunity**
+- [ ] No `ev_shoe_match` card exists in the archive
+- [ ] `ev_shoe_print` still shows *"Forensic Analysis"* and `ev_julia_shoes` still shows *"Search Warrant"*
+- [ ] The pair remains usable as separate evidence in contradiction and case-building flows
 
 ---
 
@@ -449,16 +445,14 @@ They only appear here once both the statement and the linked evidence have been 
 **Action:** Scroll through the full Evidence Archive
 **Expected:**
 - [ ] No items have **NEW** badge remaining (all reviewed)
-- [ ] Archive shows approximately 16–17 items:
+- [ ] Archive shows approximately 20 items:
   - 1 autopsy report (Day 0)
   - 8 from map Day 1 (knife, knife block, wine glasses, broken frame, wine bottle, julia text, mark call log, shoe print raw)
   - 2 lab results Day 2 (julia fingerprint, analyzed shoe print)
   - 3 from map Day 2 (hallway camera, elevator logs, parking camera)
   - 4 from map Day 3 (daniel email, bank transfer, accounting files, hidden safe)
-  - 1 comparison result Day 3 (financial link)
   - 1 from map Day 4 (personal journal)
   - 1 from warrant (julia shoes)
-  - 1 comparison result Day 4 (shoe match)
 - [ ] All major contradictions classified:
   - ev_parking_camera: Mark's "20:30" statement → CONTRADICTION ✓
   - ev_julia_fingerprint_glass: Julia's "wasn't there" statement → CONTRADICTION ✓
@@ -466,7 +460,6 @@ They only appear here once both the statement and the linked evidence have been 
 - [ ] Key supports classified:
   - ev_personal_journal: Julia's confession statement → SUPPORTS ✓
   - ev_hallway_camera: Sarah's testimony → SUPPORTS ✓
-  - ev_shoe_match: Places Julia at the scene → ready for case report ✓
 
 ---
 
@@ -483,23 +476,21 @@ They only appear here once both the statement and the linked evidence have been 
 | 1 | Map — Phone | ev_julia_text_message | — | — |
 | 1 | Map — Phone | ev_mark_call_log | — | — |
 | 1 | Map — Hallway | ev_shoe_print_raw | Submitted Day 1 | — |
-| 2 | Lab Result | ev_julia_fingerprint_glass | — | — |
-| 2 | Lab Result | ev_shoe_print | — | Compared Day 4 |
+| 2 | Forensic Analysis | ev_julia_fingerprint_glass | — | Compared separately for insight only |
+| 2 | Forensic Analysis | ev_shoe_print | — | Comparison attempt Day 4, no archive result |
 | 2 | Map — Security | ev_hallway_camera | — | — |
 | 2 | Map — Security | ev_elevator_logs | — | — |
 | 2 | Map — Parking | ev_parking_camera | — | — |
 | 3 | Map — Office Desk | ev_daniel_email | — | — |
-| 3 | Map — File Cabinet | ev_bank_transfer | — | Compared Day 3 |
-| 3 | Map — File Cabinet | ev_accounting_files | — | Compared Day 3 |
+| 3 | Map — File Cabinet | ev_bank_transfer | — | Compared Day 3 for insight |
+| 3 | Map — File Cabinet | ev_accounting_files | — | Compared Day 3 for insight |
 | 3 | Map — Bookshelf | ev_hidden_safe | — | — |
-| 3 | Comparison Result | ev_financial_link | — | — |
 | 4 | Map — Personal Items | ev_personal_journal | — | — |
-| 4 | Search Warrant | ev_julia_shoes | — | Compared Day 4 |
-| 4 | Comparison Result | ev_shoe_match | — | — |
+| 4 | Search Warrant | ev_julia_shoes | — | Comparison attempt Day 4, no archive result |
 
-**Total evidence items: 22**
+**Total evidence items: 20**
 **Lab submissions: 2** (wine glasses → fingerprint, shoe print raw → footwear)
-**Comparisons performed: 2** (bank transfer + accounting files, shoe print + julia shoes)
+**Comparison attempts: 2** (bank transfer + accounting files, shoe print + julia shoes)
 **Contradictions classified: 3** (mark departure, julia presence ×2)
 **Supports classified: 4** (mark corrected, sarah testimony ×2, julia confession)
 

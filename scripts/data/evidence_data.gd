@@ -43,7 +43,7 @@ extends Resource
 ## How important this evidence is to the case.
 @export var importance_level: Enums.ImportanceLevel = Enums.ImportanceLevel.SUPPORTING
 
-## How this evidence was discovered.
+## How the player originally acquired this evidence.
 @export var discovery_method: Enums.DiscoveryMethod = Enums.DiscoveryMethod.VISUAL
 
 ## Optional hint text for the progressive hint system. If empty, a generic hint is generated.
@@ -54,6 +54,9 @@ extends Resource
 
 ## Legal categories this evidence supports (PRESENCE, MOTIVE, etc.).
 var legal_categories: Array[int] = []  # Enums.LegalCategory values
+
+## Validation error captured while parsing discovery_method.
+var _discovery_method_validation_error: String = ""
 
 
 ## Creates an EvidenceData from a JSON dictionary.
@@ -84,11 +87,7 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 		data.get("importance_level", "SUPPORTING"),
 		Enums.ImportanceLevel.SUPPORTING
 	) as Enums.ImportanceLevel
-	res.discovery_method = EnumHelper.parse_enum(
-		Enums.DiscoveryMethod,
-		data.get("discovery_method", "VISUAL"),
-		Enums.DiscoveryMethod.VISUAL
-	) as Enums.DiscoveryMethod
+	res._set_discovery_method_from_string(str(data.get("discovery_method", "")))
 	res.hint_text = data.get("hint_text", "")
 	res.linked_statements.assign(data.get("linked_statements", []))
 	res.legal_categories = EnumHelper.parse_enum_array(
@@ -98,6 +97,26 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 	return res
 
 
+func _set_discovery_method_from_string(value: String) -> void:
+	var normalized_value: String = value.to_upper().strip_edges()
+	var evidence_label: String = id if not id.is_empty() else "<unknown>"
+
+	if normalized_value.is_empty():
+		_discovery_method_validation_error = (
+			"EvidenceData: discovery_method is required for evidence '%s'" % evidence_label
+		)
+		return
+
+	if normalized_value not in Enums.DiscoveryMethod:
+		_discovery_method_validation_error = (
+			"EvidenceData: invalid discovery_method '%s' for evidence '%s'" % [value, evidence_label]
+		)
+		return
+
+	discovery_method = Enums.DiscoveryMethod[normalized_value]
+	_discovery_method_validation_error = ""
+
+
 ## Returns validation errors. Empty array means valid.
 func validate() -> Array[String]:
 	var errors: Array[String] = []
@@ -105,6 +124,8 @@ func validate() -> Array[String]:
 		errors.append("EvidenceData: id is required")
 	if name.is_empty():
 		errors.append("EvidenceData: name is required")
+	if not _discovery_method_validation_error.is_empty():
+		errors.append(_discovery_method_validation_error)
 	if weight < 0.0 or weight > 1.0:
 		errors.append("EvidenceData: weight must be between 0.0 and 1.0")
 	return errors

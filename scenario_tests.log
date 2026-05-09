@@ -1,0 +1,348 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+---  GUT  ---
+[1m[INFO]:  [0musing [/Users/aisa/Library/Application Support/Godot/app_userdata/Detective Investigation] for temporary output.
+Godot version:  4.6.1
+GUT version:  9.6.0
+[4m
+
+res://tests/scenario/test_board_scenarios.gd
+[0m* test_large_board_serialize_deserialize
+* test_operations_after_deserialize_use_correct_ids
+[1m2/2 passed.
+[0m[4m
+
+res://tests/scenario/test_edge_cases.gd
+[0m* test_mandatory_actions_block_day
+* test_completing_unknown_mandatory_action_returns_false
+* test_duplicate_evidence_discovery_ignored
+* test_duplicate_location_visit_ignored
+* test_actions_cannot_go_negative
+* test_hints_exhausted
+* test_interrogation_limit_per_day
+* test_interrogation_limit_resets_on_new_day
+* test_day_does_not_exceed_total
+* test_empty_report_submission
+* test_double_report_submission
+* test_warrant_denied_provides_feedback
+* test_remove_nonexistent_board_node
+* test_move_nonexistent_board_node
+* test_connection_to_nonexistent_nodes
+[34m[ExpectedError][0mExpected push_error error containing '[BoardManager] Source node not found: fake_from'.  
+* test_timeline_remove_nonexistent_entry
+* test_timeline_move_nonexistent_entry
+* test_timeline_duplicate_event_placement
+* test_theory_operations_on_nonexistent
+* test_theory_incomplete_without_all_fields
+* test_lab_cancel_nonexistent_request
+* test_lab_max_concurrent_requests
+* test_surveillance_max_concurrent
+* test_save_load_mid_investigation
+* test_new_game_resets_all_state
+[1m25/25 passed.
+[0m[4m
+
+res://tests/scenario/test_evidence_lab_flow.gd
+[0m* test_day1_morning_briefing_discovers_autopsy_report
+* test_lab_request_lookup_by_evidence
+* test_lab_request_lookup_returns_null_for_unknown
+* test_lab_request_lookup_wine_glasses
+* test_get_all_lab_requests
+* test_shoe_print_raw_can_be_submitted_to_lab
+* test_shoe_print_raw_submission_tracks_in_lab_manager
+* test_lab_result_arrives_next_morning
+* test_lab_result_clears_from_active_requests
+* test_evidence_lab_status_not_submitted_initially
+* test_evidence_lab_status_processing_after_submit
+* test_evidence_lab_status_completed_after_result
+* test_full_hallway_to_lab_to_interrogation
+* test_multiple_lab_requests_concurrent
+* test_hallway_completion_persists_after_revisit
+* test_evidence_upgrade_replaces_raw_with_analyzed
+* test_evidence_upgrade_no_duplicate_in_archive
+* test_evidence_upgrade_preserves_position_in_array
+* test_analyzed_evidence_hides_lab_status_when_results_exist
+* test_raw_evidence_shows_lab_status_without_results
+* test_shoe_print_lab_request_is_upgrade_transform
+* test_desk_fingerprint_lab_request_is_upgrade_transform
+* test_wine_glasses_lab_request_is_derive_transform
+* test_derive_transform_keeps_input_evidence
+* test_derive_transform_adds_output_evidence
+* test_derive_transform_results_in_two_evidence_items
+* test_derive_transform_stored_in_submitted_request
+* test_upgrade_transform_stored_in_submitted_request
+[1m28/28 passed.
+[0m[4m
+
+res://tests/scenario/test_evidence_value_data.gd
+[0m* test_all_riverside_evidence_has_evidentiary_value_text
+[1m1/1 passed.
+[0m[4m
+
+res://tests/scenario/test_full_playthrough.gd
+[0m* test_correct_accusation_path
+* test_wrong_suspect_path
+* test_request_more_investigation_path
+* test_review_evidence_path
+* test_all_evidence_discoverable
+* test_all_interrogation_triggers_fire
+* test_day_progression_full_cycle
+* test_action_economy_across_days
+[1m8/8 passed.
+[0m[4m
+
+res://tests/scenario/test_hallway_investigation.gd
+[0m* test_first_visit_starts_full_investigation
+* test_hallway_floor_has_visual_inspection_action
+* test_hallway_floor_inspection_discovers_shoe_print_raw
+* test_hallway_floor_inspection_not_dead_end
+* test_security_system_examination_discovers_camera
+* test_security_system_examination_discovers_elevator_logs
+* test_security_system_state_updates_after_examination
+* test_maintenance_office_inspection_discovers_work_log
+* test_maintenance_office_state_fully_examined
+* test_all_hallway_objects_start_not_inspected
+* test_completion_counts_update_after_inspections
+* test_repeated_inspection_no_re_discovery
+* test_object_states_persist_after_revisit
+* test_full_hallway_evidence_chain
+[1m14/14 passed.
+[0m[4m
+
+res://tests/scenario/test_interrogation_scenarios.gd
+[0m* test_mark_interrogation_three_triggers
+* test_julia_interrogation_reaching_break_point
+[1m2/2 passed.
+[0m[4m
+
+res://tests/scenario/test_location_investigation_ui.gd
+[0m* test_visual_inspection_triggers_and_discovers_clues
+* test_visual_inspection_uses_correct_target
+* test_repeated_inspection_no_duplicates
+* test_inspection_on_completed_target_returns_empty
+* test_target_selection_stable_after_inspection
+* test_examine_device_works_correctly
+* test_evidence_signals_emitted_during_inspection
+* test_new_object_defaults_to_unexamined
+* test_raw_clue_changes_to_fully_processed
+* test_analyzed_result_completes_object
+* test_empty_clue_state_before_inspection
+* test_discovered_clues_available_after_inspection
+* test_tool_unavailable_hints_available
+* test_target_status_reflects_state
+* test_badges_update_after_discovery
+* test_badge_fully_processed_for_inspected_object
+* test_cross_location_state_independence
+* test_location_data_has_image_field
+* test_location_scene_has_no_forensic_tools_section
+[33m    37 Orphans[0m
+[33m        * [LocationInvestigation:<Control#466893146923>(location_investigation.gd)] + 31[0m
+* test_multiple_locations_support
+* test_full_investigation_flow
+* test_refresh_ui_populates_detail_last
+* test_examine_completes_object_without_tools
+* test_sequential_object_selection_preserves_state
+[1m24/24 passed.
+[0m[4m
+
+res://tests/scenario/test_map_happy_flow.gd
+[0m* test_step_1_open_map_tab_displays_location_cards
+* test_step_1_initial_locations_have_new_status
+* test_step_1_initial_locations_show_unknown_evidence
+* test_step_1_victim_office_not_visible_initially
+* test_step_2_enter_victims_apartment
+* test_step_2_apartment_has_four_targets
+* test_step_2_entering_apartment_consumes_no_actions
+* test_step_3_select_kitchen_target_shows_details
+* test_step_3_kitchen_initial_state_not_inspected
+* test_step_4_examine_kitchen_action_1_of_4
+* test_step_4_kitchen_inspection_discovers_murder_weapon
+* test_step_4_kitchen_inspection_discovers_knife_block
+* test_step_4_kitchen_inspection_completes_target
+* test_step_5_select_living_room_target_shows_details
+* test_step_5_living_room_initial_state_not_inspected
+* test_step_6_examine_living_room_action_2_of_4
+* test_step_6_living_room_inspection_discovers_wine_glasses
+* test_step_6_living_room_inspection_discovers_broken_frame
+* test_step_6_living_room_inspection_discovers_wine_bottle
+* test_step_6_living_room_fully_processed_after_inspection
+* test_step_7_select_victims_phone_target_shows_details
+* test_step_7_phone_initial_state_not_inspected
+* test_step_8_examine_victims_phone_action_3_of_4
+* test_step_8_phone_inspection_discovers_text_message
+* test_step_8_phone_inspection_discovers_call_log
+* test_step_8_discovering_mark_call_log_unlocks_office
+* test_step_8_office_unlock_fires_location_unlocked_once
+* test_step_8_evidence_notification_precedes_location_unlock_notification
+* test_step_9_return_to_map_apartment_shows_open_status
+* test_step_9_office_location_now_appears_on_map
+* test_step_10_enter_building_hallway
+* test_step_10_hallway_has_three_targets
+* test_step_11_examine_hallway_floor_action_4_of_4
+* test_step_11_hallway_floor_discovers_shoe_print
+* test_step_11_hallway_floor_fully_processed_after_inspection
+* test_step_12_verify_no_actions_remaining_button_disabled
+* test_step_13_return_to_map_shows_all_locations
+* test_step_14_end_day_1_transitions_to_day_2
+* test_step_15_morning_lab_results_available
+* test_step_16_hallway_floor_shows_completed_on_day_2
+* test_step_16_security_system_still_not_inspected
+* test_step_17_security_system_discovers_hallway_camera
+* test_step_17_security_system_discovers_elevator_logs
+* test_step_18_enter_parking_lot_has_one_target
+* test_step_19_parking_camera_discovers_footage
+* test_step_20_parking_lot_fully_examined_single_target
+* test_step_21_enter_victims_office
+* test_step_21_office_initially_has_visible_targets
+* test_step_21_office_evidence_count_total_is_five
+* test_step_22_office_desk_discovers_email
+* test_step_23_file_cabinet_discovers_bank_transfer
+* test_step_23_file_cabinet_discovers_accounting_files
+* test_step_23_discovering_accounting_files_unlocks_bookshelf
+* test_step_24_bookshelf_discovers_hidden_safe
+* test_step_24_discovering_safe_unlocks_desk_drawer
+* test_step_25_desk_drawer_discovers_personal_journal
+* test_step_26_final_map_state_apartment_open_or_exhausted
+* test_step_26_final_map_state_office_exhausted
+[1m58/58 passed.
+[0m[4m
+
+res://tests/scenario/test_mark_bennett_interrogation.gd
+[0m* test_initial_dialogue_creates_correct_statements
+* test_base_topics_appear_on_start
+* test_focus_updates_correctly_statement
+* test_focus_updates_correctly_topic
+* test_parking_camera_only_works_against_departure_focus
+* test_parking_camera_works_against_departure_topic
+* test_parking_camera_works_against_reinforced_statement
+* test_parking_camera_creates_contradiction_and_pressure
+* test_why_lie_topic_unlocks_after_first_contradiction
+* test_bank_transfer_only_works_against_valid_focus
+* test_bank_transfer_works_against_relationship_topic
+* test_bank_transfer_works_against_why_lie_topic
+* test_bank_transfer_increases_pressure_and_unlocks_missing_money
+* test_apply_pressure_blocked_with_no_pressure
+* test_apply_pressure_fails_at_one_pressure
+* test_apply_pressure_triggers_break_at_two_pressure
+* test_contradiction_history_stored_correctly
+* test_incorrect_evidence_produces_rejection_text
+* test_full_mark_interrogation_end_to_end
+* test_sibling_triggers_share_fired_status
+* test_topic_discussions_produce_dialogue
+* test_interrogation_auto_starts_in_interrogation_phase
+* test_present_evidence_requires_focus_and_evidence
+* test_apply_pressure_works_regardless_of_phase
+* test_why_lie_topic_produces_statement
+* test_missing_money_topic_produces_statement
+* test_who_else_knew_topic_produces_statement
+* test_dialogue_only_topic_shows_dialogue
+* test_topic_discussed_signal_emitted
+* test_unlocked_topics_appear_immediately
+* test_full_mark_flow_with_statement_logging
+* test_e24_hidden_safe_blocked_before_break
+* test_e24_hidden_safe_works_after_break
+* test_apply_pressure_enables_at_exact_gate
+* test_pressure_break_unlocks_who_else_knew
+* test_apply_pressure_blocked_after_break
+* test_phase_returns_to_interrogation_after_break
+* test_who_else_knew_topic_is_discussable_after_break
+* test_present_evidence_disabled_without_focus
+* test_present_evidence_enabled_with_focus_and_evidence
+* test_apply_pressure_disabled_then_enabled
+* test_save_load_preserves_mark_progress
+* test_save_load_preserves_mid_session_fired_evidence
+* test_save_load_preserves_contradiction_markers
+* test_save_load_preserves_unlocked_topics
+[1m45/45 passed.
+[0m[4m
+
+res://tests/scenario/test_object_display_status.gd
+[0m* test_initial_display_status_not_inspected
+* test_status_fully_processed_after_raw_discovery
+* test_status_stays_fully_processed_after_lab_submission
+* test_status_fully_processed_after_lab_result
+* test_clue_count_correct_before_lab
+* test_clue_count_correct_after_lab_submission
+* test_clue_count_correct_after_lab_completion
+* test_location_no_lab_pending_after_completion
+* test_object_without_lab_fully_processed
+[1m9/9 passed.
+[0m[4m
+
+res://tests/scenario/test_phase11_scenarios.gd
+[0m* test_scenario_evidence_to_arrest
+* test_scenario_progressive_category_building
+* test_scenario_parallel_suspect_investigation
+* test_scenario_lab_capacity_management
+* test_scenario_warrant_denial_and_retry
+* test_scenario_state_persistence
+[1m6/6 passed.
+[0m[4m
+
+res://tests/scenario/test_sarah_klein_interrogation.gd
+[0m* test_session_initializes_correctly
+* test_base_topics_appear_on_start
+* test_what_heard_topic_adds_statement
+* test_why_not_look_topic_adds_statement
+* test_argue_often_topic_adds_statement
+* test_wrong_evidence_does_not_fire
+* test_correct_evidence_wrong_focus_does_not_fire
+* test_hallway_camera_trigger_fires_correctly
+* test_shoe_print_trigger_fires_correctly
+* test_shoe_print_blocked_before_confronted
+* test_pressure_increments_correctly
+* test_apply_pressure_only_enables_at_threshold
+* test_apply_pressure_only_works_once
+* test_break_adds_witness_statement
+* test_repeated_evidence_does_not_duplicate
+* test_save_load_preserves_sarah_progress
+* test_full_sarah_interrogation_end_to_end
+* test_apply_pressure_blocked_with_no_pressure
+* test_rejection_text_from_sarah_pool
+* test_save_load_preserves_unlocked_topics
+* test_topics_dont_leak_with_pre_discovered_evidence
+* test_shoe_print_wrong_focus_returns_prerequisite_not_met
+* test_shoe_print_fires_via_topic_focus
+* test_full_sarah_path_via_topics
+* test_correct_evidence_wrong_focus_returns_wrong_focus
+* test_break_unlocked_topic_available_after_break
+[1m26/26 passed.
+[0m[4m
+
+res://tests/scenario/test_theory_scenarios.gd
+[0m* test_scenario_competing_theories
+* test_scenario_progressive_building
+* test_scenario_timeline_integrated_theory
+* test_scenario_theory_revision
+* test_scenario_full_investigation_with_persistence
+* test_scenario_delete_and_recreate
+[1m6/6 passed.
+[0m[4m
+
+res://tests/scenario/test_timeline_scenarios.gd
+[0m* test_scenario_reconstruct_day1_full
+* test_scenario_add_hypothesis_reveals_overlap
+* test_scenario_multi_day_with_persistence
+* test_scenario_complex_overlap_detection
+* test_scenario_move_event_resolves_overlap
+* test_scenario_clear_and_rebuild
+[1m6/6 passed.
+[0m
+
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m
+Totals
+------
+Scripts              15
+Tests               260
+Passing Tests       260
+Asserts             879
+Time              4.323s
+
+
+[32m---- All tests passed! ----
+[0m

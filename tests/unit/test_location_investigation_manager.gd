@@ -31,7 +31,7 @@ var _test_case_data: Dictionary = {
 			"name": "Fingerprints on Glass",
 			"description": "Latent fingerprints found on a wine glass.",
 			"type": "FORENSIC",
-			"discovery_method": "TOOL",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_apt",
 			"related_persons": [],
 			"tags": ["fingerprint"],
@@ -56,7 +56,7 @@ var _test_case_data: Dictionary = {
 			"name": "Chemical Stain",
 			"description": "A chemical residue found on the counter.",
 			"type": "FORENSIC",
-			"discovery_method": "TOOL",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_apt",
 			"related_persons": [],
 			"tags": ["chemical"],
@@ -324,13 +324,16 @@ func test_inspect_object_discovers_evidence_no_tools() -> void:
 	assert_eq(GameManager.actions_remaining, before - 1, "Inspection should spend one action")
 
 
-func test_inspect_object_with_tool_requirements_discovers_no_visual_evidence() -> void:
+func test_inspect_object_with_tool_requirements_still_discovers_visual_evidence() -> void:
 	_loc_inv_mgr.start_investigation("loc_apt")
 	var before: int = GameManager.actions_remaining
-	# obj_glass has visual_inspection + tool_requirements; evidence is TOOL-method only
+	# obj_glass keeps tool requirements metadata, but inspection still reveals
+	# evidence whose acquisition source is direct visual observation.
 	var discovered: Array[String] = _loc_inv_mgr.inspect_object("loc_apt", "obj_glass")
-	assert_eq(discovered.size(), 0, "Visual inspection should not discover TOOL-method evidence")
-	assert_eq(GameManager.actions_remaining, before - 1, "Inspection should spend one action even when no evidence is found")
+	assert_eq(discovered.size(), 1, "Visual inspection should discover directly observable evidence")
+	assert_has(discovered, "ev_prints")
+	assert_true(GameManager.has_evidence("ev_prints"))
+	assert_eq(GameManager.actions_remaining, before - 1, "Inspection should spend one action when evidence is found")
 
 
 func test_inspect_twice_returns_empty() -> void:

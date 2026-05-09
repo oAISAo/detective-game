@@ -4,7 +4,7 @@
 
 The Evidence Tab is the player's investigation workspace for all collected evidence. Where the Map tab is about *gathering* — going out and finding things — the Evidence tab is about *understanding*: reading, connecting, analyzing, and drawing conclusions from what's been found.
 
-**Core loop:** Discover evidence (via Map / Lab / Interrogation) → Review in Evidence Archive → Submit to Lab if raw → Classify contradictions → Compare items → Build understanding
+**Core loop:** Discover evidence (via direct inspection / forensic output / warrants / interrogation / briefing) → Review in Evidence Archive → Submit raw items to Lab if needed → Classify contradictions → Compare items for insights → Build understanding
 
 **Key principle:** The Evidence tab should not pretend certainty can be measured with fake precision. It presents facts plus authored investigative context, while leaving the final deduction to the player.
 
@@ -39,7 +39,7 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 ### Layout
 - A scrollable grid of polaroid-style evidence cards (same visual style as the map tab discovery cards)
 - Search bar at the top (real-time filter on name/description)
-- Type filter dropdown: All Types / Forensic / Document / Recording / Financial / Digital / Physical / Lab Result
+- Type filter dropdown: All Types / Forensic / Document / Photo / Recording / Financial / Digital / Object / Physical / Testimonial
 
 ### Evidence Cards (Polaroid Style)
 Each card shows:
@@ -116,9 +116,11 @@ The detail panel is split into a header and three scrollable columns.
 | Field | Content |
 |-------|---------|
 | Location | Where it was found |
-| Discovery | How it was found (Visual Inspection / Examine / Lab Result / Interrogation) |
+| Discovery | Original acquisition source (Visual Inspection / Forensic Analysis / Search Warrant / Digital Recovery / Interrogation / Case File) |
 | Day Found | Investigation day |
 | Lab Status | Not required / Pending / Complete |
+
+`discovery_method` is source-only metadata. Pending or completed lab work is represented by `lab_status`, and comparison outcomes are tracked in the insight system rather than becoming a new discovery label.
 
 ### Evidentiary Value
 - This lives in the first column below the description and the forensic-analysis block.
@@ -308,7 +310,7 @@ Evidence with `requires_lab_analysis: true` in its data displays a **Forensic An
 ### Lab Results Delivery
 - Results are delivered automatically at the **start of the next day's morning phase** (no player action needed)
 - A notification fires: *"Lab results in: [result evidence name]"*
-- The result is a **new, separate evidence item** that appears in the archive with a **NEW** badge
+- The result is a **new, separate evidence item** that appears in the archive with a **NEW** badge and a source label such as **Forensic Analysis**
 - The original raw evidence item remains in the archive unchanged — it is not replaced
 
 ### Lab Requests in the Riverside Apartment Case
@@ -323,7 +325,7 @@ Evidence with `requires_lab_analysis: true` in its data displays a **Forensic An
 ## Evidence Comparison
 
 ### Overview
-Some evidence items can be compared against each other to generate a **forensic match result** — a new evidence item confirming or denying a connection between two pieces of evidence.
+Some evidence items can be compared against each other to generate an **insight** — not a new evidence item in the archive.
 
 Comparison is a passive action (0 action cost). It represents the detective placing two items side by side and drawing a conclusion.
 
@@ -332,28 +334,28 @@ Comparison is a passive action (0 action cost). It represents the detective plac
 2. Clicks "Compare Evidence"
 3. A comparison selector appears over the right panel showing all other discovered evidence as a scrollable list
 4. Player selects evidence item B (e.g., `ev_julia_shoes`)
-5. The system checks whether a valid comparison pair exists in the case data
-   - **Valid pair:** A new evidence item is generated and added to the archive. Notification fires.
+5. The system checks whether both selected items belong to the same authored `InsightData.source_evidence` set in the case data
+  - **Valid pair:** The matching insight is discovered. Notification fires.
    - **Invalid pair:** A brief message: *"No forensic connection found between these items."* Nothing is generated.
 6. The comparison selector closes
 
 ### Comparison Result
-A forensic match result is a new evidence item with:
-- Type: `forensic_match`
-- Description: e.g., *"The hallway shoe print matches the sole pattern of Julia Ross's left shoe (size 38)."*
-- Importance: typically Critical
-- Linked to both source evidence items
+A successful comparison yields an `InsightData` result with:
+- A story description tied to the selected evidence set
+- Links back to the source evidence items
+- Optional downstream effects such as strengthening a theory, enabling a warrant, or unlocking an interrogation topic
+- No new `EvidenceData` item and therefore no new `discovery_method` label in the archive
 
 ### Comparisons in the Riverside Apartment Case
-| Evidence A | Evidence B | Output | Result |
-|------------|------------|--------|--------|
-| `ev_shoe_print` | `ev_julia_shoes` | `ev_shoe_match` | Match confirmed |
-| `ev_julia_fingerprint_glass` | `ev_wine_glasses` | *(no new item — fingerprint already is the result)* | — |
-| `ev_bank_transfer` | `ev_accounting_files` | `ev_financial_link` | Financial connection confirmed |
+| Source Evidence Set | Insight | Outcome |
+|---------------------|---------|---------|
+| `ev_bank_transfer` + `ev_accounting_files` (+ broader money trail context) | `ins_embezzlement_scheme` | Unlocks the missing-money thread |
+| `ev_julia_fingerprint_glass` + `ev_elevator_logs` | `ins_julia_presence` | Supports Julia-presence reasoning and enables the Julia warrant |
+| `ev_hidden_safe` + `ev_personal_journal` | `ins_hidden_relationships` | Connects Julia and Mark's shared motive |
 
 > **Decided (D1):** Invalid comparisons produce a brief inline message only — no junk evidence is generated. This is already implemented in `EvidenceManager.compare_evidence()`.
 >
-> **Implementation note:** Comparisons are defined as `InsightData` objects stored in `data/cases/riverside_apartment/timeline.json` under the `"insights"` key. There is no separate `comparisons.json` file. Each `InsightData` specifies `source_evidence` (the two evidence IDs), `description`, and optionally `strengthens_theory`, `enables_warrant`, or `unlocks_topic`.
+> **Implementation note:** Comparisons are defined as `InsightData` objects stored in `data/cases/riverside_apartment/timeline.json` under the `"insights"` key. There is no separate `comparisons.json` file. Each `InsightData` specifies `source_evidence`, `description`, and optionally `strengthens_theory`, `enables_warrant`, or `unlocks_topic`.
 
 ---
 
@@ -428,16 +430,18 @@ All Evidence Tab activities are **passive (0 action cost)** unless otherwise not
 
 ## Evidence Discovery Sources
 
-Evidence can arrive in the archive from multiple sources. Each source is tracked in the `discovery_method` field:
+Evidence can arrive in the archive from multiple sources. `discovery_method` records the evidence's original acquisition source only.
+
+Lab processing state is tracked separately in `lab_status`, and comparison outcomes belong to the insight system rather than the evidence archive.
 
 | Source | Method Label | Examples |
 |--------|-------------|---------|
-| Map tab target examination | Visual Inspection / Examine | ev_knife, ev_wine_glasses |
-| Lab analysis result | Lab Result | ev_julia_fingerprint_glass |
-| Morning briefing (automatic) | Case File | ev_autopsy_report |
-| Interrogation (statement-driven) | Interrogation | *(future: evidence surfaced through questioning)* |
+| Direct location examination | Visual Inspection | ev_knife, ev_wine_glasses |
+| Forensic output evidence | Forensic Analysis | ev_julia_fingerprint_glass, ev_shoe_print |
+| Morning briefing / case paperwork | Case File | ev_autopsy_report |
+| Interrogation-surfaced evidence | Interrogation | *(future: evidence surfaced through questioning)* |
 | Warrant execution | Search Warrant | ev_julia_shoes, ev_deleted_messages |
-| Surveillance result | Surveillance | *(optional: phone tap recordings)* |
+| Digital extraction / recovery | Digital Recovery | *(future device extraction outputs)* |
 
 ---
 
@@ -484,10 +488,12 @@ Next morning
         → lab_completed signal
 
 Evidence comparison
-  → EvidenceManager.compare(evidence_id_a, evidence_id_b)
-  → Checks ComparisonsData for valid pair
-     → If valid: GameManager.discover_evidence(result_id)
-     → If invalid: comparison_no_match signal → UI message
+  → EvidenceManager.compare_evidence(evidence_id_a, evidence_id_b)
+  → Checks CaseManager.get_all_insights() for a matching source_evidence set
+    → If valid: GameManager.discover_insight(insight_id)
+      → insight_generated signal
+      → NotificationManager.notify_story("New insight: ...")
+    → If invalid: returns null → UI message
 
 Statement verdict classification
   → EvidenceManager.set_statement_verdict(evidence_id, statement_id, verdict)

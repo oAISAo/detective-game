@@ -46,6 +46,18 @@ func test_evidence_from_dict_defaults() -> void:
 	assert_eq(ev.importance_level, Enums.ImportanceLevel.SUPPORTING)
 	assert_almost_eq(ev.weight, 0.5, 0.001)
 	assert_false(ev.requires_lab_analysis)
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "discovery_method is required"))
+
+
+func test_evidence_validate_invalid_discovery_method() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_legacy",
+		"name": "Legacy Evidence",
+		"discovery_method": "LAB",
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "invalid discovery_method 'LAB'"))
 
 
 func test_evidence_validate_missing_id() -> void:
@@ -69,6 +81,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 		"type": "DOCUMENT",
 		"weight": 0.7,
 		"importance_level": "CRITICAL",
+		"discovery_method": "ADMINISTRATIVE",
 	}
 	var ev := EvidenceData.from_dict(original)
 	var result := ev.to_dict()
@@ -76,6 +89,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 	assert_eq(result["name"], "Roundtrip Evidence")
 	assert_eq(result["type"], "DOCUMENT")
 	assert_eq(result["importance_level"], "CRITICAL")
+	assert_eq(result["discovery_method"], "ADMINISTRATIVE")
 	assert_false(result.has("tags"))
 
 

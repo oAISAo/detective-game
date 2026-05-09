@@ -156,14 +156,13 @@ func inspect_object(location_id: String, object_id: String) -> Array[String]:
 	if ACTION_EXAMINE_DEVICE in object_data.available_actions:
 		_performed_actions[action_key].append(ACTION_EXAMINE_DEVICE)
 
-	# Discover evidence via inspection (visual_inspection or examine_device)
+	# Discover only directly observable evidence via inspection.
+	# Derived evidence must arrive through its dedicated acquisition flow.
 	var discovered: Array[String] = []
 	for ev_id: String in object_data.evidence_results:
-		# Only discover evidence matching visual/comparison methods
+		# Only discover directly observable evidence during location inspection.
 		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
-		if ev and ev.discovery_method not in [
-			Enums.DiscoveryMethod.VISUAL, Enums.DiscoveryMethod.COMPARISON
-		]:
+		if ev and ev.discovery_method != Enums.DiscoveryMethod.VISUAL:
 			continue
 		# Notify before discover_evidence emits the evidence_discovered signal.
 		# This guarantees the "Evidence Found" notification is queued before any

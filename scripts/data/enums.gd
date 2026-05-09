@@ -62,10 +62,11 @@ enum ImportanceLevel {
 ## How the evidence was discovered.
 enum DiscoveryMethod {
 	VISUAL,
-	TOOL,
-	COMPARISON,
-	LAB,
-	SURVEILLANCE,
+	FORENSIC,
+	WARRANT,
+	DIGITAL,
+	TESTIMONY,
+	ADMINISTRATIVE,
 }
 
 ## How certain we are about an event's occurrence.

@@ -45,7 +45,7 @@ var _test_case_data: Dictionary = {
 			"weight": 0.7,
 			"evidentiary_value_text": "Clarifies a previously obscured visual detail for closer review.",
 			"importance_level": "SUPPORTING",
-			"discovery_method": "LAB",
+			"discovery_method": "FORENSIC",
 			"lab_result_text": "Output evidence lab_result_text should remain separate from the completed banner.",
 		},
 	],

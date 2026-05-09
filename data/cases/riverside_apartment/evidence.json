@@ -71,7 +71,7 @@
 			"weight": 0.9,
 			"evidentiary_value_text": "Places Julia inside the apartment despite her denial.",
 			"importance_level": "CRITICAL",
-			"discovery_method": "LAB",
+			"discovery_method": "FORENSIC",
 			"requires_lab_analysis": true,
 			"lab_result_text": "Fingerprint matched to Julia Ross. Clear ridge patterns confirm identity.",
 			"legal_categories": [
@@ -112,7 +112,7 @@
 			"weight": 0.4,
 			"evidentiary_value_text": "Confirms Mark handled the victim's desk during an earlier visit.",
 			"importance_level": "SUPPORTING",
-			"discovery_method": "LAB",
+			"discovery_method": "FORENSIC",
 			"requires_lab_analysis": true,
 			"lab_result_text": "Fingerprint matched to Mark Bennett.",
 			"legal_categories": [
@@ -187,7 +187,7 @@
 			"weight": 0.7,
 			"evidentiary_value_text": "Reveals a financial argument that strengthens Julia's motive.",
 			"importance_level": "CRITICAL",
-			"discovery_method": "TOOL",
+			"discovery_method": "WARRANT",
 			"legal_categories": [
 				"MOTIVE",
 				"CONNECTION"
@@ -445,7 +445,7 @@
 			"weight": 0.8,
 			"evidentiary_value_text": "Places footwear consistent with Julia near the scene.",
 			"importance_level": "CRITICAL",
-			"discovery_method": "TOOL",
+			"discovery_method": "FORENSIC",
 			"requires_lab_analysis": true,
 			"lab_result_text": "Shoe print pattern matches a pair of women's shoes, size 38. Consistent with Julia Ross's shoe size.",
 			"legal_categories": [

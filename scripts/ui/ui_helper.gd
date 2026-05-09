@@ -371,11 +371,12 @@ static func apply_surface_style(panel: PanelContainer) -> void:
 ## Returns a human-readable label for a discovery method.
 static func get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
 	match method:
-		Enums.DiscoveryMethod.VISUAL:       return "Visual Inspection"
-		Enums.DiscoveryMethod.TOOL:         return "Tool Analysis"
-		Enums.DiscoveryMethod.COMPARISON:   return "Evidence Comparison"
-		Enums.DiscoveryMethod.LAB:          return "Lab Analysis"
-		Enums.DiscoveryMethod.SURVEILLANCE: return "Surveillance"
+		Enums.DiscoveryMethod.VISUAL:         return "Visual Inspection"
+		Enums.DiscoveryMethod.FORENSIC:       return "Forensic Analysis"
+		Enums.DiscoveryMethod.WARRANT:        return "Search Warrant"
+		Enums.DiscoveryMethod.DIGITAL:        return "Digital Recovery"
+		Enums.DiscoveryMethod.TESTIMONY:      return "Interrogation"
+		Enums.DiscoveryMethod.ADMINISTRATIVE: return "Case File"
 	return "Unknown"
 
 
