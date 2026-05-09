@@ -357,13 +357,18 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 		if not LocationInvestigationManager.is_evidence_discovered(ev_id):
 			continue
 
-		var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
 		var ev: EvidenceData
+		var upgraded_output_id: String = ""
+		for lab_req: LabRequestData in CaseManager.get_lab_requests_for_evidence(ev_id):
+			if lab_req.lab_transform != "upgrade":
+				continue
+			if GameManager.has_evidence(lab_req.output_evidence_id):
+				upgraded_output_id = lab_req.output_evidence_id
+				break
 
-		if lab_req != null and lab_req.lab_transform == "upgrade" \
-				and GameManager.has_evidence(lab_req.output_evidence_id):
+		if not upgraded_output_id.is_empty():
 			# Raw evidence was upgraded — show the analyzed version on the card.
-			ev = CaseManager.get_evidence(lab_req.output_evidence_id)
+			ev = CaseManager.get_evidence(upgraded_output_id)
 		else:
 			# Raw evidence still in inventory, or a "derive" transform (input stays).
 			ev = CaseManager.get_evidence(ev_id)

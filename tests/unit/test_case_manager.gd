@@ -299,6 +299,21 @@ func test_get_lab_request_for_output_returns_matching_request() -> void:
 	CaseManager.unload_case()
 
 
+func test_get_lab_requests_for_evidence_returns_matching_requests() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var requests: Array[LabRequestData] = CaseManager.get_lab_requests_for_evidence("ev_wine_glasses")
+	assert_eq(requests.size(), 1)
+	assert_eq(requests[0].output_evidence_id, "ev_julia_fingerprint_glass")
+	CaseManager.unload_case()
+
+
+func test_get_lab_requests_for_evidence_returns_empty_for_unknown_input() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var requests: Array[LabRequestData] = CaseManager.get_lab_requests_for_evidence("ev_unknown")
+	assert_true(requests.is_empty())
+	CaseManager.unload_case()
+
+
 # --- Query: Person (typed returns) --- #
 
 func test_get_person_returns_typed_resource() -> void:

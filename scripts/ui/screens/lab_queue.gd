@@ -12,15 +12,6 @@ extends Control
 @onready var submit_section: VBoxContainer = %SubmitSection
 
 
-## Analysis type presets.
-const ANALYSIS_TYPES: Array[String] = [
-	"Fingerprint Analysis",
-	"DNA Analysis",
-	"Chemical Analysis",
-	"Digital Forensics",
-]
-
-
 func _ready() -> void:
 	UIHelper.apply_back_button_icon(back_button, "Back")
 	back_button.pressed.connect(func() -> void: ScreenManager.navigate_back())
@@ -122,7 +113,7 @@ func _build_submit_section() -> void:
 
 	var evidence_dropdown := OptionButton.new()
 	evidence_dropdown.name = "EvidenceDropdown"
-	var discovered: Array[EvidenceData] = EvidenceManager.get_discovered_evidence_data()
+	var discovered: Array[EvidenceData] = _get_submittable_evidence()
 	if discovered.is_empty():
 		evidence_dropdown.add_item("No evidence available")
 		evidence_dropdown.disabled = true
@@ -140,9 +131,18 @@ func _build_submit_section() -> void:
 
 	var type_dropdown := OptionButton.new()
 	type_dropdown.name = "TypeDropdown"
-	for analysis_type: String in ANALYSIS_TYPES:
-		type_dropdown.add_item(analysis_type)
+	type_dropdown.disabled = discovered.is_empty()
 	submit_section.add_child(type_dropdown)
+
+	if discovered.is_empty():
+		type_dropdown.add_item("No analyses available")
+	else:
+		evidence_dropdown.item_selected.connect(func(index: int) -> void:
+			var selected_evidence_id: String = evidence_dropdown.get_item_metadata(index)
+			_populate_template_dropdown(type_dropdown, selected_evidence_id)
+		)
+		var initial_evidence_id: String = evidence_dropdown.get_item_metadata(0)
+		_populate_template_dropdown(type_dropdown, initial_evidence_id)
 
 	# Submit button
 	var submit_btn := Button.new()
@@ -165,17 +165,14 @@ func _on_submit_to_lab() -> void:
 	if evidence_dropdown.disabled or evidence_dropdown.selected < 0:
 		NotificationManager.notify("Error", "No evidence selected.")
 		return
+	if type_dropdown.disabled or type_dropdown.selected < 0:
+		NotificationManager.notify("Error", "No analysis selected.")
+		return
 
 	var evidence_id: String = evidence_dropdown.get_item_metadata(evidence_dropdown.selected)
+	var template_id: String = type_dropdown.get_item_metadata(type_dropdown.selected)
 	var analysis_type: String = type_dropdown.get_item_text(type_dropdown.selected)
-
-	# Look up the case-defined lab request template for proper output mapping
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(evidence_id)
-	var output_evidence_id: String = lab_req.output_evidence_id if lab_req else ""
-	if lab_req:
-		analysis_type = lab_req.analysis_type
-
-	var result: Dictionary = LabManager.submit_request(evidence_id, analysis_type, output_evidence_id, 1)
+	var result: Dictionary = LabManager.submit_template_request(template_id, 1)
 	if result.is_empty():
 		NotificationManager.notify("Submission Failed", "Could not submit lab request. Check if the max concurrent limit is reached.")
 		return
@@ -184,3 +181,42 @@ func _on_submit_to_lab() -> void:
 	NotificationManager.notify("Lab Request Submitted", "%s submitted for %s." % [analysis_type, evidence_id])
 	UIHelper.stamp_flash(submit_section)
 	_refresh()
+
+
+func _get_submittable_evidence() -> Array[EvidenceData]:
+	var result: Array[EvidenceData] = []
+	for ev: EvidenceData in EvidenceManager.get_discovered_evidence_data():
+		if CaseManager.get_lab_requests_for_evidence(ev.id).is_empty():
+			continue
+		result.append(ev)
+	return result
+
+
+func _populate_template_dropdown(type_dropdown: OptionButton, evidence_id: String) -> void:
+	type_dropdown.clear()
+	var available_count: int = 0
+	for lab_req: LabRequestData in CaseManager.get_lab_requests_for_evidence(evidence_id):
+		if GameManager.has_evidence(lab_req.output_evidence_id):
+			continue
+		var output_ev: EvidenceData = CaseManager.get_evidence(lab_req.output_evidence_id)
+		var output_name: String = output_ev.name if output_ev != null else lab_req.output_evidence_id
+		type_dropdown.add_item(
+			"%s -> %s" % [_format_analysis_type(lab_req.analysis_type), output_name]
+		)
+		type_dropdown.set_item_metadata(type_dropdown.item_count - 1, lab_req.id)
+		available_count += 1
+
+	if available_count == 0:
+		type_dropdown.add_item("No analyses available")
+		type_dropdown.disabled = true
+		return
+
+	type_dropdown.disabled = false
+
+
+func _format_analysis_type(analysis_type: String) -> String:
+	var words: PackedStringArray = analysis_type.replace("_", " ").split(" ", false)
+	var formatted_words: Array[String] = []
+	for word: String in words:
+		formatted_words.append(word.to_upper() if word.length() <= 3 else word.capitalize())
+	return " ".join(formatted_words)

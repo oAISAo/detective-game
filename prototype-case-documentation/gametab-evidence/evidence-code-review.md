@@ -2,227 +2,84 @@
 
 
 
-1. Raw evidence should probably have lab targets
-Problem
+1. Inconsistent importance usage
+   
+Problem: We currently have two systems that partially overlap:
+1. weight
+Represents evidentiary strength and legal/prosecutorial value
+2. importance_level
+Represents narrative significance and progression relevance
 
-Currently the forensic relationship is only represented from the result side:
-
-Example:
-
-"derived_from": "ev_wine_glasses"
-
-But the raw evidence itself does not know:
-
-what it can become
-what analysis it supports
-
-This creates asymmetry.
-
-Why this becomes a problem
-
-Without forward references:
-
-UI becomes harder
-
-You cannot easily display:
-
-“Available forensic analysis”
-expected results
-analysis previews
-Submission systems become harder
-
-You must hardcode:
-
-mappings
-result lookups
-analysis logic
-Multi-result analysis becomes difficult
-
-Later you may want:
-
-DNA result
-fingerprint result
-blood trace result
-
-from the same evidence item.
-
-Without explicit targets:
-👉 this becomes messy fast.
-
-Recommended fix
-
-Add:
-
-"lab_analysis_results": [
-    "ev_julia_fingerprint_glass"
-]
-
-to raw evidence items.
-
-Example
-{
-  "id": "ev_wine_glasses",
-  "lab_analysis_results": [
-    "ev_julia_fingerprint_glass"
-  ]
-}
-Why array instead of single value?
-
-Because future cases may support:
-
-"lab_analysis_results": [
-    "ev_fingerprint",
-    "ev_dna_trace",
-    "ev_drug_residue"
-]
-Benefits
-
-This enables:
-
-Better UI
-
-Example:
-
-“Possible forensic analyses available”
-
-Cleaner lab system
-
-No hardcoded switch statements.
-
-Better progression control
-
-You can:
-
-lock/unlock analyses
-gate analysis types
-support upgraded labs later
-Recommendation priority
-
-👉 HIGH PRIORITY
-
-This will significantly simplify your forensic architecture.
-
-4. Inconsistent importance usage
-Problem
-
-You currently have two systems that partially overlap:
-
-weight
-
-Represents:
-
-evidentiary strength
-legal/prosecutorial value
-importance_level
-
-Represents:
-
-narrative significance
-progression relevance
-
-But these are not clearly separated.
-
-Why this becomes dangerous
-
-The systems currently look similar, so future content creators (including future you) will unintentionally mix them.
+But these are not clearly separated. The systems currently look similar, so future content creators (including future you) will unintentionally mix them.
 
 Example confusion:
-
 “This is important, should weight be high?”
 “This is weak evidence but plot-critical.”
-Current symptom
 
-Example:
-
+Current symptom Example:
 "weight": 0.7,
 "importance_level": "CRITICAL"
-
 vs
-
 "weight": 0.4,
 "importance_level": "SUPPORTING"
 
 The distinction is not obvious enough.
 
-Recommended fix
+### Recommended fix: Document the systems clearly.
 
-Document the systems clearly.
+Recommended meaning:
 
-Recommended meaning
-weight
-
-Answers:
-
-“How persuasive is this evidence?”
-
+1. weight
+Answers “How persuasive is this evidence?”
 Used for:
+- evidentiary value label
+- contradiction systems
+- prosecution strength
+- theory validation
 
-evidentiary value label
-contradiction systems
-prosecution strength
-theory validation
-importance_level
-
-Answers:
-
-“How essential is this evidence to progression?”
-
+2. importance_level
+Answers “How essential is this evidence to progression?”
 Used for:
+- story progression
+- unlock conditions
+- contradiction severity
+- fail states
+- case completion
 
-story progression
-unlock conditions
-contradiction severity
-fail states
-case completion
-Important rule
+### Important rule
 
 These systems MUST remain independent.
 
-Examples:
+Examples (Situation, Weight, Importance):
+Situation: Weak but plot-critical clue, Weight: low, Importance: high
+Situation: Strong optional evidence, Weight: high, Importance: low
+Situation: Background flavor item, Weight: low, Importance: low
 
-Situation	Weight	Importance
-Weak but plot-critical clue	low	high
-Strong optional evidence	high	low
-Background flavor item	low	low
-Additional recommendation
-
-Consider renaming importance_level.
+### Additional recommendation: Consider renaming importance_level.
 
 Current names:
-
 CRITICAL
 SUPPORTING
 OPTIONAL
 
 feel too similar to evidentiary strength.
 
-Better naming
-Current	Better
-CRITICAL	REQUIRED
-SUPPORTING	MAJOR
-OPTIONAL	MINOR
+Better naming:
+CRITICAL -> REQUIRED
+SUPPORTING -> MAJOR
+OPTIONAL -> MINOR
 
-This separates:
-
-narrative importance
-from
-evidentiary strength
-
-much more clearly.
-
-Recommendation priority
-
-👉 MEDIUM-HIGH PRIORITY
+This separates narrative importance from evidentiary strength much more clearly.
 
 Not urgent technically, but important for long-term content consistency.
 
-7. Legal categories are good, but underused
-Problem
+------------------------------
 
-The legal categories system is already strong conceptually:
+1. Legal categories are good, but underused
+   
+Problem: The legal categories system is already strong conceptually:
 
 Examples:
-
 MOTIVE
 PRESENCE
 OPPORTUNITY
@@ -231,83 +88,54 @@ CONNECTION
 But currently they function mostly as passive metadata.
 
 The player:
-
 rarely interacts with them
 does not build reasoning around them
 does not feel their systemic importance
-Why this matters
 
-This system has the potential to become:
-👉 the backbone of your deduction framework.
+This system has the potential to become the backbone of your deduction framework. Right now it is underutilized.
 
-Right now it is underutilized.
-
-Recommended long-term direction
+### Recommended long-term direction
 
 Legal categories should eventually influence:
-
 theory building
 prosecution structure
 board organization
 evidence filtering
 contradiction analysis
-Recommended future uses
-A. Board grouping
 
-Allow players to group evidence by category:
+### Recommended future uses
 
+A. Board grouping: Allow players to group evidence by category.
 Example:
-
 all MOTIVE evidence
 all PRESENCE evidence
+
 B. Case completeness checks
-
 Example:
-
 “Your theory lacks strong opportunity evidence.”
-
 This creates structured reasoning.
 
 C. Warrant systems
-
 Example:
-
 judge requires enough CONNECTION evidence before approving warrant
-
 Very immersive.
 
 D. Contradiction weighting
+Contradictions against PRESENCE evidencemmay matter more than CONNECTION evidence.
 
-Contradictions against:
-
-PRESENCE evidence
-may matter more than:
-CONNECTION evidence
 E. Theory validation
-
 Example:
-A murder accusation may require:
+A murder accusation may require motive, opportunity and/or presence before accusation is accepted.
 
-motive
-opportunity
-presence
+### Important note
 
-before accusation is accepted.
+Do NOT overcomplicate this now. The system foundation is already good.
 
-Important note
+The key improvement right now is designing future systems around categories intentionally.
 
-Do NOT overcomplicate this now.
+-------------------------------------------
 
-The system foundation is already good.
-
-The key improvement right now is:
-👉 designing future systems around categories intentionally.
-
-Recommendation priority
-
-👉 LOW PRIORITY NOW / VERY HIGH LONG-TERM VALUE
-
-8. Conceptual issue with OPTIONAL evidence
+1. Conceptual issue with OPTIONAL evidence
 Problem
 
 The term OPTIONAL unintentionally communicates:

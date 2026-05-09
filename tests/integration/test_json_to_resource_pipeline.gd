@@ -43,8 +43,20 @@ var _full_case_data: Dictionary = {
 			"weight": 0.9,
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
-			"requires_lab_analysis": true,
+			"lab_analysis_results": ["ev_knife_prints"],
 			"legal_categories": ["PRESENCE", "OPPORTUNITY"],
+		},
+		{
+			"id": "ev_knife_prints",
+			"name": "Knife Prints",
+			"description": "Fingerprint result from the kitchen knife.",
+			"type": "FORENSIC",
+			"location_found": "loc_apartment",
+			"related_persons": ["p_julia"],
+			"weight": 0.7,
+			"importance_level": "SUPPORTING",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_knife",
 		},
 	],
 	"statements": [
@@ -207,7 +219,7 @@ func test_pipeline_evidence_enums_converted() -> void:
 	assert_eq(ev.type, Enums.EvidenceType.FORENSIC)
 	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
 	assert_eq(ev.discovery_method, Enums.DiscoveryMethod.VISUAL)
-	assert_true(ev.requires_lab_analysis)
+	assert_eq(ev.lab_analysis_results, ["ev_knife_prints"])
 	# Verify legal_categories enum array conversion
 	assert_eq(ev.legal_categories.size(), 2)
 	assert_true(Enums.LegalCategory.PRESENCE in ev.legal_categories)
@@ -296,7 +308,7 @@ func test_pipeline_case_data_contains_all_sections() -> void:
 	CaseManager.load_case(TEST_CASE_FILE)
 	var case_data: CaseData = CaseManager.get_case_data()
 	assert_eq(case_data.persons.size(), 2)
-	assert_eq(case_data.evidence.size(), 1)
+	assert_eq(case_data.evidence.size(), 2)
 	assert_eq(case_data.statements.size(), 1)
 	assert_eq(case_data.events.size(), 1)
 	assert_eq(case_data.locations.size(), 1)

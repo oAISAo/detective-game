@@ -210,8 +210,7 @@ func get_object_display_status(location_id: String, object_id: String) -> Enums.
 		return Enums.ObjectDisplayStatus.NOT_INSPECTED
 
 	for ev_id: String in object_data.evidence_results:
-		var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-		if lab_req == null:
+		if CaseManager.get_lab_requests_for_evidence(ev_id).is_empty():
 			continue
 		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
 		if ev != null and ev.lab_status == Enums.LabStatus.PROCESSING:
@@ -293,9 +292,9 @@ func get_suspect_relevance_tags(location_id: String) -> Array[String]:
 		# Resolve the actual evidence object (raw or upgraded)
 		var ev: EvidenceData = CaseManager.get_evidence(ev_id)
 		if ev == null:
-			var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-			if lab_req != null:
-				ev = CaseManager.get_evidence(lab_req.output_evidence_id)
+			var upgraded_output_id: String = _get_discovered_upgrade_output_id(ev_id)
+			if not upgraded_output_id.is_empty():
+				ev = CaseManager.get_evidence(upgraded_output_id)
 		if ev:
 			for pid: String in ev.related_persons:
 				if pid != "p_victim":
@@ -322,8 +321,16 @@ func get_performed_actions(location_id: String, object_id: String) -> Array:
 func is_evidence_discovered(ev_id: String) -> bool:
 	if GameManager.has_evidence(ev_id):
 		return true
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
-	return lab_req != null and GameManager.has_evidence(lab_req.output_evidence_id)
+	return not _get_discovered_upgrade_output_id(ev_id).is_empty()
+
+
+func _get_discovered_upgrade_output_id(ev_id: String) -> String:
+	for lab_req: LabRequestData in CaseManager.get_lab_requests_for_evidence(ev_id):
+		if lab_req.lab_transform != "upgrade":
+			continue
+		if GameManager.has_evidence(lab_req.output_evidence_id):
+			return lab_req.output_evidence_id
+	return ""
 
 
 ## Returns the completion counts for a location: { "found": int, "total": int }.

@@ -20,7 +20,7 @@ They only appear here once both the statement and the linked evidence have been 
 
 Discovery method labels describe original acquisition source only. Lab progress is shown through the LAB badge and lab-status metadata, while successful comparisons unlock insights instead of creating new archive evidence cards.
 
-Derived evidence now has explicit lineage. Child evidence can show `Derived From`, and parent evidence can show Derived Evidence links in Forensic Analysis section when both sides are currently discoverable. Upgrade-style lab outputs still keep lineage even when the raw parent is replaced in the archive.
+Derived evidence now has explicit lineage. Child evidence can show `Derived From` in metadata, while raw evidence uses `lab_analysis_results` to drive the Forensic Analysis section: available analyses, expected result previews, pending status, and completed result links. Upgrade-style lab outputs still keep lineage even when the raw parent is replaced in the archive.
 
 ---
 
@@ -71,7 +71,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 **Expected:**
 - [ ] Detail loads: "Two Wine Glasses on Table"
 - [ ] Below the Compare Evidence button, a **Lab Analysis Available** section appears:
-  - Text: *"Fingerprint analysis can be performed on this item. Results return next day."*
+  - Text includes: *"Expected result: Julia's Fingerprint on Wine Glass"*
   - Button: **Submit to Lab — Fingerprint Analysis**
 - [ ] Lab Status in metadata: *"Not submitted"* (amber)
 - [ ] No statements in side column yet
@@ -95,7 +95,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 - [ ] Detail loads: "Shoe Print in Hallway (Unanalyzed)"
 - [ ] Description notes it needs analysis to determine size and pattern
 - [ ] **Lab Analysis Available** section appears:
-  - Text: *"Footwear analysis can extract size, sole pattern, and brand. Results return next day."*
+  - Text includes: *"Expected result: Shoe Print in Hallway"*
   - Button: **Submit to Lab — Footwear Analysis**
 
 ---
@@ -147,7 +147,7 @@ Derived evidence now has explicit lineage. Child evidence can show `Derived From
 - [ ] Notification fires: *"Lab results in: Shoe Print in Hallway"*
 - [ ] `ev_shoe_print` appears in the archive with **NEW** badge
 - [ ] `ev_wine_glasses` card: **LAB** badge is removed. Lab Status in its detail panel: *"Complete — see: Julia's Fingerprint on Wine Glass"* with a link to the result
-- [ ] `ev_wine_glasses` detail also shows **Julia's Fingerprint on Wine Glass** as a navigation link in Forensic Analysis section once the result is discovered
+- [ ] `ev_wine_glasses` detail now shows the completed result link **→ Julia's Fingerprint on Wine Glass** in the Forensic Analysis section
 - [ ] `ev_shoe_print_raw` is replaced in the discovered archive by `ev_shoe_print` (upgrade flow). The analyzed result still keeps lineage back to the raw input internally.
 - [ ] Archive now has 10 visible items total (9 original cards, plus the fingerprint result, with the raw shoe print upgraded in place)
 - [ ] Notification bell counter: 2 new unreviewed items

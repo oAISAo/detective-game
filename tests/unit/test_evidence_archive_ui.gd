@@ -30,7 +30,7 @@ var _test_case_data: Dictionary = {
 			"discovery_method": "VISUAL",
 			"location_found": "loc_room",
 			"related_persons": [],
-			"requires_lab_analysis": true,
+			"lab_analysis_results": ["ev_photo_result"],
 			"weight": 0.5,
 			"evidentiary_value_text": "Suggests the photo captures a meaningful detail from the scene.",
 			"importance_level": "SUPPORTING",
@@ -151,6 +151,15 @@ func _collect_link_texts(root: Node) -> Array[String]:
 	return texts
 
 
+func _collect_button_texts(root: Node) -> Array[String]:
+	var texts: Array[String] = []
+	if root is Button:
+		texts.append((root as Button).text)
+	for child: Node in root.get_children():
+		texts.append_array(_collect_button_texts(child))
+	return texts
+
+
 func test_square_helper_sets_height_from_width() -> void:
 	var screen: Control = _instantiate_screen()
 	var detail: EvidenceDetailPanel = _get_detail_panel(screen)
@@ -235,6 +244,24 @@ func test_completed_lab_state_uses_lab_request_status_text() -> void:
 	assert_eq(status_label.text,
 		"Image enhancement complete. The processed photo is ready for review.",
 		"Completed lab banner text should come from lab request case data, not a hardcoded UI string.")
+
+
+func test_submit_state_lists_available_analysis_and_expected_result() -> void:
+	GameManager.discover_evidence("ev_photo")
+
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo")
+
+	var lab_anchor: VBoxContainer = screen.get_node("%LabSectionAnchor") as VBoxContainer
+	assert_eq(lab_anchor.get_child_count(), 1,
+		"LabSectionAnchor should contain the EvidenceLabSection instance.")
+
+	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
+	var label_texts: Array[String] = _collect_label_texts(lab_section)
+	var button_texts: Array[String] = _collect_button_texts(lab_section)
+
+	assert_has(label_texts, "Expected result: Enhanced Test Photo")
+	assert_has(button_texts, "Submit to Lab — Photo Analysis")
 
 
 func test_derived_from_row_uses_navigation_link_when_parent_is_discovered() -> void:

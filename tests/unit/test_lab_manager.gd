@@ -28,8 +28,10 @@ var _test_case_data: Dictionary = {
 			"name": "Kitchen Knife",
 			"description": "Found in sink.",
 			"type": "PHYSICAL",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_apartment",
 			"related_persons": [],
+			"lab_analysis_results": ["ev_knife_result", "ev_knife_trace_result"],
 			"weight": 0.8,
 			"importance_level": "KEY",
 		},
@@ -38,8 +40,10 @@ var _test_case_data: Dictionary = {
 			"name": "Fingerprints",
 			"description": "On door handle.",
 			"type": "FORENSIC",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_apartment",
 			"related_persons": [],
+			"lab_analysis_results": ["ev_prints_result"],
 			"weight": 0.6,
 			"importance_level": "SUPPORTING",
 		},
@@ -48,6 +52,7 @@ var _test_case_data: Dictionary = {
 			"name": "Blood Sample",
 			"description": "On floor.",
 			"type": "PHYSICAL",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_apartment",
 			"related_persons": [],
 			"weight": 0.7,
@@ -58,6 +63,7 @@ var _test_case_data: Dictionary = {
 			"name": "Fiber Sample",
 			"description": "On victim.",
 			"type": "PHYSICAL",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_apartment",
 			"related_persons": [],
 			"weight": 0.5,
@@ -68,16 +74,32 @@ var _test_case_data: Dictionary = {
 			"name": "Knife Analysis",
 			"description": "Lab result from knife.",
 			"type": "FORENSIC",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_knife",
 			"location_found": "lab",
 			"related_persons": [],
 			"weight": 0.9,
 			"importance_level": "KEY",
 		},
 		{
+			"id": "ev_knife_trace_result",
+			"name": "Knife Trace Residue",
+			"description": "Trace residue recovered from the knife.",
+			"type": "FORENSIC",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_knife",
+			"location_found": "lab",
+			"related_persons": [],
+			"weight": 0.7,
+			"importance_level": "SUPPORTING",
+		},
+		{
 			"id": "ev_prints_result",
 			"name": "Prints Match",
 			"description": "Lab result from prints.",
 			"type": "FORENSIC",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_prints",
 			"location_found": "lab",
 			"related_persons": [],
 			"weight": 0.9,
@@ -88,6 +110,7 @@ var _test_case_data: Dictionary = {
 			"name": "Blood DNA",
 			"description": "Lab result from blood.",
 			"type": "FORENSIC",
+			"discovery_method": "FORENSIC",
 			"location_found": "lab",
 			"related_persons": [],
 			"weight": 0.9,
@@ -98,6 +121,7 @@ var _test_case_data: Dictionary = {
 			"name": "Fiber Match",
 			"description": "Lab result from fiber.",
 			"type": "FORENSIC",
+			"discovery_method": "FORENSIC",
 			"location_found": "lab",
 			"related_persons": [],
 			"weight": 0.8,
@@ -113,6 +137,35 @@ var _test_case_data: Dictionary = {
 	"interrogation_topics": [],
 	"actions": [],
 	"insights": [],
+	"lab_requests": [
+		{
+			"id": "lab_knife_dna",
+			"input_evidence_id": "ev_knife",
+			"analysis_type": "dna",
+			"day_submitted": 0,
+			"completion_day": 1,
+			"output_evidence_id": "ev_knife_result",
+			"lab_transform": "derive",
+		},
+		{
+			"id": "lab_knife_trace",
+			"input_evidence_id": "ev_knife",
+			"analysis_type": "trace",
+			"day_submitted": 0,
+			"completion_day": 1,
+			"output_evidence_id": "ev_knife_trace_result",
+			"lab_transform": "derive",
+		},
+		{
+			"id": "lab_prints_match",
+			"input_evidence_id": "ev_prints",
+			"analysis_type": "fingerprint",
+			"day_submitted": 0,
+			"completion_day": 1,
+			"output_evidence_id": "ev_prints_result",
+			"lab_transform": "upgrade",
+		},
+	],
 	"interrogation_triggers": [],
 }
 
@@ -232,6 +285,28 @@ func test_submit_generates_unique_ids() -> void:
 	var r1: Dictionary = LabManager.submit_request("ev_knife", "dna", "ev_knife_result")
 	var r2: Dictionary = LabManager.submit_request("ev_prints", "fingerprint", "ev_prints_result")
 	assert_ne(r1["id"], r2["id"], "IDs should be unique")
+
+
+func test_submit_template_request_uses_case_defined_mapping() -> void:
+	GameManager.discover_evidence("ev_knife")
+	var req: Dictionary = LabManager.submit_template_request("lab_knife_trace")
+	assert_false(req.is_empty(), "Should submit authored lab template")
+	assert_eq(req["input_evidence_id"], "ev_knife")
+	assert_eq(req["analysis_type"], "trace")
+	assert_eq(req["output_evidence_id"], "ev_knife_trace_result")
+	assert_eq(req["lab_transform"], "derive")
+
+
+func test_submit_to_lab_rejects_input_with_multiple_templates() -> void:
+	GameManager.discover_evidence("ev_knife")
+	assert_false(LabManager.submit_to_lab("ev_knife"),
+		"Legacy evidence-only submission should fail once multiple templates exist for the input evidence.")
+
+
+func test_submit_to_lab_supports_single_template_input() -> void:
+	GameManager.discover_evidence("ev_prints")
+	assert_true(LabManager.submit_to_lab("ev_prints"),
+		"Legacy evidence-only submission should still work when exactly one template exists.")
 
 
 # =========================================================================

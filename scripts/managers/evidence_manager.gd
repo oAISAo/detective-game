@@ -337,6 +337,12 @@ func submit_to_lab(evidence_id: String) -> bool:
 	return LabManager.submit_to_lab(evidence_id)
 
 
+## Submits a specific case-authored lab request template. Returns true if accepted.
+func submit_to_lab_request(template_id: String) -> bool:
+	var result: Dictionary = LabManager.submit_template_request(template_id)
+	return not result.is_empty()
+
+
 # --- Progressive Discovery Hints --- #
 
 ## Requests a progressive hint. Returns a dictionary with hint details,
@@ -440,10 +446,12 @@ func is_sent_to_board(evidence_id: String) -> bool:
 ## An item is superseded when it is the input of a lab request whose output evidence
 ## the player has already discovered.
 func is_superseded(evidence_id: String) -> bool:
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(evidence_id)
-	if lab_req == null:
-		return false
-	return GameManager.has_evidence(lab_req.output_evidence_id)
+	for lab_req: LabRequestData in CaseManager.get_lab_requests_for_evidence(evidence_id):
+		if lab_req.lab_transform != "upgrade":
+			continue
+		if GameManager.has_evidence(lab_req.output_evidence_id):
+			return true
+	return false
 
 
 # --- Player Notes --- #

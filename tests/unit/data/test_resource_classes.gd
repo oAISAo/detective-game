@@ -17,7 +17,7 @@ func test_evidence_from_dict_full() -> void:
 		"location_found": "loc_kitchen",
 		"related_persons": ["p_julia", "p_mark"],
 		"lab_status": "NOT_SUBMITTED",
-		"requires_lab_analysis": true,
+		"lab_analysis_results": ["ev_knife_prints", "ev_knife_dna"],
 		"weight": 0.9,
 		"importance_level": "CRITICAL",
 		"discovery_method": "VISUAL",
@@ -32,7 +32,9 @@ func test_evidence_from_dict_full() -> void:
 	assert_eq(ev.related_persons.size(), 2)
 	assert_true("p_julia" in ev.related_persons)
 	assert_eq(ev.lab_status, Enums.LabStatus.NOT_SUBMITTED)
-	assert_true(ev.requires_lab_analysis)
+	assert_eq(ev.lab_analysis_results.size(), 2)
+	assert_eq(ev.lab_analysis_results[0], "ev_knife_prints")
+	assert_eq(ev.lab_analysis_results[1], "ev_knife_dna")
 	assert_almost_eq(ev.weight, 0.9, 0.001)
 	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
 	assert_eq(ev.discovery_method, Enums.DiscoveryMethod.VISUAL)
@@ -47,7 +49,7 @@ func test_evidence_from_dict_defaults() -> void:
 	assert_eq(ev.type, Enums.EvidenceType.OBJECT)
 	assert_eq(ev.importance_level, Enums.ImportanceLevel.SUPPORTING)
 	assert_almost_eq(ev.weight, 0.5, 0.001)
-	assert_false(ev.requires_lab_analysis)
+	assert_eq(ev.lab_analysis_results.size(), 0)
 	var errors := ev.validate()
 	assert_true(_has_error_containing(errors, "discovery_method is required"))
 
@@ -80,6 +82,28 @@ func test_evidence_validate_derived_from_cannot_reference_self() -> void:
 	assert_true(_has_error_containing(errors, "derived_from cannot reference self"))
 
 
+func test_evidence_validate_lab_analysis_results_cannot_reference_self() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_self_target",
+		"name": "Self Target Evidence",
+		"discovery_method": "VISUAL",
+		"lab_analysis_results": ["ev_self_target"],
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "lab_analysis_results cannot reference self"))
+
+
+func test_evidence_validate_lab_analysis_results_cannot_duplicate_ids() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_duplicate_targets",
+		"name": "Duplicate Targets Evidence",
+		"discovery_method": "VISUAL",
+		"lab_analysis_results": ["ev_output", "ev_output"],
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "lab_analysis_results cannot contain duplicates"))
+
+
 func test_evidence_validate_invalid_weight() -> void:
 	var ev := EvidenceData.from_dict({"id": "ev_01", "name": "Test", "weight": 1.5})
 	var errors := ev.validate()
@@ -96,6 +120,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 		"importance_level": "CRITICAL",
 		"discovery_method": "ADMINISTRATIVE",
 		"derived_from": "ev_parent",
+		"lab_analysis_results": ["ev_rt_result"],
 	}
 	var ev := EvidenceData.from_dict(original)
 	var result := ev.to_dict()
@@ -105,6 +130,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 	assert_eq(result["importance_level"], "CRITICAL")
 	assert_eq(result["discovery_method"], "ADMINISTRATIVE")
 	assert_eq(result["derived_from"], "ev_parent")
+	assert_eq(result["lab_analysis_results"], ["ev_rt_result"])
 	assert_false(result.has("tags"))
 
 

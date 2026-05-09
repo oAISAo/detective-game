@@ -50,6 +50,9 @@
 			"evidentiary_value_text": "Suggests the victim had company before the murder.",
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
+			"lab_analysis_results": [
+				"ev_julia_fingerprint_glass"
+			],
 			"legal_categories": [
 				"PRESENCE"
 			],
@@ -97,6 +100,9 @@
 			"evidentiary_value_text": "May identify someone with direct access to the victim's desk.",
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
+			"lab_analysis_results": [
+				"ev_mark_fingerprint_desk"
+			],
 			"legal_categories": [],
 			"linked_statements": []
 		},
@@ -431,6 +437,9 @@
 			"evidentiary_value_text": "Could identify who moved through the hallway outside the apartment.",
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
+			"lab_analysis_results": [
+				"ev_shoe_print"
+			],
 			"legal_categories": [],
 			"linked_statements": []
 		},

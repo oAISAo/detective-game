@@ -193,12 +193,10 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Day Found", "Day %d" % GameManager.get_evidence_discovery_day(ev.id))
 	_add_info_row("Importance", UIHelper.get_importance_label(ev.importance_level))
 
-	if ev.requires_lab_analysis:
-		if not ev.lab_result_text.is_empty():
-			_add_info_row("Lab Result", ev.lab_result_text)
-		else:
-			_add_info_row("Lab Status", UIHelper.get_lab_status_label(ev.lab_status))
-	elif CaseManager.get_lab_request_for_evidence(ev.id) != null:
+	var lab_requests: Array[LabRequestData] = CaseManager.get_lab_requests_for_evidence(ev.id)
+	if not ev.lab_result_text.is_empty():
+		_add_info_row("Lab Result", ev.lab_result_text)
+	elif not lab_requests.is_empty():
 		_add_info_row("Lab Status", UIHelper.get_lab_status_label(ev.lab_status))
 
 

@@ -127,6 +127,8 @@ The detail panel is split into a header and three scrollable columns.
 - Evidence lineage is explicit in case data through `EvidenceData.derived_from`.
 - `derived_from` is a single parent evidence ID, not a list. It expresses authored origin, not player interpretation.
 - A child evidence detail can show **Derived From** as a navigation link when the parent is still present in the discovered archive.
+- Raw evidence declares forward lab targets through `EvidenceData.lab_analysis_results`.
+- The Forensic Analysis block uses `lab_analysis_results` plus matching `LabRequestData` templates to show available analyses, expected results, pending submissions, and completed result links.
 - For lab requests with `lab_transform: derive`, parent and child can coexist in the archive.
 - For lab requests with `lab_transform: upgrade`, the analyzed output still keeps `derived_from`, but the raw parent can be replaced in the discovered archive. In that case the child shows the parent name as plain metadata rather than an active navigation link.
 - Lineage is separate from lab state. `derived_from` answers "where did this evidence come from?" while `lab_status` answers "what is happening to this evidence right now?"
@@ -297,21 +299,25 @@ Some evidence discovered on the Map tab is raw and requires forensic laboratory 
 **Lab submission costs 0 actions** (passive activity). It represents the detective packaging up the sample and sending it off — a routine administrative step, not an investigation decision. The meaningful decision is *which evidence* to submit and *when* — submitting something wastes nothing, so the player is always incentivized to submit promptly.
 
 ### Raw Evidence
-Evidence with `requires_lab_analysis: true` in its data displays a **Forensic Analysis** block in the first column, between the Description and Evidentiary Value sections:
+Evidence with non-empty `lab_analysis_results` in its data displays a **Forensic Analysis** block in the first column, between the Description and Evidentiary Value sections:
 
 ```
 ┌─────────────────────────────────────────┐
 │  FORENSIC ANALYSIS                      │
-│  Fingerprint analysis can be performed  │
-│  on this item. Results return next day. │
+│  Possible forensic analyses available.  │
+│  Expected result: Julia's Fingerprint   │
+│  on Wine Glass                          │
 │                                         │
 │  [Submit to Lab — Fingerprint Analysis] │
 └─────────────────────────────────────────┘
 ```
 
+`lab_analysis_results` is the forward source of truth for lab-capable evidence. Each listed output ID must match a `LabRequestData` template for the same input evidence. The template still owns the per-analysis metadata such as `analysis_type`, `lab_transform`, and `completed_status_text`.
+
 ### Submission Steps
 1. Player opens raw evidence (e.g., `ev_wine_glasses`)
-2. The Forensic Analysis block appears in the first column with the analysis type pre-populated from data
+2. The Forensic Analysis block appears in the first column with one entry per currently available lab target
+3. Each entry shows the expected result name and a submit button labeled from the matching `LabRequestData.analysis_type`
 3. Player clicks "Submit to Lab"
 4. Notification: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
 5. Evidence card in the archive gains **LAB** badge
@@ -379,7 +385,7 @@ Each evidence item tracks the following state:
 |-------------|--------|-------|
 | `reviewed` | bool | True once player has opened the detail panel for this item |
 | `pinned` | bool | Player bookmark — UI convenience only |
-| `lab_status` | `none` / `submitted` / `complete` | For raw evidence only |
+| `lab_status` | `none` / `submitted` / `complete` | Runtime status for evidence currently participating in the lab flow |
 | `sent_to_board` | bool | Whether "Send to Board" has been clicked |
 | `player_notes` | string | Free-text notes written by the player |
 
@@ -539,7 +545,7 @@ Send to board
   "weight": 0.7,
   "evidentiary_value_text": "Fixes Mark's departure time and tests whether his timeline is truthful.",
   "location_found": "loc_parking_lot",
-  "requires_lab_analysis": false,
+  "lab_analysis_results": [],
   "discovery_method": "VISUAL",
   "related_persons": ["p_mark"],
   "legal_categories": ["PRESENCE"],
@@ -595,7 +601,7 @@ All design questions have been resolved. Decisions are final.
 
 **D4 — Comparison from either item:** Available from either evidence item in a pair. ✅ *Already implemented — `EvidenceManager.compare_evidence(a, b)` works symmetrically.*
 
-**D5 — Raw evidence after lab result arrives:** The raw item stays in the archive. Once its lab result arrives, the raw item gets a "Superseded" visual treatment: muted appearance + a link label pointing to the processed result item. The raw item is never removed. 🚧 *Not yet implemented.*
+**D5 — Raw evidence after lab result arrives:** `derive` results keep the raw evidence discoverable and the Forensic Analysis block links to the completed result. `upgrade` results replace the raw evidence in the discovered archive, while the analyzed child still keeps `derived_from` metadata pointing back to the raw input. ✅ *Matches current runtime behavior.*
 
 **D6 — Nav badge count for unreviewed evidence:** Removed — the Evidence tab nav icon does not show an unreviewed-items counter. The NEW badge on individual evidence cards in the archive is sufficient.
 
@@ -610,7 +616,7 @@ All design questions have been resolved. Decisions are final.
 | `scripts/ui/screens/evidence_archive.gd` | **Main evidence screen** — owns the archive grid shell and wires the evidence detail panel |
 | `scenes/ui/evidence_archive.tscn` | Scene for the evidence screen |
 | `scripts/ui/components/evidence_detail_panel.gd` | Right-panel coordinator for the selected evidence item |
-| `scripts/ui/components/evidence_lab_section.gd` | Forensic analysis block for raw / pending / completed lab states |
+| `scripts/ui/components/evidence_lab_section.gd` | Forensic analysis block for available / pending / completed analyses, driven by `lab_analysis_results` plus `LabRequestData` |
 | `scripts/ui/components/evidence_value_section.gd` | Evidentiary Value component showing qualitative tier, case-authored interpretation, and contested warning |
 | `scripts/ui/components/evidence_polaroid.gd` | Polaroid card used in the evidence grid (`EvidencePolaroid` class) |
 | `scripts/ui/components/evidence_statements_panel.gd` | Container component that renders all statement items for the selected evidence (`EvidenceStatementsPanel` class) |

@@ -31,6 +31,9 @@ extends Resource
 ## Whether this evidence requires lab analysis to be fully useful.
 @export var requires_lab_analysis: bool = false
 
+## IDs of evidence items this raw evidence can produce through lab analysis.
+@export var lab_analysis_results: Array[String] = []
+
 ## Path to the evidence image resource.
 @export var image: String = ""
 
@@ -81,7 +84,10 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 		Enums.LabStatus.NOT_SUBMITTED
 	) as Enums.LabStatus
 	res.lab_result_text = data.get("lab_result_text", "")
+	res.lab_analysis_results.assign(data.get("lab_analysis_results", []))
 	res.requires_lab_analysis = data.get("requires_lab_analysis", false)
+	if not res.lab_analysis_results.is_empty():
+		res.requires_lab_analysis = true
 	res.image = data.get("image", "")
 	res.weight = float(data.get("weight", 0.5))
 	res.evidentiary_value_text = data.get("evidentiary_value_text", "")
@@ -132,6 +138,15 @@ func validate() -> Array[String]:
 		errors.append(_discovery_method_validation_error)
 	if not derived_from.is_empty() and derived_from == id:
 		errors.append("EvidenceData: derived_from cannot reference self")
+	var seen_lab_targets: Dictionary = {}
+	for result_id: String in lab_analysis_results:
+		if result_id == id:
+			errors.append("EvidenceData: lab_analysis_results cannot reference self")
+			continue
+		if seen_lab_targets.has(result_id):
+			errors.append("EvidenceData: lab_analysis_results cannot contain duplicates")
+			continue
+		seen_lab_targets[result_id] = true
 	if weight < 0.0 or weight > 1.0:
 		errors.append("EvidenceData: weight must be between 0.0 and 1.0")
 	return errors
@@ -149,6 +164,7 @@ func to_dict() -> Dictionary:
 		"lab_status": EnumHelper.enum_to_string(Enums.LabStatus, lab_status),
 		"lab_result_text": lab_result_text,
 		"requires_lab_analysis": requires_lab_analysis,
+		"lab_analysis_results": lab_analysis_results.duplicate(),
 		"image": image,
 		"weight": weight,
 		"evidentiary_value_text": evidentiary_value_text,

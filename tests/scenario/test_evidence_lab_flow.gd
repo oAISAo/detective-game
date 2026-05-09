@@ -425,21 +425,20 @@ func test_evidence_upgrade_preserves_position_in_array() -> void:
 # =========================================================================
 
 func test_analyzed_evidence_hides_lab_status_when_results_exist() -> void:
-	# The analyzed shoe print has requires_lab_analysis=true AND lab_result_text populated.
-	# After our fix, when lab_result_text is non-empty, only "Lab Result" should show,
-	# not "Lab Status: Not Submitted".
+	# The analyzed shoe print is a lab output: it has no forward lab targets, but it does
+	# have lab_result_text populated. The detail UI should show "Lab Result", not a status row.
 	var ev: EvidenceData = CaseManager.get_evidence("ev_shoe_print")
 	assert_not_null(ev, "Analyzed shoe print evidence should exist")
-	assert_true(ev.requires_lab_analysis,
-		"Analyzed shoe print should have requires_lab_analysis=true")
+	assert_true(ev.lab_analysis_results.is_empty(),
+		"Analyzed shoe print should not declare further lab analysis targets")
 	assert_false(ev.lab_result_text.is_empty(),
 		"Analyzed shoe print should have lab_result_text populated")
 
-	# The UI logic: if requires_lab_analysis AND lab_result_text non-empty → show result only
-	# If requires_lab_analysis AND lab_result_text empty → show status
+	# The UI logic: if lab_result_text is non-empty → show result only.
+	# Forward-target rows are driven by lab_analysis_results instead of the old boolean.
 	# This test validates the data conditions that drive the correct UI behavior
-	var should_show_result: bool = ev.requires_lab_analysis and not ev.lab_result_text.is_empty()
-	var should_show_status: bool = ev.requires_lab_analysis and ev.lab_result_text.is_empty()
+	var should_show_result: bool = ev.lab_analysis_results.is_empty() and not ev.lab_result_text.is_empty()
+	var should_show_status: bool = not ev.lab_analysis_results.is_empty() and ev.lab_result_text.is_empty()
 	assert_true(should_show_result,
 		"Should show lab result (not status) for analyzed evidence with results")
 	assert_false(should_show_status,
@@ -454,12 +453,11 @@ func test_raw_evidence_shows_lab_status_without_results() -> void:
 	var ev: EvidenceData = CaseManager.get_evidence("ev_shoe_print_raw")
 	assert_not_null(ev, "Raw shoe print evidence should exist")
 
-	# Raw evidence does not have requires_lab_analysis set, but a lab request exists for it
-	var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence("ev_shoe_print_raw")
-	assert_not_null(lab_req, "Lab request should exist for raw shoe print")
+	assert_eq(ev.lab_analysis_results, ["ev_shoe_print"],
+		"Raw shoe print should declare its forward lab target explicitly")
 
-	# When requires_lab_analysis is false but lab request exists, the UI shows lab status
-	var should_show_status: bool = not ev.requires_lab_analysis and lab_req != null
+	# Raw evidence with forward lab targets and no result text should show lab status
+	var should_show_status: bool = not ev.lab_analysis_results.is_empty() and ev.lab_result_text.is_empty()
 	assert_true(should_show_status,
 		"Raw evidence with lab request should show lab status row")
 

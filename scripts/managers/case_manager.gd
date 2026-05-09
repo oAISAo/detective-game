@@ -306,12 +306,22 @@ func get_discovery_rule(rule_id: String) -> DiscoveryRuleData:
 func get_lab_request(request_id: String) -> LabRequestData:
 	return _lab_requests.get(request_id, null)
 
-## Returns the lab request template for a given input evidence ID, or null.
-func get_lab_request_for_evidence(input_evidence_id: String) -> LabRequestData:
+
+## Returns all lab request templates for a given input evidence ID.
+func get_lab_requests_for_evidence(input_evidence_id: String) -> Array[LabRequestData]:
+	var result: Array[LabRequestData] = []
 	for req: LabRequestData in _lab_requests.values():
 		if req.input_evidence_id == input_evidence_id:
-			return req
-	return null
+			result.append(req)
+	return result
+
+
+## Returns the lab request template for a given input evidence ID when exactly one exists.
+func get_lab_request_for_evidence(input_evidence_id: String) -> LabRequestData:
+	var requests: Array[LabRequestData] = get_lab_requests_for_evidence(input_evidence_id)
+	if requests.size() != 1:
+		return null
+	return requests[0]
 
 
 ## Returns the lab request template for a given output evidence ID, or null.
