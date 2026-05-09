@@ -62,14 +62,14 @@
 			"id": "ev_julia_fingerprint_glass",
 			"name": "Julia's Fingerprint on Wine Glass",
 			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_wine_glass.png",
-			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints. Contradicts her statement that she was not at the apartment that night.",
+			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [
 				"p_julia"
 			],
 			"weight": 0.9,
-			"evidentiary_value_text": "Places Julia in the apartment and challenges her denial.",
+			"evidentiary_value_text": "Places Julia inside the apartment despite her denial.",
 			"importance_level": "CRITICAL",
 			"discovery_method": "LAB",
 			"requires_lab_analysis": true,
@@ -103,7 +103,7 @@
 			"id": "ev_mark_fingerprint_desk",
 			"name": "Mark's Fingerprint on Desk",
 			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_desk.png",
-			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints. Confirms his earlier visit.",
+			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [
@@ -261,7 +261,7 @@
 				"p_mark"
 			],
 			"weight": 0.8,
-			"evidentiary_value_text": "Directly supports an embezzlement motive tied to Mark.",
+			"evidentiary_value_text": "Suggests Mark had a strong financial motive to silence Daniel.",
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
@@ -286,7 +286,7 @@
 				"p_victim"
 			],
 			"weight": 0.7,
-			"evidentiary_value_text": "Corroborates that the missing money was part of a broader pattern.",
+			"evidentiary_value_text": "Shows the embezzlement was ongoing, not isolated.",
 			"importance_level": "SUPPORTING",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
@@ -470,7 +470,7 @@
 				"p_julia"
 			],
 			"weight": 0.8,
-			"evidentiary_value_text": "Provides the physical item needed to test the hallway print against Julia.",
+			"evidentiary_value_text": "Allows investigators to directly compare Julia’s shoes to the hallway print.",
 			"importance_level": "CRITICAL",
 			"discovery_method": "VISUAL",
 			"legal_categories": [

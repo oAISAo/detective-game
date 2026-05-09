@@ -12,8 +12,7 @@ func populate(ev: EvidenceData) -> void:
 
 	var header_label := Label.new()
 	header_label.text = "Evidentiary Value"
-	header_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-	header_label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	header_label.theme_type_variation = &"SectionHeader"
 	add_child(header_label)
 
 	var tier_label := Label.new()
