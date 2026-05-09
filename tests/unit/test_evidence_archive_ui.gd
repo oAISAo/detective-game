@@ -27,6 +27,7 @@ var _test_case_data: Dictionary = {
 			"name": "Test Photo",
 			"description": "A test image for evidence archive layout checks.",
 			"type": "PHOTO",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_room",
 			"related_persons": [],
 			"requires_lab_analysis": true,
@@ -46,6 +47,7 @@ var _test_case_data: Dictionary = {
 			"evidentiary_value_text": "Clarifies a previously obscured visual detail for closer review.",
 			"importance_level": "SUPPORTING",
 			"discovery_method": "FORENSIC",
+			"derived_from": "ev_photo",
 			"lab_result_text": "Output evidence lab_result_text should remain separate from the completed banner.",
 		},
 	],
@@ -140,6 +142,15 @@ func _collect_label_texts(root: Node) -> Array[String]:
 	return texts
 
 
+func _collect_link_texts(root: Node) -> Array[String]:
+	var texts: Array[String] = []
+	if root is LinkButton:
+		texts.append((root as LinkButton).text)
+	for child: Node in root.get_children():
+		texts.append_array(_collect_link_texts(child))
+	return texts
+
+
 func test_square_helper_sets_height_from_width() -> void:
 	var screen: Control = _instantiate_screen()
 	var detail: EvidenceDetailPanel = _get_detail_panel(screen)
@@ -224,6 +235,37 @@ func test_completed_lab_state_uses_lab_request_status_text() -> void:
 	assert_eq(status_label.text,
 		"Image enhancement complete. The processed photo is ready for review.",
 		"Completed lab banner text should come from lab request case data, not a hardcoded UI string.")
+
+
+func test_derived_from_row_uses_navigation_link_when_parent_is_discovered() -> void:
+	GameManager.discover_evidence("ev_photo")
+	GameManager.discover_evidence("ev_photo_result")
+
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo_result")
+
+	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
+	var label_texts: Array[String] = _collect_label_texts(info_grid)
+	var link_texts: Array[String] = _collect_link_texts(info_grid)
+
+	assert_has(label_texts, "Derived From:")
+	assert_has(link_texts, "Test Photo")
+
+
+func test_derived_from_row_falls_back_to_plain_text_when_parent_not_discovered() -> void:
+	GameManager.discover_evidence("ev_photo_result")
+
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo_result")
+
+	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
+	var label_texts: Array[String] = _collect_label_texts(info_grid)
+	var link_texts: Array[String] = _collect_link_texts(info_grid)
+
+	assert_has(label_texts, "Derived From:")
+	assert_has(label_texts, "Test Photo")
+	assert_false("Test Photo" in link_texts,
+		"Parent evidence should not be navigable when it is not in the discovered archive.")
 
 
 func test_notes_section_lives_in_third_column_and_stays_open() -> void:

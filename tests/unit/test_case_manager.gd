@@ -50,6 +50,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_julia"],
 			"weight": 0.8,
 			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
 		},
 		{
 			"id": "ev_camera",
@@ -60,6 +61,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark"],
 			"weight": 0.6,
 			"importance_level": "SUPPORTING",
+			"discovery_method": "VISUAL",
 		},
 		{
 			"id": "ev_document",
@@ -70,6 +72,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark", "p_victim"],
 			"weight": 0.7,
 			"importance_level": "CRITICAL",
+			"discovery_method": "VISUAL",
 		},
 	],
 	"statements": [
@@ -264,6 +267,36 @@ func test_get_evidence_returns_null_for_invalid_id() -> void:
 	CaseManager.load_case(TEST_CASE_FILE)
 	var ev: EvidenceData = CaseManager.get_evidence("ev_nonexistent")
 	assert_null(ev, "Should return null for invalid ID")
+
+
+func test_get_parent_evidence_id_for_riverside_lab_output() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	assert_eq(CaseManager.get_parent_evidence_id("ev_julia_fingerprint_glass"), "ev_wine_glasses")
+	CaseManager.unload_case()
+
+
+func test_get_parent_evidence_returns_resource_for_derived_output() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var parent: EvidenceData = CaseManager.get_parent_evidence("ev_shoe_print")
+	assert_not_null(parent)
+	assert_eq(parent.id, "ev_shoe_print_raw")
+	CaseManager.unload_case()
+
+
+func test_get_derived_evidence_returns_children_for_parent() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var children: Array[EvidenceData] = CaseManager.get_derived_evidence("ev_wine_glasses")
+	assert_eq(children.size(), 1)
+	assert_eq(children[0].id, "ev_julia_fingerprint_glass")
+	CaseManager.unload_case()
+
+
+func test_get_lab_request_for_output_returns_matching_request() -> void:
+	CaseManager.load_case_folder("riverside_apartment")
+	var req: LabRequestData = CaseManager.get_lab_request_for_output("ev_mark_fingerprint_desk")
+	assert_not_null(req)
+	assert_eq(req.input_evidence_id, "ev_desk_fingerprint_raw")
+	CaseManager.unload_case()
 
 
 # --- Query: Person (typed returns) --- #

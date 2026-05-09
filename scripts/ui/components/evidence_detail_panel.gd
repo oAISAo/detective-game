@@ -189,6 +189,7 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Type", UIHelper.get_evidence_type_label(ev.type))
 	_add_info_row("Location", UIHelper.get_location_name(ev.location_found))
 	_add_info_row("Discovery", UIHelper.get_discovery_method_label(ev.discovery_method))
+	_populate_lineage_rows(ev)
 	_add_info_row("Day Found", "Day %d" % GameManager.get_evidence_discovery_day(ev.id))
 	_add_info_row("Importance", UIHelper.get_importance_label(ev.importance_level))
 
@@ -199,6 +200,15 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 			_add_info_row("Lab Status", UIHelper.get_lab_status_label(ev.lab_status))
 	elif CaseManager.get_lab_request_for_evidence(ev.id) != null:
 		_add_info_row("Lab Status", UIHelper.get_lab_status_label(ev.lab_status))
+
+
+func _populate_lineage_rows(ev: EvidenceData) -> void:
+	var parent_ev: EvidenceData = CaseManager.get_parent_evidence(ev.id)
+	if parent_ev != null:
+		_add_info_control_row(
+			"Derived From",
+			_build_lineage_value(parent_ev, GameManager.has_evidence(parent_ev.id))
+		)
 
 
 func _add_info_row(key: String, value: String) -> void:
@@ -213,6 +223,47 @@ func _add_info_row(key: String, value: String) -> void:
 	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_info_grid.add_child(value_label)
+
+
+func _add_info_control_row(key: String, value_control: Control) -> void:
+	var key_label := Label.new()
+	key_label.text = key + ":"
+	key_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
+	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_info_grid.add_child(key_label)
+
+	value_control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_info_grid.add_child(value_control)
+
+
+func _build_lineage_value(target_ev: EvidenceData, is_navigable: bool) -> Control:
+	if is_navigable:
+		var link := LinkButton.new()
+		link.text = target_ev.name
+		link.underline = LinkButton.UNDERLINE_MODE_NEVER
+		link.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		var target_id: String = target_ev.id
+		link.pressed.connect(func() -> void: evidence_requested.emit(target_id))
+		return link
+
+	var value_label := Label.new()
+	value_label.text = target_ev.name
+	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return value_label
+
+
+func _build_derived_children_list(children: Array[EvidenceData]) -> VBoxContainer:
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 4)
+	for child_ev: EvidenceData in children:
+		var child_link := LinkButton.new()
+		child_link.text = child_ev.name
+		child_link.underline = LinkButton.UNDERLINE_MODE_NEVER
+		child_link.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		var child_id: String = child_ev.id
+		child_link.pressed.connect(func() -> void: evidence_requested.emit(child_id))
+		list.add_child(child_link)
+	return list
 
 
 func _populate_related_persons(ev: EvidenceData) -> void:

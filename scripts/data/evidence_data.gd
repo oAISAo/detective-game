@@ -46,6 +46,9 @@ extends Resource
 ## How the player originally acquired this evidence.
 @export var discovery_method: Enums.DiscoveryMethod = Enums.DiscoveryMethod.VISUAL
 
+## ID of the parent evidence this item was derived from, if any.
+@export var derived_from: String = ""
+
 ## Optional hint text for the progressive hint system. If empty, a generic hint is generated.
 @export var hint_text: String = ""
 
@@ -88,6 +91,7 @@ static func from_dict(data: Dictionary) -> EvidenceData:
 		Enums.ImportanceLevel.SUPPORTING
 	) as Enums.ImportanceLevel
 	res._set_discovery_method_from_string(str(data.get("discovery_method", "")))
+	res.derived_from = str(data.get("derived_from", "")).strip_edges()
 	res.hint_text = data.get("hint_text", "")
 	res.linked_statements.assign(data.get("linked_statements", []))
 	res.legal_categories = EnumHelper.parse_enum_array(
@@ -126,6 +130,8 @@ func validate() -> Array[String]:
 		errors.append("EvidenceData: name is required")
 	if not _discovery_method_validation_error.is_empty():
 		errors.append(_discovery_method_validation_error)
+	if not derived_from.is_empty() and derived_from == id:
+		errors.append("EvidenceData: derived_from cannot reference self")
 	if weight < 0.0 or weight > 1.0:
 		errors.append("EvidenceData: weight must be between 0.0 and 1.0")
 	return errors
@@ -148,6 +154,7 @@ func to_dict() -> Dictionary:
 		"evidentiary_value_text": evidentiary_value_text,
 		"importance_level": EnumHelper.enum_to_string(Enums.ImportanceLevel, importance_level),
 		"discovery_method": EnumHelper.enum_to_string(Enums.DiscoveryMethod, discovery_method),
+		"derived_from": derived_from,
 		"hint_text": hint_text,
 		"linked_statements": linked_statements.duplicate(),
 		"legal_categories": EnumHelper.enum_array_to_strings(Enums.LegalCategory, legal_categories),

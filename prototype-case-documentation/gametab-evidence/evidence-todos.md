@@ -28,76 +28,69 @@ Improve test coverage.
 - No test for notes persistence across evidence switches
 - No test for the pinned bar reconstruction
 
-## 7. discovery_method is inconsistent
-Problem: The current discovery_method field mixes together multiple different concepts:
+## 7. Missing parent-child relation
+Problem: Several evidence items are clearly derived from earlier evidence:
 
-A. How the evidence was originally found
-Example:
-visual inspection
-warrant
-interrogation
-digital recovery
+Examples:
+wine glasses → fingerprint result
+desk fingerprint → identified fingerprint
+shoe print → analyzed shoe print
 
-B. How the evidence was processed
-Example:
-lab analysis
+But the data structure does not explicitly represent this relationship.
 
-C. How the evidence became available
-Example:
-tool unlock
-derived evidence
+Right now the relationship only exists:
+implicitly
+in gameplay logic
+in developer knowledge
 
-These are fundamentally different systems.
+That is fragile. Without explicit parent-child relations UI becomes harder.
 
-Why this becomes a problem later:
-Right now the field still works because the game is small.
-But later this will create problems in:
-filtering
-UI labels
-timeline logic
-evidence sorting
-save migration
-analytics/debugging
-future case design
+You cannot easily:
+show evidence chains
+display “derived from”
+navigate between related evidence
+Logic becomes harder
 
-Example problem:
-"discovery_method": "LAB"
-This incorrectly implies:
-“the lab discovered this evidence”
-But the lab did not discover it.
+You cannot easily:
+trace evidence origins
+disable duplicate submissions
+track analysis history
+build timelines
+Future systems become harder
 
-The player:
-discovered the wine glasses
-submitted them for analysis
-received a forensic result
+Especially:
+theory systems
+evidence graphs
+nested analysis
+branching forensic results
+Recommended fix
 
-That is a transformation pipeline, not a discovery source.
-
-### Recommended fix
-
-Redefine discovery_method to mean ONLY:
-
-“How the player originally obtained this evidence.”
-
-Recommended values (Value	Meaning):
-VISUAL	Found directly in the world
-FORENSIC	Produced by forensic analysis
-WARRANT	Obtained via legal authorization
-DIGITAL	Retrieved from digital systems
-TESTIMONY	Unlocked from interrogation
-ADMINISTRATIVE	Provided automatically (autopsy, police file, etc.)
-
-### Additional recommendation
-
-Do NOT use this field for:
-progression state
-analysis state
-unlock conditions
-
-Those should be separate systems.
+Add:
+"derived_from": "ev_wine_glasses"
+to all evidence created from another evidence item.
 
 Example
-Before
-"discovery_method": "LAB"
-After
-"discovery_method": "FORENSIC"
+{
+  "id": "ev_julia_fingerprint_glass",
+  "derived_from": "ev_wine_glasses"
+}
+
+This enables:
+Evidence navigation
+
+Example:
+“Derived from: Two Wine Glasses”
+
+Evidence trees
+
+Possible future UI:
+Wine Glasses
+└── Julia Fingerprint
+Better compare systems
+
+You can avoid:
+circular comparisons
+duplicate lab work
+invalid submissions
+
+This is an architectural issue, not just polish.

@@ -137,6 +137,9 @@ func test_lab_result_arrives_next_morning() -> void:
 
 	assert_true(GameManager.has_evidence("ev_shoe_print"),
 		"Output evidence should be discovered after morning processing")
+	var analyzed_ev: EvidenceData = CaseManager.get_evidence("ev_shoe_print")
+	assert_eq(analyzed_ev.derived_from, "ev_shoe_print_raw",
+		"Analyzed shoe print should retain explicit lineage back to the raw input evidence")
 
 
 func test_lab_result_clears_from_active_requests() -> void:
@@ -316,6 +319,8 @@ func test_multiple_lab_requests_concurrent() -> void:
 
 	assert_true(GameManager.has_evidence("ev_shoe_print"))
 	assert_true(GameManager.has_evidence("ev_julia_fingerprint_glass"))
+	assert_eq(CaseManager.get_evidence("ev_shoe_print").derived_from, "ev_shoe_print_raw")
+	assert_eq(CaseManager.get_evidence("ev_julia_fingerprint_glass").derived_from, "ev_wine_glasses")
 
 
 # =========================================================================

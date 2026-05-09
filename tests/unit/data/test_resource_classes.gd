@@ -21,6 +21,7 @@ func test_evidence_from_dict_full() -> void:
 		"weight": 0.9,
 		"importance_level": "CRITICAL",
 		"discovery_method": "VISUAL",
+		"derived_from": "ev_sink_sample",
 		"legal_categories": ["PRESENCE", "OPPORTUNITY"],
 	}
 	var ev := EvidenceData.from_dict(data)
@@ -35,6 +36,7 @@ func test_evidence_from_dict_full() -> void:
 	assert_almost_eq(ev.weight, 0.9, 0.001)
 	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
 	assert_eq(ev.discovery_method, Enums.DiscoveryMethod.VISUAL)
+	assert_eq(ev.derived_from, "ev_sink_sample")
 	assert_eq(ev.legal_categories.size(), 2)
 
 
@@ -67,6 +69,17 @@ func test_evidence_validate_missing_id() -> void:
 	assert_true(_has_error_containing(errors, "id is required"))
 
 
+func test_evidence_validate_derived_from_cannot_reference_self() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_loop",
+		"name": "Loop Evidence",
+		"discovery_method": "VISUAL",
+		"derived_from": "ev_loop",
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "derived_from cannot reference self"))
+
+
 func test_evidence_validate_invalid_weight() -> void:
 	var ev := EvidenceData.from_dict({"id": "ev_01", "name": "Test", "weight": 1.5})
 	var errors := ev.validate()
@@ -82,6 +95,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 		"weight": 0.7,
 		"importance_level": "CRITICAL",
 		"discovery_method": "ADMINISTRATIVE",
+		"derived_from": "ev_parent",
 	}
 	var ev := EvidenceData.from_dict(original)
 	var result := ev.to_dict()
@@ -90,6 +104,7 @@ func test_evidence_to_dict_roundtrip() -> void:
 	assert_eq(result["type"], "DOCUMENT")
 	assert_eq(result["importance_level"], "CRITICAL")
 	assert_eq(result["discovery_method"], "ADMINISTRATIVE")
+	assert_eq(result["derived_from"], "ev_parent")
 	assert_false(result.has("tags"))
 
 

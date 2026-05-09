@@ -20,6 +20,8 @@ They only appear here once both the statement and the linked evidence have been 
 
 Discovery method labels describe original acquisition source only. Lab progress is shown through the LAB badge and lab-status metadata, while successful comparisons unlock insights instead of creating new archive evidence cards.
 
+Derived evidence now has explicit lineage. Child evidence can show `Derived From`, and parent evidence can show Derived Evidence links in Forensic Analysis section when both sides are currently discoverable. Upgrade-style lab outputs still keep lineage even when the raw parent is replaced in the archive.
+
 ---
 
 ## DAY 1 — First Review & Lab Submissions
@@ -145,8 +147,9 @@ Discovery method labels describe original acquisition source only. Lab progress 
 - [ ] Notification fires: *"Lab results in: Shoe Print in Hallway"*
 - [ ] `ev_shoe_print` appears in the archive with **NEW** badge
 - [ ] `ev_wine_glasses` card: **LAB** badge is removed. Lab Status in its detail panel: *"Complete — see: Julia's Fingerprint on Wine Glass"* with a link to the result
-- [ ] `ev_shoe_print_raw` card: same treatment — Lab Status shows *"Complete — see: Shoe Print in Hallway"*
-- [ ] Archive now has 11 items total (9 original + 2 new lab results)
+- [ ] `ev_wine_glasses` detail also shows **Julia's Fingerprint on Wine Glass** as a navigation link in Forensic Analysis section once the result is discovered
+- [ ] `ev_shoe_print_raw` is replaced in the discovered archive by `ev_shoe_print` (upgrade flow). The analyzed result still keeps lineage back to the raw input internally.
+- [ ] Archive now has 10 visible items total (9 original cards, plus the fingerprint result, with the raw shoe print upgraded in place)
 - [ ] Notification bell counter: 2 new unreviewed items
 
 ---
@@ -157,6 +160,7 @@ Discovery method labels describe original acquisition source only. Lab progress 
 - [ ] Detail loads: "Julia's Fingerprint on Wine Glass"
 - [ ] Importance badge: **CRITICAL**
 - [ ] Discovery method: *"Forensic Analysis"*
+- [ ] Metadata shows **Derived From: Two Wine Glasses on Table** as a navigation link
 - [ ] Related Persons: Julia Ross (Suspect)
 - [ ] Evidentiary Value shows **Airtight** with case-authored interpretation text
 - [ ] Side column — Statements: **no statements yet** (Julia hasn't been interrogated on Day 2)
@@ -172,6 +176,7 @@ Discovery method labels describe original acquisition source only. Lab progress 
 - [ ] Detail loads: "Shoe Print in Hallway"
 - [ ] Description: Women's shoe, size 38, distinctive sole pattern
 - [ ] Discovery method: *"Forensic Analysis"*
+- [ ] Metadata shows **Derived From: Shoe Print in Hallway (Unanalyzed)** as plain text, not a navigation link, because the raw archive card was replaced by the upgraded result
 - [ ] **Compare Evidence** button is available — but no valid comparison exists yet (Julia's shoes not in evidence)
 - [ ] Compare attempt with any current evidence produces: *"No forensic connection found between these items."*
 
@@ -445,7 +450,7 @@ Discovery method labels describe original acquisition source only. Lab progress 
 **Action:** Scroll through the full Evidence Archive
 **Expected:**
 - [ ] No items have **NEW** badge remaining (all reviewed)
-- [ ] Archive shows approximately 20 items:
+- [ ] Archive shows approximately 19 visible items:
   - 1 autopsy report (Day 0)
   - 8 from map Day 1 (knife, knife block, wine glasses, broken frame, wine bottle, julia text, mark call log, shoe print raw)
   - 2 lab results Day 2 (julia fingerprint, analyzed shoe print)
@@ -453,6 +458,7 @@ Discovery method labels describe original acquisition source only. Lab progress 
   - 4 from map Day 3 (daniel email, bank transfer, accounting files, hidden safe)
   - 1 from map Day 4 (personal journal)
   - 1 from warrant (julia shoes)
+- [ ] `ev_shoe_print_raw` is no longer visible in the archive because the upgrade flow replaced it with `ev_shoe_print`
 - [ ] All major contradictions classified:
   - ev_parking_camera: Mark's "20:30" statement → CONTRADICTION ✓
   - ev_julia_fingerprint_glass: Julia's "wasn't there" statement → CONTRADICTION ✓
@@ -488,7 +494,8 @@ Discovery method labels describe original acquisition source only. Lab progress 
 | 4 | Map — Personal Items | ev_personal_journal | — | — |
 | 4 | Search Warrant | ev_julia_shoes | — | Comparison attempt Day 4, no archive result |
 
-**Total evidence items: 20**
+**Total evidence entries encountered during flow: 20**
+**End-state archive cards visible: 19** (`ev_shoe_print_raw` is replaced by `ev_shoe_print`)
 **Lab submissions: 2** (wine glasses → fingerprint, shoe print raw → footwear)
 **Comparison attempts: 2** (bank transfer + accounting files, shoe print + julia shoes)
 **Contradictions classified: 3** (mark departure, julia presence ×2)
