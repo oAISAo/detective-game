@@ -24,7 +24,7 @@ var _test_case_data: Dictionary = {
 	"evidence": [
 		{
 			"id": "ev_photo",
-			"name": "Test Photo",
+			"name": "Two Wine Glasses on Dining Table Beside Open Balcony Door",
 			"description": "A test image for evidence archive layout checks.",
 			"type": "PHOTO",
 			"discovery_method": "VISUAL",
@@ -160,6 +160,22 @@ func _collect_button_texts(root: Node) -> Array[String]:
 	return texts
 
 
+func _find_info_key_label(info_grid: GridContainer, key: String) -> Label:
+	for child_idx: int in range(0, info_grid.get_child_count(), 2):
+		var key_label: Label = info_grid.get_child(child_idx) as Label
+		if key_label != null and key_label.text == "%s:" % key:
+			return key_label
+	return null
+
+
+func _find_info_value_control(info_grid: GridContainer, key: String) -> Control:
+	for child_idx: int in range(0, info_grid.get_child_count(), 2):
+		var key_label: Label = info_grid.get_child(child_idx) as Label
+		if key_label != null and key_label.text == "%s:" % key:
+			return info_grid.get_child(child_idx + 1) as Control
+	return null
+
+
 func test_square_helper_sets_height_from_width() -> void:
 	var screen: Control = _instantiate_screen()
 	var detail: EvidenceDetailPanel = _get_detail_panel(screen)
@@ -274,19 +290,85 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 	assert_has(button_texts, "LAB: Photo Analysis")
 
 
-func test_derived_from_row_uses_navigation_link_when_parent_is_discovered() -> void:
+func test_derived_from_row_uses_wrapping_navigation_link_when_parent_is_discovered() -> void:
 	GameManager.discover_evidence("ev_photo")
 	GameManager.discover_evidence("ev_photo_result")
 
 	var screen: Control = _instantiate_screen()
-	_get_detail_panel(screen).show_evidence("ev_photo_result")
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail_panel.show_evidence("ev_photo_result")
 
 	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
 	var label_texts: Array[String] = _collect_label_texts(info_grid)
 	var link_texts: Array[String] = _collect_link_texts(info_grid)
+	var derived_link: LinkButton = _find_info_value_control(info_grid, "Derived From") as LinkButton
 
 	assert_has(label_texts, "Derived From:")
-	assert_has(link_texts, "Test Photo")
+	assert_not_null(derived_link)
+	assert_has(link_texts, derived_link.text)
+	var link_font: Font = derived_link.get_theme_font("font")
+	var link_font_size: int = derived_link.get_theme_font_size("font_size")
+	var constrained_width: float = detail_panel.call(
+		"_measure_text_width",
+		link_font,
+		link_font_size,
+		"Two Wine Glasses"
+	)
+	var wrapped_text: String = detail_panel.call(
+		"_wrap_text_to_width",
+		"Two Wine Glasses on Dining Table Beside Open Balcony Door",
+		link_font,
+		link_font_size,
+		constrained_width
+	) as String
+	assert_true("\n" in wrapped_text,
+		"Derived From navigation should wrap onto multiple lines when space is tight.")
+	assert_eq(
+		wrapped_text.replace("\n", " "),
+		"Two Wine Glasses on Dining Table Beside Open Balcony Door"
+	)
+	assert_eq(derived_link.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING,
+		"Derived From navigation should wrap instead of trimming with ellipsis.")
+	assert_eq(derived_link.underline, LinkButton.UNDERLINE_MODE_NEVER)
+
+
+func test_derived_from_row_wraps_without_horizontal_scrolling() -> void:
+	GameManager.discover_evidence("ev_photo")
+	GameManager.discover_evidence("ev_photo_result")
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail_panel.show_evidence("ev_photo_result")
+
+	await get_tree().process_frame
+
+	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
+	var main_scroll: ScrollContainer = screen.get_node("%MainScroll") as ScrollContainer
+	var derived_link: LinkButton = _find_info_value_control(info_grid, "Derived From") as LinkButton
+	assert_not_null(derived_link)
+	if derived_link == null:
+		return
+
+	var link_font: Font = derived_link.get_theme_font("font")
+	var link_font_size: int = derived_link.get_theme_font_size("font_size")
+	var constrained_width: float = detail_panel.call(
+		"_measure_text_width",
+		link_font,
+		link_font_size,
+		"Two Wine Glasses on Dining"
+	)
+	detail_panel.call(
+		"_refresh_wrapping_link_text",
+		derived_link,
+		func() -> float: return constrained_width
+	)
+
+	assert_true("\n" in derived_link.text,
+		"Derived From should wrap when the metadata value column is constrained.")
+	assert_eq(main_scroll.horizontal_scroll_mode, ScrollContainer.SCROLL_MODE_DISABLED,
+		"The details column should disable horizontal scrolling so wrapped metadata stays vertically readable.")
+	assert_false(main_scroll.get_h_scroll_bar().visible,
+		"Derived From wrapping should not make the details column show a horizontal scrollbar.")
 
 
 func test_derived_from_row_falls_back_to_plain_text_when_parent_not_discovered() -> void:
@@ -297,12 +379,40 @@ func test_derived_from_row_falls_back_to_plain_text_when_parent_not_discovered()
 
 	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
 	var label_texts: Array[String] = _collect_label_texts(info_grid)
-	var link_texts: Array[String] = _collect_link_texts(info_grid)
+	var derived_value_control: Control = _find_info_value_control(info_grid, "Derived From")
+	var derived_value: Label = derived_value_control as Label
 
 	assert_has(label_texts, "Derived From:")
-	assert_has(label_texts, "Test Photo")
-	assert_false("Test Photo" in link_texts,
+	assert_has(label_texts, "Two Wine Glasses on Dining Table Beside Open Balcony Door")
+	assert_not_null(derived_value)
+	assert_eq(derived_value.text, "Two Wine Glasses on Dining Table Beside Open Balcony Door")
+	assert_eq(derived_value.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART)
+	assert_eq(derived_value.vertical_alignment, VERTICAL_ALIGNMENT_TOP)
+	assert_true(derived_value_control is Label,
 		"Parent evidence should not be navigable when it is not in the discovered archive.")
+
+
+func test_multiline_metadata_rows_are_top_aligned() -> void:
+	GameManager.discover_evidence("ev_photo")
+	GameManager.discover_evidence("ev_photo_result")
+
+	var screen: Control = _instantiate_screen()
+	_get_detail_panel(screen).show_evidence("ev_photo_result")
+
+	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
+	var derived_key: Label = _find_info_key_label(info_grid, "Derived From")
+	var lab_key: Label = _find_info_key_label(info_grid, "Lab Result")
+	var lab_value: Label = _find_info_value_control(info_grid, "Lab Result") as Label
+
+	assert_not_null(derived_key)
+	assert_not_null(lab_key)
+	assert_not_null(lab_value)
+	assert_eq(derived_key.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
+		"Metadata keys should top-align when the row value wraps to multiple lines.")
+	assert_eq(lab_key.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
+		"Lab Result label should top-align with multi-line result text.")
+	assert_eq(lab_value.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
+		"Lab Result text should stay top-aligned when it wraps.")
 
 
 func test_notes_section_lives_in_third_column_and_stays_open() -> void:

@@ -7,6 +7,7 @@ extends VBoxContainer
 
 
 const EvidenceValueSectionScript := preload("res://scripts/ui/components/evidence_value_section.gd")
+const _WRAPPING_LINK_FULL_TEXT_META := "wrapping_link_full_text"
 
 
 signal pin_toggled(evidence_id: String)
@@ -20,6 +21,7 @@ signal evidence_requested(evidence_id: String)
 @onready var _header_badges_row: HBoxContainer = %HeaderBadgesRow
 @onready var _detail_panel: VBoxContainer = %DetailPanel
 @onready var _column1_scroll: ScrollContainer = %Column1Scroll
+@onready var _main_scroll: ScrollContainer = %MainScroll
 @onready var _evidence_image: TextureRect = %EvidenceImage
 @onready var _description_label: RichTextLabel = %DescriptionLabel
 @onready var _lab_anchor: VBoxContainer = %LabSectionAnchor
@@ -47,8 +49,9 @@ var _on_state_loaded_cb: Callable
 
 
 func _ready() -> void:
+	_main_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_column1_scroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
-	%MainScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
+	_main_scroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 	%RelationshipsScroll.get_v_scroll_bar().modulate = Color.TRANSPARENT
 
 	_evidence_image.resized.connect(_sync_evidence_image_square)
@@ -210,57 +213,176 @@ func _populate_lineage_rows(ev: EvidenceData) -> void:
 
 
 func _add_info_row(key: String, value: String) -> void:
+	_info_grid.add_child(_make_info_key_label(key))
+	_info_grid.add_child(_make_info_value_label(value))
+
+
+func _add_info_control_row(key: String, value_control: Control) -> void:
+	_info_grid.add_child(_make_info_key_label(key))
+	_info_grid.add_child(_prepare_info_value_control(value_control))
+
+
+func _make_info_key_label(key: String) -> Label:
 	var key_label := Label.new()
 	key_label.text = key + ":"
 	key_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
 	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_info_grid.add_child(key_label)
+	key_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	key_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	return key_label
 
+
+func _make_info_value_label(value: String) -> Label:
 	var value_label := Label.new()
 	value_label.text = value
 	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_info_grid.add_child(value_label)
+	value_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	value_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	return value_label
 
 
-func _add_info_control_row(key: String, value_control: Control) -> void:
-	var key_label := Label.new()
-	key_label.text = key + ":"
-	key_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_info_grid.add_child(key_label)
-
+func _prepare_info_value_control(value_control: Control) -> Control:
 	value_control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_info_grid.add_child(value_control)
+	value_control.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	return value_control
 
 
 func _build_lineage_value(target_ev: EvidenceData, is_navigable: bool) -> Control:
 	if is_navigable:
-		var link := LinkButton.new()
-		link.text = target_ev.name
-		link.underline = LinkButton.UNDERLINE_MODE_NEVER
-		link.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		var target_id: String = target_ev.id
-		link.pressed.connect(func() -> void: evidence_requested.emit(target_id))
-		return link
+		return _make_wrapping_link_button(
+			target_ev.name,
+			func() -> void: evidence_requested.emit(target_id),
+			_get_info_value_wrap_width
+		)
 
-	var value_label := Label.new()
-	value_label.text = target_ev.name
-	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return value_label
+	return _make_info_value_label(target_ev.name)
+
+
+func _make_wrapping_link_button(
+	text: String,
+	pressed_action: Callable,
+	wrap_width_provider: Callable = Callable()
+) -> LinkButton:
+	var link_button := LinkButton.new()
+	link_button.text = text
+	link_button.underline = LinkButton.UNDERLINE_MODE_NEVER
+	link_button.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	link_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	link_button.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	link_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	link_button.set_meta(_WRAPPING_LINK_FULL_TEXT_META, text)
+	link_button.resized.connect(_refresh_wrapping_link_text.bind(link_button, wrap_width_provider))
+	if wrap_width_provider.is_valid():
+		_info_grid.resized.connect(_refresh_wrapping_link_text.bind(link_button, wrap_width_provider))
+		_main_scroll.resized.connect(_refresh_wrapping_link_text.bind(link_button, wrap_width_provider))
+	link_button.pressed.connect(pressed_action)
+	_refresh_wrapping_link_text.call_deferred(link_button, wrap_width_provider)
+	return link_button
+
+
+func _refresh_wrapping_link_text(
+	link_button: LinkButton,
+	wrap_width_provider: Callable = Callable()
+) -> void:
+	if link_button == null or not is_instance_valid(link_button):
+		return
+
+	var full_text: String = str(link_button.get_meta(_WRAPPING_LINK_FULL_TEXT_META, link_button.text))
+	var available_width: float = _get_wrapping_link_available_width(link_button, wrap_width_provider)
+	if available_width <= 0.0:
+		link_button.text = full_text
+		return
+
+	var font: Font = link_button.get_theme_font("font")
+	var font_size: int = link_button.get_theme_font_size("font_size")
+	var wrapped_text: String = _wrap_text_to_width(full_text, font, font_size, available_width)
+	if link_button.text != wrapped_text:
+		link_button.text = wrapped_text
+
+
+func _get_wrapping_link_available_width(
+	link_button: LinkButton,
+	wrap_width_provider: Callable
+) -> float:
+	if wrap_width_provider.is_valid():
+		var provided_width: Variant = wrap_width_provider.call()
+		if provided_width is float or provided_width is int:
+			return max(float(provided_width), 0.0)
+
+	return max(link_button.size.x, link_button.custom_minimum_size.x)
+
+
+func _get_info_value_wrap_width() -> float:
+	var viewport_width: float = _main_scroll.size.x
+	if viewport_width <= 0.0:
+		viewport_width = _info_grid.size.x
+	if viewport_width <= 0.0:
+		return 0.0
+
+	var key_column_width: float = 0.0
+	for child_idx: int in range(0, _info_grid.get_child_count(), 2):
+		var key_control: Control = _info_grid.get_child(child_idx) as Control
+		if key_control == null:
+			continue
+		key_column_width = max(key_column_width, key_control.get_combined_minimum_size().x)
+
+	var h_separation: float = _info_grid.get_theme_constant("h_separation")
+	return max(viewport_width - key_column_width - h_separation, 0.0)
+
+
+func _wrap_text_to_width(text: String, font: Font, font_size: int, max_width: float) -> String:
+	if font == null or text.is_empty() or max_width <= 0.0:
+		return text
+	if font_size <= 0:
+		font_size = 16
+
+	var wrapped_source_lines: Array[String] = []
+	for source_line: String in text.split("\n", false):
+		wrapped_source_lines.append(_wrap_single_line_to_width(source_line, font, font_size, max_width))
+	return "\n".join(wrapped_source_lines)
+
+
+func _wrap_single_line_to_width(line: String, font: Font, font_size: int, max_width: float) -> String:
+	if line.is_empty():
+		return ""
+
+	var words: PackedStringArray = line.split(" ", false)
+	if words.is_empty():
+		return line
+
+	var wrapped_lines: Array[String] = []
+	var current_line: String = words[0]
+	for idx: int in range(1, words.size()):
+		var candidate: String = "%s %s" % [current_line, words[idx]]
+		if _measure_text_width(font, font_size, candidate) <= max_width:
+			current_line = candidate
+			continue
+		wrapped_lines.append(current_line)
+		current_line = words[idx]
+
+	wrapped_lines.append(current_line)
+	return "\n".join(wrapped_lines)
+
+
+func _measure_text_width(font: Font, font_size: int, text: String) -> float:
+	if font == null or text.is_empty():
+		return 0.0
+	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 
 func _build_derived_children_list(children: Array[EvidenceData]) -> VBoxContainer:
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", 4)
 	for child_ev: EvidenceData in children:
-		var child_link := LinkButton.new()
-		child_link.text = child_ev.name
-		child_link.underline = LinkButton.UNDERLINE_MODE_NEVER
-		child_link.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		var child_id: String = child_ev.id
-		child_link.pressed.connect(func() -> void: evidence_requested.emit(child_id))
-		list.add_child(child_link)
+		list.add_child(
+			_make_wrapping_link_button(
+				child_ev.name,
+				func() -> void: evidence_requested.emit(child_id)
+			)
+		)
 	return list
 
 
