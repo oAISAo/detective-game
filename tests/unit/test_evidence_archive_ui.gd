@@ -287,7 +287,7 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
 	var button_texts: Array[String] = _collect_button_texts(lab_section)
 
-	assert_has(button_texts, "LAB: Photo Analysis")
+	assert_has(button_texts, "Photo Analysis")
 
 
 func test_derived_from_row_uses_wrapping_navigation_link_when_parent_is_discovered() -> void:

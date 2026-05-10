@@ -115,7 +115,7 @@ func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
 
 func _add_submit_button(lab_req: LabRequestData) -> void:
 	var submit_btn := Button.new()
-	submit_btn.text = "LAB: %s" % _format_analysis_type(lab_req.analysis_type)
+	submit_btn.text = "%s" % _format_analysis_type(lab_req.analysis_type)
 	submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	submit_btn.pressed.connect(_on_submit_pressed.bind(lab_req.id))
 	add_child(submit_btn)

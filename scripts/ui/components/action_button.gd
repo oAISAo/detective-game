@@ -218,7 +218,7 @@ func _build_panel_style(border_color: Color, glow_alpha: float) -> StyleBoxFlat:
 	panel_style.expand_margin_bottom = SIDE_SHADOW_EXPAND_MARGIN
 
 	if glow_alpha > 0.0:
-		var glow_color: Color = UIColors.LOCATION_CARD_HOVER_SHADOW
+		var glow_color: Color = UIColors.BLUE_SHADOW
 		glow_color.a = glow_alpha
 		panel_style.shadow_color = glow_color
 		panel_style.shadow_size = SHADOW_SIZE

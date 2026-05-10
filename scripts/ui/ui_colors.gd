@@ -27,12 +27,15 @@ const BG_SURFACE: Color = Color(0.19, 0.19, 0.22)
 
 ## Amber/gold — clue, attention, pending, warning.
 const AMBER: Color = Color(0.9, 0.7, 0.2)
+# const AMBER_SHADOW: Color = Color(0.9, 0.7, 0.2, 0.45)
+const AMBER_SHADOW: Color = Color(0.75, 0.55, 0.12, 0.38)
 
 ## Warm amber-orange for warning/collision callouts.
 const AMBER_WARNING: Color = Color(0.9, 0.55, 0.3)
 
 ## Muted blue — examined, informational, processing.
 const BLUE: Color = Color(0.22, 0.65, 0.66)
+const BLUE_SHADOW: Color = Color(0.22, 0.65, 0.66, 0.45)
 
 ## Muted green — processed, complete, success.
 const GREEN: Color = Color(0.36, 0.68, 0.44)
@@ -79,7 +82,6 @@ const LOCATION_CARD_MEDIA_BG: Color = Color(0.08, 0.09, 0.11)
 const LOCATION_CARD_GRADIENT_BOTTOM: Color = Color(0.04, 0.04, 0.05)
 
 ## Card hover feedback.
-const LOCATION_CARD_HOVER_SHADOW: Color = Color(0.22, 0.65, 0.66, 0.45)
 const LOCATION_CARD_HOVER_MODULATE: Color = Color(1.03, 1.03, 1.03)
 const MODULATE_NEUTRAL: Color = Color.WHITE
 

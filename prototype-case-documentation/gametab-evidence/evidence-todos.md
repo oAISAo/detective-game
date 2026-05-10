@@ -13,13 +13,10 @@ WaitButton should look similar to ActionButton. Color should be Amber, icon shou
 ## 3. Lab Tag
 The Lab Tag should appear immediately on the evidence polaroid as soon as the player clicks "Submit to Lab"
 
-## 4. Selected Evidence
-the evidence polaroid needs a blue border when it's selected (same as location card hover)
-
-## 5. Remove Lab Status from details
+## 4. Remove Lab Status from details
 In Details metadata we get Lab Status: Processing... we should remove that
 
-## 6. Test Coverage
+## 5. Test Coverage
 Improve test coverage.
 `test_evidence_archive_ui.gd` tests layout structure but not behavioral state:
 - No test for `_comparing` flag not being reset when switching evidence
@@ -28,7 +25,7 @@ Improve test coverage.
 - No test for notes persistence across evidence switches
 - No test for the pinned bar reconstruction
 
-## 7. Legal categories are good, but underused
+## 6. Legal categories are good, but underused
    
 Problem: The legal categories system is already strong conceptually:
 

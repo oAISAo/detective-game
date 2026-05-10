@@ -165,6 +165,7 @@ func _apply_card_style() -> void:
 	style.shadow_color = UIColors.LOCATION_CARD_SHADOW
 	style.shadow_size = _SHADOW_SIZE
 	if _selected:
+		style.shadow_color = UIColors.AMBER_SHADOW
 		style.border_color = UIColors.AMBER
 		style.set_border_width_all(_SELECTED_BORDER_WIDTH)
 	add_theme_stylebox_override("panel", style)
