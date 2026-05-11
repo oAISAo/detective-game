@@ -23,7 +23,7 @@ func populate(ev: EvidenceData) -> void:
 
 	var interpretation_label := Label.new()
 	interpretation_label.text = _get_interpretation_text(ev)
-	interpretation_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
+	interpretation_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 	interpretation_label.add_theme_font_size_override("font_size", UIFonts.SIZE_BODY)
 	interpretation_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(interpretation_label)

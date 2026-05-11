@@ -82,6 +82,9 @@ const END_DAY_TEXT: Color = Color(0.84, 0.82, 0.78)
 ## Phase icon label (sun/moon).
 @onready var phase_icon: Label = $CommandBar/MainHBox/LeftZone/DaySection/PhaseIcon
 
+## Action icon label (bolt).
+@onready var action_icon: Label = $CommandBar/MainHBox/LeftZone/ActionsGroup/ActionsSection/ActionIcon
+
 ## Tracks built nav item containers keyed by screen_id.
 var _nav_items: Dictionary = {}
 
@@ -673,6 +676,12 @@ func _style_left_zone() -> void:
 	phase_icon_color.a = 0.75
 	phase_icon.add_theme_color_override("font_color", phase_icon_color)
 
+	action_icon.add_theme_font_override("font", icon_font)
+	action_icon.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON_GLOW)
+	var action_icon_color: Color = UIColors.BLUE
+	action_icon_color.a = 0.75
+	action_icon.add_theme_color_override("font_color", action_icon_color)
+
 
 ## Updates all command bar labels with current state.
 func _update_command_bar() -> void:
@@ -686,6 +695,8 @@ func _update_command_bar() -> void:
 		phase_icon.text = "wb_sunny"
 	else:
 		phase_icon.text = "bedtime"
+
+	action_icon.text = "bolt"
 
 	# Show actions only during Daytime
 	if GameManager.is_daytime():
