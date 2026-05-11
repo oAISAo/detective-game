@@ -8,6 +8,15 @@ extends VBoxContainer
 
 const EvidenceValueSectionScript := preload("res://scripts/ui/components/evidence_value_section.gd")
 const _WRAPPING_LINK_FULL_TEXT_META := "wrapping_link_full_text"
+const _COMPARE_BUTTON_LABEL: String = "Compare Evidence"
+const _COMPARE_BUTTON_ICON: String = "folder_match"
+const _SEND_TO_BOARD_LABEL: String = "Send to Board"
+const _SEND_TO_BOARD_ICON: String = "pinboard"
+const _VIEW_ON_BOARD_LABEL: String = "View on Board \u2197"
+const _PIN_BUTTON_LABEL: String = "Pin"
+const _PIN_BUTTON_ICON: String = "keep"
+const _UNPIN_BUTTON_LABEL: String = "Unpin"
+const _UNPIN_BUTTON_ICON: String = "keep_off"
 
 
 signal pin_toggled(evidence_id: String)
@@ -59,6 +68,7 @@ func _ready() -> void:
 	_pin_button.pressed.connect(_on_pin_pressed)
 	_compare_button.pressed.connect(_on_compare_pressed)
 	_send_to_board_button.pressed.connect(_on_send_to_board_pressed)
+	UIHelper.apply_button_icon(_compare_button, _COMPARE_BUTTON_ICON, _COMPARE_BUTTON_LABEL)
 
 	_on_ev_pinned_cb = func(_id: String) -> void:
 		_update_pin_button()
@@ -450,16 +460,19 @@ func _populate_comparison_targets() -> void:
 func _update_pin_button() -> void:
 	if _selected_id.is_empty():
 		return
-	_pin_button.text = "Unpin" if EvidenceManager.is_pinned(_selected_id) else "Pin"
+	if EvidenceManager.is_pinned(_selected_id):
+		UIHelper.apply_button_icon(_pin_button, _UNPIN_BUTTON_ICON, _UNPIN_BUTTON_LABEL)
+		return
+	UIHelper.apply_button_icon(_pin_button, _PIN_BUTTON_ICON, _PIN_BUTTON_LABEL)
 
 
 func _update_send_to_board_button() -> void:
 	if _selected_id.is_empty():
 		return
 	if EvidenceManager.is_sent_to_board(_selected_id):
-		_send_to_board_button.text = "View on Board \u2197"
+		UIHelper.apply_button_icon(_send_to_board_button, _SEND_TO_BOARD_ICON, _VIEW_ON_BOARD_LABEL)
 	else:
-		_send_to_board_button.text = "Send to Board"
+		UIHelper.apply_button_icon(_send_to_board_button, _SEND_TO_BOARD_ICON, _SEND_TO_BOARD_LABEL)
 	_send_to_board_button.disabled = false
 
 

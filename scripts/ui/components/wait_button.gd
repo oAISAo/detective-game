@@ -146,7 +146,7 @@ func _update_visual_state() -> void:
 	var glow_alpha: float = NORMAL_GLOW_ALPHA
 	var action_text_color: Color = UIColors.TEXT_PRIMARY
 	var meta_text_color: Color = UIColors.TEXT_SECONDARY
-	var meta_icon_color: Color = UIColors.AMBER_SHADOW
+	var meta_icon_color: Color = UIColors.AMBER.lerp(UIColors.TEXT_GREY, 0.50)
 	var target_modulate: Color = Color.WHITE
 
 	if _is_submitted:

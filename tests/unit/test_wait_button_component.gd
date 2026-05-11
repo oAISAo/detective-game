@@ -44,7 +44,7 @@ func test_wait_button_uses_full_width_sizing() -> void:
 		return
 
 	assert_eq(button.size_flags_horizontal, Control.SIZE_EXPAND_FILL,
-		"WaitButton should expand to fill container width")
+		"WaitButton should expand to fill the available width like ActionButton.")
 
 
 func test_wait_button_content_margin_matches_action_button_padding() -> void:
@@ -83,7 +83,7 @@ func test_wait_button_uses_hourglass_material_ligature() -> void:
 	if icon_label == null:
 		return
 
-	assert_eq(icon_label.text, "hourglass_top", "Icon label should use Material ligature text")
+	assert_eq(icon_label.text, "hourglass", "Icon label should use Material ligature text")
 	assert_not_null(icon_label.get_theme_font("font"), "Icon label should have a font override for icon ligatures")
 
 

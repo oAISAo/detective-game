@@ -1,17 +1,8 @@
 # Evidence Tab — TODOs
 
-## 1. Button Icons
-Replace current text icons with out material icons:
-- pin
-- send to board
-- compare evidence
-- submit to lab
+## 1. Pin Functionality Redesign
+I would like to change how we handle pinning and unpinning of evidence. the PINNED section above the list of evidence should be completely removed. Instead I would like the pinned evidence to be imediately placed at the top of the list. Currently the pinned evidence gets the PINNED tag. I would prefer if it would get the "keep" icon placed at the top in the center of the polaroid. Can we please implement that in an elegant and cohesive way? Please also update any relevand documentation files accordingly.
 
-## 2. Submit To Lab button -> WaitButton
-WaitButton should look similar to ActionButton. Color should be Amber, icon should be hourglass. ActionButton icon should be changed to thunder.
-
-## 3. Lab Tag
-The Lab Tag should appear immediately on the evidence polaroid as soon as the player clicks "Submit to Lab"
 
 ## 4. Remove Lab Status from details
 In Details metadata we get Lab Status: Processing... we should remove that

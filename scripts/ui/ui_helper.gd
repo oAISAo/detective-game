@@ -218,6 +218,20 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	if button == null:
 		return
 	_apply_end_day_button_theme(button)
+	apply_button_icon(button, _BACK_ICON_LIGATURE, label_text, _BACK_CONTENT_MIN_WIDTH, _BACK_CONTENT_MIN_HEIGHT)
+
+
+## Applies a Material icon + text row inside a standard button while preserving
+## the button's existing theme, stylebox, and interaction behavior.
+static func apply_button_icon(
+	button: Button,
+	icon_ligature: String,
+	label_text: String,
+	minimum_width: float = 0.0,
+	minimum_height: float = 0.0
+) -> void:
+	if button == null:
+		return
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var old_content: Node = button.get_node_or_null(_BACK_CONTENT_NODE_NAME)
@@ -257,7 +271,7 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	margin.add_child(row)
 
 	var icon_label: Label = Label.new()
-	icon_label.text = _BACK_ICON_LIGATURE
+	icon_label.text = icon_ligature
 	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_material_icon_font(icon_label)
@@ -287,10 +301,16 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	row.add_child(text_label)
 
 	var text_width: float = _measure_text_width(button_font, label_text, button_font_size)
-	var icon_width: float = _measure_text_width(_back_icon_font, _BACK_ICON_LIGATURE, button_font_size)
+	var icon_width: float = _measure_text_width(_back_icon_font, icon_ligature, button_font_size)
+	var text_height: float = _measure_font_height(button_font, button_font_size)
+	var icon_height: float = _measure_font_height(_back_icon_font, button_font_size)
 	var desired_min_width: float = margin_left + icon_width + _BACK_CONTENT_SEPARATION + text_width + margin_right
-	button.custom_minimum_size.x = maxf(button.custom_minimum_size.x, maxf(_BACK_CONTENT_MIN_WIDTH, desired_min_width))
-	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, _BACK_CONTENT_MIN_HEIGHT)
+	var desired_min_height: float = margin_top + maxf(text_height, icon_height) + margin_bottom
+	var resolved_min_height: float = minimum_height
+	if resolved_min_height <= 0.0:
+		resolved_min_height = maxf(_BACK_CONTENT_MIN_HEIGHT, desired_min_height)
+	button.custom_minimum_size.x = maxf(button.custom_minimum_size.x, maxf(minimum_width, desired_min_width))
+	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, resolved_min_height)
 
 
 static func _apply_end_day_button_theme(button: Button) -> void:
@@ -344,6 +364,12 @@ static func _measure_text_width(font: Font, text: String, font_size: int) -> flo
 	if text.is_empty():
 		return 0.0
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+
+
+static func _measure_font_height(font: Font, font_size: int) -> float:
+	if font == null:
+		return 0.0
+	return font.get_height(font_size)
 
 
 static func _apply_material_icon_font(icon_label: Label) -> void:

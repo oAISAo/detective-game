@@ -5,6 +5,7 @@ extends GutTest
 
 const TEST_CASE_FILE: String = "test_evidence_archive_ui.json"
 const WAIT_BUTTON_SCRIPT_PATH: String = "res://scripts/ui/components/wait_button.gd"
+const ICON_BUTTON_CONTENT_NODE_NAME: String = "BackButtonContent"
 
 var _test_case_data: Dictionary = {
 	"id": "case_evidence_archive_ui_test",
@@ -204,6 +205,23 @@ func _find_info_value_control(info_grid: GridContainer, key: String) -> Control:
 	return null
 
 
+func _collect_icon_button_texts(button: Button) -> Array[String]:
+	var texts: Array[String] = []
+	var content: MarginContainer = button.get_node_or_null(ICON_BUTTON_CONTENT_NODE_NAME) as MarginContainer
+	if content == null or content.get_child_count() == 0:
+		return texts
+
+	var row: HBoxContainer = content.get_child(0) as HBoxContainer
+	if row == null:
+		return texts
+
+	for child: Node in row.get_children():
+		var label: Label = child as Label
+		if label != null:
+			texts.append(label.text)
+	return texts
+
+
 func test_square_helper_sets_height_from_width() -> void:
 	var screen: Control = _instantiate_screen()
 	var detail: EvidenceDetailPanel = _get_detail_panel(screen)
@@ -233,6 +251,30 @@ func test_header_compare_button_and_forensic_analysis_layout() -> void:
 		"Forensic Analysis should appear below Description.")
 	assert_gt(weight_anchor.get_index(), lab_anchor.get_index(),
 		"Evidentiary Value should appear below Forensic Analysis.")
+
+
+func test_header_buttons_use_expected_material_icons() -> void:
+	GameManager.discover_evidence("ev_photo")
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail_panel.show_evidence("ev_photo")
+
+	var pin_button: Button = screen.get_node("%PinButton") as Button
+	var send_to_board_button: Button = screen.get_node("%SendToBoardButton") as Button
+	var compare_button: Button = screen.get_node("%CompareButton") as Button
+
+	assert_eq(_collect_icon_button_texts(compare_button), ["folder_match", "Compare Evidence"],
+		"Compare Evidence should render the folder_match icon to the left of its label.")
+	assert_eq(_collect_icon_button_texts(send_to_board_button), ["pinboard", "Send to Board"],
+		"Send to Board should render the pinboard icon to the left of its label.")
+	assert_eq(_collect_icon_button_texts(pin_button), ["keep", "Pin"],
+		"Pin should render the keep icon before the label when evidence is not pinned.")
+
+	detail_panel.call("_on_pin_pressed")
+
+	assert_eq(_collect_icon_button_texts(pin_button), ["keep_off", "Unpin"],
+		"Pinned evidence should flip the header button to keep_off + Unpin.")
 
 
 func test_evidentiary_value_section_uses_tier_and_case_data_text() -> void:
@@ -313,10 +355,25 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 		"LabSectionAnchor should contain the EvidenceLabSection instance.")
 
 	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
+	var margin_containers: Array[MarginContainer] = []
+	for child: Node in lab_section.get_children():
+		if child is MarginContainer:
+			margin_containers.append(child as MarginContainer)
 	var wait_buttons: Array[Control] = _find_wait_buttons(lab_section)
+
+	assert_eq(margin_containers.size(), 1,
+		"Available lab analyses should be wrapped in a margin container so the side glow remains visible.")
+	var button_margin: MarginContainer = margin_containers[0] as MarginContainer
+	assert_not_null(button_margin)
+	if button_margin != null:
+		assert_eq(button_margin.get_theme_constant("margin_left"), 8)
+		assert_eq(button_margin.get_theme_constant("margin_right"), 8)
+		assert_eq(button_margin.size_flags_horizontal, Control.SIZE_EXPAND_FILL)
 
 	assert_eq(wait_buttons.size(), 1,
 		"Available lab analyses should render as a single WaitButton.")
+	assert_eq(wait_buttons[0].size_flags_horizontal, Control.SIZE_EXPAND_FILL,
+		"The WaitButton should stretch across the first column width inside its margin wrapper.")
 	assert_eq(String(wait_buttons[0].get("action_text")), "Photo Analysis")
 	assert_false(bool(wait_buttons[0].get("submitted")),
 		"Available lab analyses should be interactive until submitted.")

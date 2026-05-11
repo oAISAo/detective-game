@@ -6,6 +6,9 @@ extends VBoxContainer
 
 
 const WAIT_BUTTON_SCENE_PATH: String = "res://scenes/ui/components/wait_button.tscn"
+const BUTTON_SIDE_MARGIN: int = 8
+const BUTTON_VERTICAL_MARGIN: int = 8
+const BUTTON_GROUP_SEPARATION: int = 6
 
 
 signal lab_submitted
@@ -99,8 +102,9 @@ func _get_completed_status_text(lab_req: LabRequestData, output_ev: EvidenceData
 
 
 func _build_pending_state(pending_requests: Array[LabRequestData]) -> void:
+	var button_group: VBoxContainer = _create_wait_button_group()
 	for lab_req: LabRequestData in pending_requests:
-		_add_wait_button(lab_req, true)
+		_add_wait_button(button_group, lab_req, true)
 
 
 func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
@@ -110,11 +114,16 @@ func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(desc_label)
 
+	var button_group: VBoxContainer = _create_wait_button_group()
 	for lab_req: LabRequestData in available_requests:
-		_add_wait_button(lab_req)
+		_add_wait_button(button_group, lab_req)
 
 
-func _add_wait_button(lab_req: LabRequestData, is_submitted: bool = false) -> void:
+func _add_wait_button(
+	button_group: VBoxContainer,
+	lab_req: LabRequestData,
+	is_submitted: bool = false
+) -> void:
 	var wait_button_scene: PackedScene = load(WAIT_BUTTON_SCENE_PATH) as PackedScene
 	if wait_button_scene == null:
 		push_error("[EvidenceLabSection] Failed to load WaitButton scene: %s" % WAIT_BUTTON_SCENE_PATH)
@@ -125,11 +134,28 @@ func _add_wait_button(lab_req: LabRequestData, is_submitted: bool = false) -> vo
 		push_error("[EvidenceLabSection] Failed to instantiate WaitButton scene.")
 		return
 
+	wait_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wait_btn.set("action_text", _format_analysis_type(lab_req.analysis_type))
 	wait_btn.set("submitted", is_submitted)
 	if not is_submitted:
 		wait_btn.pressed.connect(_on_submit_pressed.bind(lab_req.id))
-	add_child(wait_btn)
+	button_group.add_child(wait_btn)
+
+
+func _create_wait_button_group() -> VBoxContainer:
+	var margin_container := MarginContainer.new()
+	margin_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin_container.add_theme_constant_override("margin_left", BUTTON_SIDE_MARGIN)
+	margin_container.add_theme_constant_override("margin_top", BUTTON_VERTICAL_MARGIN)
+	margin_container.add_theme_constant_override("margin_right", BUTTON_SIDE_MARGIN)
+	margin_container.add_theme_constant_override("margin_bottom", BUTTON_VERTICAL_MARGIN)
+	add_child(margin_container)
+
+	var button_group := VBoxContainer.new()
+	button_group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button_group.add_theme_constant_override("separation", BUTTON_GROUP_SEPARATION)
+	margin_container.add_child(button_group)
+	return button_group
 
 
 func _format_analysis_type(analysis_type: String) -> String:
