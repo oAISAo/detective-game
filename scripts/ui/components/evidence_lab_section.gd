@@ -5,6 +5,9 @@ class_name EvidenceLabSection
 extends VBoxContainer
 
 
+const WAIT_BUTTON_SCENE_PATH: String = "res://scenes/ui/components/wait_button.tscn"
+
+
 signal lab_submitted
 signal output_evidence_requested(evidence_id: String)
 
@@ -27,13 +30,13 @@ func populate(evidence_id: String) -> void:
 	add_child(header)
 
 	var completed_requests: Array[LabRequestData] = _get_completed_requests(lab_requests)
+	var pending_requests: Array[LabRequestData] = _get_pending_requests(lab_requests)
 	var available_requests: Array[LabRequestData] = _get_available_requests(lab_requests)
-	var already_submitted: bool = LabManager.is_evidence_submitted(_evidence_id)
 
 	if not completed_requests.is_empty():
 		_build_completed_state(completed_requests)
-	if already_submitted:
-		_build_pending_state()
+	if not pending_requests.is_empty():
+		_build_pending_state(pending_requests)
 		return
 	if not available_requests.is_empty():
 		_build_submit_state(available_requests)
@@ -95,11 +98,9 @@ func _get_completed_status_text(lab_req: LabRequestData, output_ev: EvidenceData
 	return "Analysis complete. Result ready for review."
 
 
-func _build_pending_state() -> void:
-	var status_label := Label.new()
-	status_label.text = "Submitted to Lab \u2014 Results pending."
-	status_label.add_theme_color_override("font_color", UIColors.AMBER)
-	add_child(status_label)
+func _build_pending_state(pending_requests: Array[LabRequestData]) -> void:
+	for lab_req: LabRequestData in pending_requests:
+		_add_wait_button(lab_req, true)
 
 
 func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
@@ -110,15 +111,25 @@ func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
 	add_child(desc_label)
 
 	for lab_req: LabRequestData in available_requests:
-		_add_submit_button(lab_req)
+		_add_wait_button(lab_req)
 
 
-func _add_submit_button(lab_req: LabRequestData) -> void:
-	var submit_btn := Button.new()
-	submit_btn.text = "%s" % _format_analysis_type(lab_req.analysis_type)
-	submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	submit_btn.pressed.connect(_on_submit_pressed.bind(lab_req.id))
-	add_child(submit_btn)
+func _add_wait_button(lab_req: LabRequestData, is_submitted: bool = false) -> void:
+	var wait_button_scene: PackedScene = load(WAIT_BUTTON_SCENE_PATH) as PackedScene
+	if wait_button_scene == null:
+		push_error("[EvidenceLabSection] Failed to load WaitButton scene: %s" % WAIT_BUTTON_SCENE_PATH)
+		return
+
+	var wait_btn: Control = wait_button_scene.instantiate() as Control
+	if wait_btn == null:
+		push_error("[EvidenceLabSection] Failed to instantiate WaitButton scene.")
+		return
+
+	wait_btn.set("action_text", _format_analysis_type(lab_req.analysis_type))
+	wait_btn.set("submitted", is_submitted)
+	if not is_submitted:
+		wait_btn.pressed.connect(_on_submit_pressed.bind(lab_req.id))
+	add_child(wait_btn)
 
 
 func _format_analysis_type(analysis_type: String) -> String:
@@ -144,6 +155,27 @@ func _get_available_requests(lab_requests: Array[LabRequestData]) -> Array[LabRe
 			continue
 		result.append(lab_req)
 	return result
+
+
+func _get_pending_requests(lab_requests: Array[LabRequestData]) -> Array[LabRequestData]:
+	var result: Array[LabRequestData] = []
+	var pending_requests: Array[Dictionary] = LabManager.get_pending_requests_for_evidence(_evidence_id)
+	if pending_requests.is_empty():
+		return result
+
+	for lab_req: LabRequestData in lab_requests:
+		if GameManager.has_evidence(lab_req.output_evidence_id):
+			continue
+		for pending_request: Dictionary in pending_requests:
+			if _matches_pending_request(lab_req, pending_request):
+				result.append(lab_req)
+				break
+	return result
+
+
+func _matches_pending_request(lab_req: LabRequestData, pending_request: Dictionary) -> bool:
+	return pending_request.get("analysis_type", "") == lab_req.analysis_type \
+		and pending_request.get("output_evidence_id", "") == lab_req.output_evidence_id
 
 
 func _on_submit_pressed(template_id: String) -> void:

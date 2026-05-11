@@ -24,6 +24,7 @@ var _on_evidence_discovered_cb: Callable
 var _on_evidence_pinned_cb: Callable
 var _on_evidence_unpinned_cb: Callable
 var _on_evidence_reviewed_cb: Callable
+var _on_lab_submitted_cb: Callable
 
 
 func _ready() -> void:
@@ -48,17 +49,21 @@ func _ready() -> void:
 
 	_on_evidence_discovered_cb = func(_id: String) -> void:
 		_refresh()
+		_refresh_selected_detail()
 	_on_evidence_pinned_cb = func(id: String) -> void:
 		_refresh_card_badges(id)
 	_on_evidence_unpinned_cb = func(id: String) -> void:
 		_refresh_card_badges(id)
 	_on_evidence_reviewed_cb = func(id: String) -> void:
 		_refresh_card_badges(id)
+	_on_lab_submitted_cb = func(_request_id: String, input_evidence_id: String) -> void:
+		_refresh_card_badges(input_evidence_id)
 
 	GameManager.evidence_discovered.connect(_on_evidence_discovered_cb)
 	EvidenceManager.evidence_pinned.connect(_on_evidence_pinned_cb)
 	EvidenceManager.evidence_unpinned.connect(_on_evidence_unpinned_cb)
 	EvidenceManager.evidence_reviewed.connect(_on_evidence_reviewed_cb)
+	LabManager.lab_submitted.connect(_on_lab_submitted_cb)
 	EvidenceManager.state_loaded.connect(_refresh)
 
 	var nav_data: Dictionary = ScreenManager.navigation_data
@@ -71,6 +76,7 @@ func _exit_tree() -> void:
 	UIHelper.safe_disconnect(EvidenceManager.evidence_pinned, _on_evidence_pinned_cb)
 	UIHelper.safe_disconnect(EvidenceManager.evidence_unpinned, _on_evidence_unpinned_cb)
 	UIHelper.safe_disconnect(EvidenceManager.evidence_reviewed, _on_evidence_reviewed_cb)
+	UIHelper.safe_disconnect(LabManager.lab_submitted, _on_lab_submitted_cb)
 	UIHelper.safe_disconnect(EvidenceManager.state_loaded, _refresh)
 
 
@@ -194,6 +200,16 @@ func _sort_evidence(items: Array[EvidenceData]) -> Array[EvidenceData]:
 
 func _refresh() -> void:
 	_populate_evidence_list()
+
+
+func _refresh_selected_detail() -> void:
+	var selected_id: String = detail_panel.get_selected_id()
+	if selected_id.is_empty():
+		return
+	if not GameManager.has_evidence(selected_id):
+		detail_panel.clear()
+		return
+	detail_panel.show_evidence(selected_id)
 
 
 # --- Callbacks ---

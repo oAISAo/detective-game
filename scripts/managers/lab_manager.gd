@@ -152,11 +152,11 @@ func _submit_request_internal(
 	# Add to GameManager for DaySystem processing
 	GameManager.active_lab_requests.append(request.duplicate())
 
-	lab_submitted.emit(request_id, input_evidence_id)
 	# Update the input evidence's lab_status to PROCESSING
 	var ev: EvidenceData = CaseManager.get_evidence(input_evidence_id)
 	if ev:
 		ev.lab_status = Enums.LabStatus.PROCESSING
+	lab_submitted.emit(request_id, input_evidence_id)
 	var ev_name: String = ev.name if ev else input_evidence_id
 	GameManager.log_action("Lab request submitted: %s (%s)" % [analysis_type, ev_name])
 	return request.duplicate()
@@ -198,6 +198,18 @@ func get_pending_requests() -> Array[Dictionary]:
 	for req: Dictionary in _requests.values():
 		if req.get("status", "") == "pending":
 			result.append(req.duplicate())
+	return result
+
+
+## Returns all pending lab requests for one input evidence item.
+func get_pending_requests_for_evidence(evidence_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for req: Dictionary in _requests.values():
+		if req.get("input_evidence_id", "") != evidence_id:
+			continue
+		if req.get("status", "") != "pending":
+			continue
+		result.append(req.duplicate())
 	return result
 
 

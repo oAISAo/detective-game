@@ -4,6 +4,7 @@ extends GutTest
 
 
 const TEST_CASE_FILE: String = "test_evidence_archive_ui.json"
+const WAIT_BUTTON_SCRIPT_PATH: String = "res://scripts/ui/components/wait_button.gd"
 
 var _test_case_data: Dictionary = {
 	"id": "case_evidence_archive_ui_test",
@@ -160,6 +161,33 @@ func _collect_button_texts(root: Node) -> Array[String]:
 	return texts
 
 
+func _collect_badge_texts(badge_row: HBoxContainer) -> Array[String]:
+	var texts: Array[String] = []
+	for pill: Node in badge_row.get_children():
+		if pill.get_child_count() == 0:
+			continue
+		var label: Label = pill.get_child(0) as Label
+		if label != null:
+			texts.append(label.text)
+	return texts
+
+
+func _find_wait_buttons(root: Node) -> Array[Control]:
+	var buttons: Array[Control] = []
+	if _is_wait_button(root):
+		buttons.append(root as Control)
+	for child: Node in root.get_children():
+		buttons.append_array(_find_wait_buttons(child))
+	return buttons
+
+
+func _is_wait_button(node: Node) -> bool:
+	if not node is Control:
+		return false
+	var script: Script = node.get_script() as Script
+	return script != null and script.resource_path == WAIT_BUTTON_SCRIPT_PATH
+
+
 func _find_info_key_label(info_grid: GridContainer, key: String) -> Label:
 	for child_idx: int in range(0, info_grid.get_child_count(), 2):
 		var key_label: Label = info_grid.get_child(child_idx) as Label
@@ -285,9 +313,87 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 		"LabSectionAnchor should contain the EvidenceLabSection instance.")
 
 	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
-	var button_texts: Array[String] = _collect_button_texts(lab_section)
+	var wait_buttons: Array[Control] = _find_wait_buttons(lab_section)
 
-	assert_has(button_texts, "Photo Analysis")
+	assert_eq(wait_buttons.size(), 1,
+		"Available lab analyses should render as a single WaitButton.")
+	assert_eq(String(wait_buttons[0].get("action_text")), "Photo Analysis")
+	assert_false(bool(wait_buttons[0].get("submitted")),
+		"Available lab analyses should be interactive until submitted.")
+
+
+func test_archive_card_shows_lab_badge_immediately_after_submit() -> void:
+	GameManager.discover_evidence("ev_photo")
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail_panel.show_evidence("ev_photo")
+
+	var evidence_grid: GridContainer = screen.get_node("%EvidenceGrid") as GridContainer
+	var card: EvidencePolaroid = evidence_grid.get_child(0) as EvidencePolaroid
+	assert_not_null(card)
+	if card == null:
+		return
+
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow") as HBoxContainer
+	assert_not_null(badge_row)
+	if badge_row == null:
+		return
+
+	assert_false("LAB" in _collect_badge_texts(badge_row),
+		"Cards should not show a LAB badge before the evidence is submitted.")
+
+	var success: bool = EvidenceManager.submit_to_lab_request("lab_photo")
+	assert_true(success, "The test evidence should submit to the lab successfully.")
+
+	assert_has(_collect_badge_texts(badge_row), "LAB",
+		"Evidence archive cards should refresh their LAB badge immediately after submission.")
+
+
+func test_pending_lab_state_keeps_wait_button_visible_after_submit() -> void:
+	GameManager.discover_evidence("ev_photo")
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail_panel.show_evidence("ev_photo")
+
+	var lab_anchor: VBoxContainer = screen.get_node("%LabSectionAnchor") as VBoxContainer
+	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
+	lab_section.call("_on_submit_pressed", "lab_photo")
+
+	var wait_buttons: Array[Control] = _find_wait_buttons(lab_section)
+	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
+	var lab_status_value: Label = _find_info_value_control(info_grid, "Lab Status") as Label
+
+	assert_eq(wait_buttons.size(), 1,
+		"Submitted analyses should stay visible as a pending WaitButton.")
+	assert_true(bool(wait_buttons[0].get("submitted")),
+		"The pending WaitButton should switch into its submitted state after submission.")
+	assert_eq(String(wait_buttons[0].get("action_text")), "Photo Analysis")
+	assert_not_null(lab_status_value)
+	assert_eq(lab_status_value.text, "Processing...",
+		"The evidence metadata should show Processing once the lab request is submitted.")
+
+
+func test_pending_wait_button_disappears_when_result_arrives_next_day() -> void:
+	GameManager.discover_evidence("ev_photo")
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	detail_panel.show_evidence("ev_photo")
+
+	var lab_anchor: VBoxContainer = screen.get_node("%LabSectionAnchor") as VBoxContainer
+	var lab_section: EvidenceLabSection = lab_anchor.get_child(0) as EvidenceLabSection
+	lab_section.call("_on_submit_pressed", "lab_photo")
+
+	DaySystem.force_advance_day()
+	DaySystem.process_morning()
+	await get_tree().process_frame
+
+	assert_eq(_find_wait_buttons(lab_section).size(), 0,
+		"The pending WaitButton should disappear once the lab result arrives.")
+	assert_has(_collect_link_texts(lab_section), "\u2192 Enhanced Test Photo",
+		"Completed lab results should replace the pending button with the output evidence link.")
 
 
 func test_derived_from_row_uses_wrapping_navigation_link_when_parent_is_discovered() -> void:

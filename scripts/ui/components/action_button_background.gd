@@ -1,10 +1,10 @@
 ## ActionButtonBackground.gd
-## Draws the adaptive diagonal split background for ActionButton.
+## Draws the adaptive diagonal split background for action-style buttons.
 class_name ActionButtonBackground
 extends Control
 
 
-## Visual mode: 0 = normal (blue), 1 = completed (green), 2 = disabled (dimmed blue).
+## Visual mode: 0 = normal accent, 1 = completed/submitted accent, 2 = disabled accent.
 enum ColorMode { NORMAL, COMPLETED, DISABLED }
 
 const RIGHT_SECTION_MAX_RATIO: float = 0.46
@@ -12,6 +12,22 @@ const DIAGONAL_MAX_TILT: float = 12.0
 const LEFT_BASE_ALPHA: float = 0.46
 const RIGHT_BASE_ALPHA: float = 0.30
 const DISABLED_ALPHA_FACTOR: float = 0.55
+
+
+@export var normal_accent_color: Color = UIColors.BLUE:
+	set(value):
+		normal_accent_color = value
+		queue_redraw()
+
+@export var completed_accent_color: Color = UIColors.GREEN.lerp(UIColors.TEXT_GREY, 0.3):
+	set(value):
+		completed_accent_color = value
+		queue_redraw()
+
+@export var disabled_accent_color: Color = UIColors.BLUE.lerp(UIColors.TEXT_GREY, 0.4):
+	set(value):
+		disabled_accent_color = value
+		queue_redraw()
 
 
 @export_range(0.0, 1.0, 0.01) var hover_intensity: float = 0.0:
@@ -95,8 +111,8 @@ func _right_color() -> Color:
 func _accent_color() -> Color:
 	match color_mode:
 		ColorMode.COMPLETED:
-			return UIColors.GREEN.lerp(UIColors.TEXT_GREY, 0.3)
+			return completed_accent_color
 		ColorMode.DISABLED:
-			return UIColors.BLUE.lerp(UIColors.TEXT_GREY, 0.4)
+			return disabled_accent_color
 		_:
-			return UIColors.BLUE
+			return normal_accent_color
