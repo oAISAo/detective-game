@@ -19,7 +19,6 @@ This guide is grounded in the strongest reference slice:
 - `evidence_archive`
 - `LocationCard`
 - `EvidenceDetailPanel`
-- `EvidencePinnedBar`
 
 
 ## Relationship To Other AI Docs
@@ -139,7 +138,7 @@ Characteristics:
 
 - collection/grid panel
 - filter/search controls at the top
-- optional quick-access secondary strip
+- pinned items stay in the same collection and sort to the front
 - persistent detail panel on the side
 - selected-card visual feedback
 
@@ -424,20 +423,20 @@ Canonical reference:
 - `evidence_archive._add_search_icon()`
 
 
-## Quick-Access Secondary Strip
+## Pinned-First Collection Ordering
 
-Use a secondary bar when a small curated subset of items needs fast access while the main collection remains visible.
+Use this when bookmarked items should stay in the main collection instead of being duplicated in a secondary strip.
 
 Canonical reference:
 
-- `EvidencePinnedBar`
+- `evidence_archive`
 
 Rules:
 
-- let the bar hide itself when empty
-- preserve any fixed label child while rebuilding dynamic buttons
-- use simple flat buttons for compact navigation affordances
-- repopulate the strip from manager state
+- sort pinned items ahead of unpinned items within the current visible result set
+- keep search and filter behavior unchanged, then apply pinned-first ordering to the filtered results
+- use a lightweight per-card marker for the pinned state instead of duplicating the item in a second container
+- rebuild the collection when pin state changes if the pin affects visible ordering
 
 
 ## Programmatic Typography Adjustments

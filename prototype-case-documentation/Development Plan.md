@@ -501,7 +501,7 @@ This prevents players from getting lost.
 - Actions remaining counter
 - Navigation buttons to all screens
 - Notification area (new evidence, lab results, story events)
-- Quick-access to pinned evidence
+- Evidence pinning remains visible inside the archive instead of using a separate quick-access bar
 
 ### Phase 4B — Advanced Systems (Added Later)
 
@@ -590,14 +590,11 @@ Referenced In:
 
 ### 5.3 — Evidence Pinning
 
-Quick-access bar for frequently referenced evidence:
+Pinned evidence stays inside the main archive grid and sorts to the top of the visible results.
 
-```
-Pinned Evidence:
-[Fingerprint] [Wine Glass] [Elevator Log]
-```
+Pinned cards use a centered `keep` marker on the polaroid instead of a separate quick-access bar.
 
-Players pin/unpin from the archive or detail view.
+Players pin/unpin from the archive detail view.
 
 ### 5.4 — Evidence Comparison System
 

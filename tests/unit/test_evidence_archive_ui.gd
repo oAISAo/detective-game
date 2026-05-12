@@ -173,6 +173,18 @@ func _collect_badge_texts(badge_row: HBoxContainer) -> Array[String]:
 	return texts
 
 
+func _collect_archive_card_titles(evidence_grid: GridContainer) -> Array[String]:
+	var titles: Array[String] = []
+	for child: Node in evidence_grid.get_children():
+		var card: EvidencePolaroid = child as EvidencePolaroid
+		if card == null:
+			continue
+		var name_label: Label = card.get_node("%NameLabel") as Label
+		if name_label != null:
+			titles.append(name_label.text)
+	return titles
+
+
 func _find_wait_buttons(root: Node) -> Array[Control]:
 	var buttons: Array[Control] = []
 	if _is_wait_button(root):
@@ -405,6 +417,38 @@ func test_archive_card_shows_lab_badge_immediately_after_submit() -> void:
 
 	assert_has(_collect_badge_texts(badge_row), "LAB",
 		"Evidence archive cards should refresh their LAB badge immediately after submission.")
+
+
+func test_pinned_evidence_moves_to_top_of_archive_and_returns_when_unpinned() -> void:
+	GameManager.discover_evidence("ev_photo")
+	GameManager.discover_evidence("ev_photo_result")
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	var evidence_grid: GridContainer = screen.get_node("%EvidenceGrid") as GridContainer
+
+	assert_eq(
+		_collect_archive_card_titles(evidence_grid),
+		["Enhanced Test Photo", "Two Wine Glasses on Dining Table Beside Open Balcony Door"],
+		"Archive should start with the newest discovered evidence first when nothing is pinned."
+	)
+
+	detail_panel.show_evidence("ev_photo")
+	detail_panel.call("_on_pin_pressed")
+
+	assert_eq(
+		_collect_archive_card_titles(evidence_grid),
+		["Two Wine Glasses on Dining Table Beside Open Balcony Door", "Enhanced Test Photo"],
+		"Pinning from the detail panel should rebuild the archive with the pinned evidence first."
+	)
+
+	detail_panel.call("_on_pin_pressed")
+
+	assert_eq(
+		_collect_archive_card_titles(evidence_grid),
+		["Enhanced Test Photo", "Two Wine Glasses on Dining Table Beside Open Balcony Door"],
+		"Unpinning should restore the default archive ordering."
+	)
 
 
 func test_pending_lab_state_keeps_wait_button_visible_after_submit() -> void:

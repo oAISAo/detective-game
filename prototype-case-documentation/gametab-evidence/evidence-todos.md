@@ -1,7 +1,12 @@
 # Evidence Tab — TODOs
 
 ## 1. Pin Functionality Redesign
-I would like to change how we handle pinning and unpinning of evidence. the PINNED section above the list of evidence should be completely removed. Instead I would like the pinned evidence to be imediately placed at the top of the list. Currently the pinned evidence gets the PINNED tag. I would prefer if it would get the "keep" icon placed at the top in the center of the polaroid. Can we please implement that in an elegant and cohesive way? Please also update any relevand documentation files accordingly.
+Implemented.
+
+- The separate pinned section above the archive list has been removed.
+- Pinned evidence now sorts to the top of the currently visible archive results.
+- Pinned cards use a centered `keep` icon at the top of the polaroid instead of the old PINNED tag.
+- The behavior is covered by focused archive and card regressions.
 
 
 ## 4. Remove Lab Status from details
@@ -11,10 +16,9 @@ In Details metadata we get Lab Status: Processing... we should remove that
 Improve test coverage.
 `test_evidence_archive_ui.gd` tests layout structure but not behavioral state:
 - No test for `_comparing` flag not being reset when switching evidence
-- No test for card badge refresh after pin/unpin
+- No test for the keep marker coexisting with NEW/LAB markers on the same card
 - No test for filter + search interaction
 - No test for notes persistence across evidence switches
-- No test for the pinned bar reconstruction
 
 ## 6. Legal categories are good, but underused
    

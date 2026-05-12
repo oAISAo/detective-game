@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/evidence_archive.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/ui/components/evidence_detail_panel.gd" id="2_detail_panel"]
-[ext_resource type="Script" path="res://scripts/ui/components/evidence_pinned_bar.gd" id="3_pinned_bar"]
 
 [node name="EvidenceArchive" type="Control"]
 layout_mode = 3
@@ -42,7 +41,7 @@ theme_type_variation = &"SurfacePanel"
 
 [node name="LeftVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
 [node name="ObjectsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 layout_mode = 2
@@ -70,18 +69,6 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.4
 theme_type_variation = &"GameFilterDropdown"
 
-[node name="PinnedBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 8
-script = ExtResource("3_pinned_bar")
-
-[node name="PinnedLabel" type="Label" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox/PinnedBar"]
-layout_mode = 2
-text = "PINNED"
-theme_type_variation = &"SectionHeader"
-
 [node name="EvidenceContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainColumns/LeftPanel/LeftVBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -97,7 +84,7 @@ vertical_scroll_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
+theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 

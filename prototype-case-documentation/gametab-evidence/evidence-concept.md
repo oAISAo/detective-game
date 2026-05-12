@@ -46,7 +46,7 @@ Each card shows:
 - Evidence ID code (top, monospace, small)
 - Dark image placeholder (or actual evidence image when available)
 - Evidence name (bottom caption)
-- **State badge** in top-right corner (see Evidence States below)
+- **State pills** in the top-right corner for NEW/LAB plus a centered top `keep` marker when pinned
 
 ### Card Interactions
 - **Click** → loads that evidence into the right panel
@@ -54,17 +54,17 @@ Each card shows:
 - Cards are always visible — there is no pagination
 
 ### Ordering
-- Default: discovery order (newest at top)
-- **NEW** items always float to the top until reviewed
-- Within the same discovery day: higher case-relevance evidence before lower case-relevance evidence
+- Pinned evidence always floats to the top of the currently visible archive results
+- Within the pinned and unpinned groups, **NEW** items float to the top until reviewed
+- Reviewed items then sort by most recent discovery, with case relevance only acting as a late tie-break
 
-### Evidence Card States (Badge)
-| Badge | Color | Meaning |
+### Evidence Card States
+| Marker | Color | Meaning |
 |-------|-------|---------|
 | **NEW** | Blue | Discovered but not yet opened |
 | **LAB** | Amber | Submitted for lab analysis, results pending |
+| **keep** icon | Amber | Pinned by player; shown at the top center of the polaroid |
 | *(none)* | — | Reviewed, no special status |
-| **PINNED** | Amber dot | Pinned by player (small dot, not a full badge) |
 
 The **NEW** badge disappears the moment the player opens the evidence detail for the first time.
 

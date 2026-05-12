@@ -18,7 +18,6 @@ This guide is grounded in the strongest reference slice:
 - `location_investigation`
 - `evidence_archive`
 - `EvidenceDetailPanel`
-- `EvidencePinnedBar`
 - `LocationInvestigationManager`
 - `EvidenceManager`
 
@@ -211,7 +210,6 @@ Canonical references:
 
 - `evidence_archive`
 - `EvidenceDetailPanel`
-- `EvidencePinnedBar`
 
 Pattern:
 
@@ -281,7 +279,9 @@ Pattern:
 
 Canonical reference:
 
-- `evidence_archive` reacting to `evidence_pinned`, `evidence_unpinned`, and `evidence_reviewed`
+- `evidence_archive` reacting to `evidence_reviewed` and lab submission state
+
+Do not use this pattern when the signal changes list membership or ordering. In that case, rebuild the visible collection instead of trying to patch one card in place.
 
 ### Pattern 3: Deferred Coalesced Refresh
 
@@ -324,7 +324,7 @@ Canonical references:
 
 - `LocationCard.card_pressed` -> `LocationMap._on_location_pressed`
 - `EvidenceDetailPanel.evidence_requested` -> `EvidenceArchive._on_evidence_requested`
-- `EvidencePinnedBar.evidence_requested` -> `EvidenceArchive._on_evidence_requested`
+- `EvidenceDetailPanel.pin_toggled` -> `EvidenceArchive._on_detail_pin_toggled`
 - `EvidenceLabSection.output_evidence_requested` -> `EvidenceDetailPanel._on_output_evidence_requested` -> `evidence_requested.emit(...)`
 
 Do not let sibling components connect to each other directly for screen-level flows.
@@ -381,7 +381,7 @@ Use `state_loaded` when:
 
 - open screens must rebuild from restored manager state
 - coordinator components must clear stale local selections or details
-- pinned bars, lists, or detail panels must repopulate after load
+- archive lists, card grids, or detail panels must repopulate after load
 
 Canonical references:
 

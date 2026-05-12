@@ -1,14 +1,14 @@
 ## EvidenceArchive
 ## Screen for viewing and managing collected evidence.
 ## Handles the evidence grid, filtering, searching, and card selection.
-## Detail panel, pinned bar, and section components are managed by their
-## own attached scripts (EvidenceDetailPanel, EvidencePinnedBar).
+## The detail panel and card grid are coordinated here while each card and
+## detail sub-section keeps its own presentation logic.
 extends Control
 
 const POLAROID_SCENE: PackedScene = preload("res://scenes/ui/components/evidence_polaroid.tscn")
 
 var _handwriting_font: Font = null
-## Maps evidence_id → EvidencePolaroid node for targeted badge refreshes.
+## Maps evidence_id → EvidencePolaroid node for the current visible grid.
 var _card_nodes: Dictionary = {}  # evidence_id: String → EvidencePolaroid
 var _selected_card: EvidencePolaroid = null
 
@@ -17,7 +17,6 @@ var _selected_card: EvidencePolaroid = null
 @onready var evidence_grid: GridContainer = %EvidenceGrid
 @onready var card_scroll: ScrollContainer = %CardScroll
 @onready var detail_panel: EvidenceDetailPanel = %RightVBox
-@onready var pinned_bar: EvidencePinnedBar = %PinnedBar
 
 # Stored callables for signal disconnection on exit
 var _on_evidence_discovered_cb: Callable
@@ -42,7 +41,6 @@ func _ready() -> void:
 	detail_panel.setup(_handwriting_font)
 	detail_panel.pin_toggled.connect(_on_detail_pin_toggled)
 	detail_panel.evidence_requested.connect(_on_evidence_requested)
-	pinned_bar.evidence_requested.connect(_on_evidence_requested)
 
 	_setup_filter_options()
 	_populate_evidence_list()
@@ -50,10 +48,10 @@ func _ready() -> void:
 	_on_evidence_discovered_cb = func(_id: String) -> void:
 		_refresh()
 		_refresh_selected_detail()
-	_on_evidence_pinned_cb = func(id: String) -> void:
-		_refresh_card_badges(id)
-	_on_evidence_unpinned_cb = func(id: String) -> void:
-		_refresh_card_badges(id)
+	_on_evidence_pinned_cb = func(_id: String) -> void:
+		_refresh()
+	_on_evidence_unpinned_cb = func(_id: String) -> void:
+		_refresh()
 	_on_evidence_reviewed_cb = func(id: String) -> void:
 		_refresh_card_badges(id)
 	_on_lab_submitted_cb = func(_request_id: String, input_evidence_id: String) -> void:
@@ -88,11 +86,10 @@ func _input(event: InputEvent) -> void:
 
 ## Adds a Material Symbols search icon as a left overlay inside the search input.
 func _add_search_icon() -> void:
+	var icon := Label.new()
 	var icon_font := FontVariation.new()
 	icon_font.base_font = load("res://assets/fonts/MaterialSymbolsOutlined.ttf")
 	icon_font.opentype_features = {"liga": 1, "calt": 1}
-
-	var icon := Label.new()
 	icon.text = "search"
 	icon.add_theme_font_override("font", icon_font)
 	icon.add_theme_font_size_override("font_size", 18)
@@ -174,10 +171,15 @@ func _get_filtered_evidence() -> Array[EvidenceData]:
 	return _sort_evidence(items)
 
 
-## Sorts evidence: unreviewed first → most recently discovered → most important.
+## Sorts evidence: pinned first → unreviewed first → most recently discovered → most important.
 func _sort_evidence(items: Array[EvidenceData]) -> Array[EvidenceData]:
 	var result: Array[EvidenceData] = items.duplicate()
 	result.sort_custom(func(a: EvidenceData, b: EvidenceData) -> bool:
+		var a_pinned: bool = EvidenceManager.is_pinned(a.id)
+		var b_pinned: bool = EvidenceManager.is_pinned(b.id)
+		if a_pinned != b_pinned:
+			return a_pinned
+
 		var a_reviewed: bool = EvidenceManager.is_reviewed(a.id)
 		var b_reviewed: bool = EvidenceManager.is_reviewed(b.id)
 		if a_reviewed != b_reviewed:
@@ -235,8 +237,8 @@ func _on_card_pressed(evidence_id: String) -> void:
 	detail_panel.show_evidence(evidence_id)
 
 
-func _on_detail_pin_toggled(evidence_id: String) -> void:
-	_refresh_card_badges(evidence_id)
+func _on_detail_pin_toggled(_evidence_id: String) -> void:
+	_refresh()
 
 
 func _on_evidence_requested(evidence_id: String) -> void:

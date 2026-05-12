@@ -311,8 +311,6 @@ static func apply_button_icon(
 		resolved_min_height = maxf(_BACK_CONTENT_MIN_HEIGHT, desired_min_height)
 	button.custom_minimum_size.x = maxf(button.custom_minimum_size.x, maxf(minimum_width, desired_min_width))
 	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, resolved_min_height)
-
-
 static func _apply_end_day_button_theme(button: Button) -> void:
 	var theme: Theme = _get_main_theme()
 	if theme == null:
