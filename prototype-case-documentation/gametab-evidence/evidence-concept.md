@@ -317,22 +317,23 @@ Evidence with non-empty `lab_analysis_results` in its data displays a **Forensic
 ```
 ┌─────────────────────────────────────────┐
 │  FORENSIC ANALYSIS                      │
-│  Possible forensic analyses available.  │
+│  Possible forensic analyses are         │
+│  available.                             │
 │                                         │
 │  [Submit to Lab — Fingerprint Analysis] │
 └─────────────────────────────────────────┘
 ```
 
-`lab_analysis_results` is the forward source of truth for lab-capable evidence. Each listed output ID must match a `LabRequestData` template for the same input evidence. The template still owns the per-analysis metadata such as `analysis_type`, `lab_transform`, and `completed_status_text`.
+`lab_analysis_results` is the forward source of truth for lab-capable evidence. Each listed output ID must match a `LabRequestData` template for the same input evidence. The template still owns the per-analysis metadata such as `analysis_type`, `lab_transform`, `pending_status_text`, and `completed_status_text`.
 
 ### Submission Steps
 1. Player opens raw evidence (e.g., `ev_wine_glasses`)
 2. The Forensic Analysis block appears in the first column with one entry per currently available lab target
 3. Each entry shows a submit button labeled from the matching `LabRequestData.analysis_type`
 4. Player clicks "Submit to Lab"
-5. Notification: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
+5. The Forensic Analysis banner switches to the pending status copy from `LabRequestData.pending_status_text`, for example: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
 6. Evidence card in the archive gains **LAB** badge
-7. The "Submit to Lab" button changes to a status indicator: *"In analysis — Day 2 morning"*
+7. The lab action remains visible as a submitted wait button until the result arrives the next morning
 
 ### Lab Results Delivery
 - Results are delivered automatically at the **start of the next day's morning phase** (no player action needed)
@@ -573,7 +574,7 @@ State is split across multiple systems. Fields below show what IS currently trac
 - ✅ Discovery order is implicit in the array insertion order (newest = last appended)
 
 **`EvidenceManager.pinned_evidence`** (Array[String]):
-- ✅ Pinned evidence IDs (max 5)
+- ✅ Pinned evidence IDs; players can pin any discovered evidence item
 
 **`EvidenceManager._statement_verdicts`** (Dictionary, key: `"evidence_id:statement_id"`):
 ```json

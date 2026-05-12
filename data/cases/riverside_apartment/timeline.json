@@ -575,6 +575,7 @@
 			"day_submitted": 0,
 			"completion_day": 2,
 			"output_evidence_id": "ev_julia_fingerprint_glass",
+			"pending_status_text": "Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning.",
 			"completed_status_text": "Fingerprint analysis complete. A matched print is now available for review.",
 			"lab_transform": "derive"
 		},

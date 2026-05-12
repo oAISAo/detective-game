@@ -66,6 +66,16 @@ func test_load_debug_state_sets_evidence() -> void:
 		"Should have hidden safe evidence")
 
 
+func test_load_debug_state_discovers_all_case_evidence_when_requested() -> void:
+	DebugStateLoader.load_debug_state("debug_mark_interrogation.json")
+	var all_evidence: Array[EvidenceData] = CaseManager.get_all_evidence()
+	assert_true(all_evidence.size() > 3,
+		"Regression check expects the case to contain more evidence than the hand-authored interrogation preset list.")
+	for ev: EvidenceData in all_evidence:
+		assert_true(GameManager.has_evidence(ev.id),
+			"Debug preset should expose every case evidence item in the archive: %s" % ev.id)
+
+
 func test_load_debug_state_sets_locations() -> void:
 	DebugStateLoader.load_debug_state("debug_mark_interrogation.json")
 	assert_true(GameManager.is_location_unlocked("loc_victim_apartment"),

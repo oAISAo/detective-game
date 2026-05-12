@@ -60,6 +60,7 @@ static func list_presets() -> Array[String]:
 static func _apply_debug_state(data: Dictionary) -> bool:
 	var case_id: String = data.get("case_id", "")
 	var game_state: Dictionary = data.get("game_state", {})
+	var discover_all_evidence: bool = data.get("discover_all_evidence", false)
 	var notifications: Array = data.get("notifications", [])
 
 	# Reset and prepare game state
@@ -77,6 +78,10 @@ static func _apply_debug_state(data: Dictionary) -> bool:
 	# Apply game state via deserialize for core fields
 	GameManager.deserialize(game_state)
 
+	# Optional preset directive for archive/debug flows that need the full case evidence set.
+	if discover_all_evidence:
+		_discover_all_case_evidence()
+
 	# Send notifications
 	var notif_mgr: Node = Engine.get_singleton("NotificationManager") if Engine.has_singleton("NotificationManager") else null
 	if notif_mgr == null:
@@ -87,3 +92,11 @@ static func _apply_debug_state(data: Dictionary) -> bool:
 
 	print("[DebugStateLoader] Debug state loaded: %s" % data.get("name", case_id))
 	return true
+
+
+static func _discover_all_case_evidence() -> void:
+	var all_evidence: Array[EvidenceData] = CaseManager.get_all_evidence()
+	for ev: EvidenceData in all_evidence:
+		if ev == null or ev.id.is_empty():
+			continue
+		GameManager.discover_evidence(ev.id)

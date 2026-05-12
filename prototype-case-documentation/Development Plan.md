@@ -125,7 +125,7 @@ This is the most important technical foundation. Every system reads from these d
 | `ActionData`              | id, name, type (enum), time_cost (int), target, requirements[], results[] |
 | `EventTriggerData`        | id, trigger_type (enum), trigger_day, conditions[], actions[], result_events[] |
 | `InsightData`             | id, description, source_evidence[], strengthens_theory, enables_warrant, unlocks_topic |
-| `LabRequestData`          | id, input_evidence_id, analysis_type, day_submitted, completion_day, output_evidence_id |
+| `LabRequestData`          | id, input_evidence_id, analysis_type, day_submitted, completion_day, output_evidence_id, pending_status_text, completed_status_text, lab_transform |
 | `SurveillanceRequestData` | id, target_person, type (enum), day_installed, active_days (int), result_events[] |
 
 ### 1.2 — Define Enums

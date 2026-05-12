@@ -52,6 +52,71 @@ var _test_case_data: Dictionary = {
 			"derived_from": "ev_photo",
 			"lab_result_text": "Output evidence lab_result_text should remain separate from the completed banner.",
 		},
+		{
+			"id": "ev_receipt",
+			"name": "Cafe Receipt",
+			"description": "A printed receipt found in the room for archive pinning regression coverage.",
+			"type": "DOCUMENT",
+			"discovery_method": "VISUAL",
+			"location_found": "loc_room",
+			"related_persons": [],
+			"legal_categories": [],
+			"linked_statements": [],
+			"weight": 0.2,
+			"importance_level": "MAJOR",
+		},
+		{
+			"id": "ev_keycard",
+			"name": "Office Keycard",
+			"description": "A keycard recovered for archive pinning regression coverage.",
+			"type": "OBJECT",
+			"discovery_method": "VISUAL",
+			"location_found": "loc_room",
+			"related_persons": [],
+			"legal_categories": [],
+			"linked_statements": [],
+			"weight": 0.3,
+			"importance_level": "MAJOR",
+		},
+		{
+			"id": "ev_text_message",
+			"name": "Text Message Screenshot",
+			"description": "A screenshot added for archive pinning regression coverage.",
+			"type": "DIGITAL",
+			"discovery_method": "VISUAL",
+			"location_found": "loc_room",
+			"related_persons": [],
+			"legal_categories": [],
+			"linked_statements": [],
+			"weight": 0.4,
+			"importance_level": "MAJOR",
+		},
+		{
+			"id": "ev_voicemail",
+			"name": "Voicemail Clip",
+			"description": "An audio clip used for archive pinning regression coverage.",
+			"type": "RECORDING",
+			"discovery_method": "VISUAL",
+			"location_found": "loc_room",
+			"related_persons": [],
+			"legal_categories": [],
+			"linked_statements": [],
+			"weight": 0.45,
+			"importance_level": "MAJOR",
+		},
+		{
+			"id": "ev_glove",
+			"name": "Leather Glove",
+			"description": "A glove added for archive pinning regression coverage.",
+			"type": "FORENSIC",
+			"discovery_method": "VISUAL",
+			"location_found": "loc_room",
+			"related_persons": [],
+			"legal_categories": [],
+			"linked_statements": [],
+			"weight": 0.5,
+			"importance_level": "MAJOR",
+		},
 	],
 	"lab_requests": [
 		{
@@ -62,6 +127,7 @@ var _test_case_data: Dictionary = {
 			"completion_day": 2,
 			"output_evidence_id": "ev_photo_result",
 			"lab_transform": "derive",
+			"pending_status_text": "Wine glasses submitted for photo analysis. Results expected tomorrow morning.",
 			"completed_status_text": "Image enhancement complete. The processed photo is ready for review.",
 		},
 	],
@@ -84,7 +150,14 @@ var _test_case_data: Dictionary = {
 			"searchable": true,
 			"image": "",
 			"investigable_objects": [],
-			"evidence_pool": ["ev_photo"],
+			"evidence_pool": [
+				"ev_photo",
+				"ev_receipt",
+				"ev_keycard",
+				"ev_text_message",
+				"ev_voicemail",
+				"ev_glove",
+			],
 		},
 	],
 	"events": [],
@@ -372,6 +445,10 @@ func test_submit_state_lists_available_analysis_and_expected_result() -> void:
 		if child is MarginContainer:
 			margin_containers.append(child as MarginContainer)
 	var wait_buttons: Array[Control] = _find_wait_buttons(lab_section)
+	var label_texts: Array[String] = _collect_label_texts(lab_section)
+
+	assert_has(label_texts, "Possible forensic analyses are available.",
+		"Available lab state copy should stay grammatical and explicit before submission.")
 
 	assert_eq(margin_containers.size(), 1,
 		"Available lab analyses should be wrapped in a margin container so the side glow remains visible.")
@@ -451,6 +528,58 @@ func test_pinned_evidence_moves_to_top_of_archive_and_returns_when_unpinned() ->
 	)
 
 
+func test_detail_panel_can_pin_more_than_five_evidence_items() -> void:
+	var discovered_ids: Array[String] = [
+		"ev_photo",
+		"ev_photo_result",
+		"ev_receipt",
+		"ev_keycard",
+		"ev_text_message",
+		"ev_voicemail",
+		"ev_glove",
+	]
+	var pin_targets: Array[String] = [
+		"ev_photo",
+		"ev_photo_result",
+		"ev_receipt",
+		"ev_keycard",
+		"ev_text_message",
+		"ev_voicemail",
+	]
+	for evidence_id: String in discovered_ids:
+		GameManager.discover_evidence(evidence_id)
+
+	var screen: Control = _instantiate_screen()
+	var detail_panel: EvidenceDetailPanel = _get_detail_panel(screen)
+	var evidence_grid: GridContainer = screen.get_node("%EvidenceGrid") as GridContainer
+
+	for evidence_id: String in pin_targets:
+		detail_panel.show_evidence(evidence_id)
+		detail_panel.call("_on_pin_pressed")
+
+	await get_tree().process_frame
+
+	assert_eq(EvidenceManager.get_pinned_evidence().size(), pin_targets.size(),
+		"The detail panel should allow pinning more than five evidence items.")
+	assert_true(EvidenceManager.is_pinned("ev_voicemail"),
+		"The sixth pin action should succeed instead of silently failing.")
+
+	var expected_titles: Array[String] = []
+	for idx: int in range(pin_targets.size() - 1, -1, -1):
+		var evidence: EvidenceData = CaseManager.get_evidence(pin_targets[idx])
+		expected_titles.append(evidence.name)
+
+	var titles: Array[String] = _collect_archive_card_titles(evidence_grid)
+	var actual_pinned_titles: Array[String] = []
+	for idx: int in range(pin_targets.size()):
+		actual_pinned_titles.append(titles[idx])
+
+	assert_eq(actual_pinned_titles, expected_titles,
+		"Pinned evidence should continue to occupy the pinned-first section even after the sixth pin.")
+	assert_eq(titles[pin_targets.size()], "Leather Glove",
+		"Unpinned evidence should stay below the full pinned group instead of displacing the sixth pin.")
+
+
 func test_pending_lab_state_keeps_wait_button_visible_after_submit() -> void:
 	GameManager.discover_evidence("ev_photo")
 
@@ -463,17 +592,16 @@ func test_pending_lab_state_keeps_wait_button_visible_after_submit() -> void:
 	lab_section.call("_on_submit_pressed", "lab_photo")
 
 	var wait_buttons: Array[Control] = _find_wait_buttons(lab_section)
-	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
-	var lab_status_value: Label = _find_info_value_control(info_grid, "Lab Status") as Label
+	var label_texts: Array[String] = _collect_label_texts(lab_section)
 
+	assert_has(label_texts,
+		"Wine glasses submitted for photo analysis. Results expected tomorrow morning.",
+		"Submitted analyses should keep a pending status banner instead of dropping all explanatory copy.")
 	assert_eq(wait_buttons.size(), 1,
 		"Submitted analyses should stay visible as a pending WaitButton.")
 	assert_true(bool(wait_buttons[0].get("submitted")),
 		"The pending WaitButton should switch into its submitted state after submission.")
 	assert_eq(String(wait_buttons[0].get("action_text")), "Photo Analysis")
-	assert_not_null(lab_status_value)
-	assert_eq(lab_status_value.text, "Processing...",
-		"The evidence metadata should show Processing once the lab request is submitted.")
 
 
 func test_pending_wait_button_disappears_when_result_arrives_next_day() -> void:
@@ -608,18 +736,10 @@ func test_multiline_metadata_rows_are_top_aligned() -> void:
 
 	var info_grid: GridContainer = screen.get_node("%InfoGrid") as GridContainer
 	var derived_key: Label = _find_info_key_label(info_grid, "Derived From")
-	var lab_key: Label = _find_info_key_label(info_grid, "Lab Result")
-	var lab_value: Label = _find_info_value_control(info_grid, "Lab Result") as Label
 
 	assert_not_null(derived_key)
-	assert_not_null(lab_key)
-	assert_not_null(lab_value)
 	assert_eq(derived_key.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
 		"Metadata keys should top-align when the row value wraps to multiple lines.")
-	assert_eq(lab_key.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
-		"Lab Result label should top-align with multi-line result text.")
-	assert_eq(lab_value.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
-		"Lab Result text should stay top-aligned when it wraps.")
 
 
 func test_notes_section_lives_in_third_column_and_stays_open() -> void:

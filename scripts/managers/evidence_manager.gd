@@ -7,10 +7,10 @@ extends BaseSubsystem
 
 # --- Signals --- #
 
-## Emitted when evidence is pinned to the quick-access bar.
+## Emitted when evidence is pinned in the evidence archive.
 signal evidence_pinned(evidence_id: String)
 
-## Emitted when evidence is unpinned from the quick-access bar.
+## Emitted when evidence is unpinned in the evidence archive.
 signal evidence_unpinned(evidence_id: String)
 
 ## Emitted when a new insight is generated from evidence comparison.
@@ -38,16 +38,9 @@ signal player_notes_changed(evidence_id: String)
 ## Emitted the first time a piece of evidence is sent to the detective board.
 signal evidence_sent_to_board(evidence_id: String)
 
-
-# --- Constants --- #
-
-## Maximum number of pinned evidence items.
-const MAX_PINNED: int = 5
-
-
 # --- State --- #
 
-## IDs of evidence pinned to the quick-access bar.
+## IDs of evidence pinned by the player in the evidence archive.
 var pinned_evidence: Array[String] = []
 
 ## Detected contradictions: [{statement_id, evidence_id, statement_text, person_id}]
@@ -122,12 +115,9 @@ func search_evidence(query: String) -> Array[EvidenceData]:
 
 # --- Pinning --- #
 
-## Pins evidence to the quick-access bar. Returns true on success.
+## Pins evidence in the evidence archive. Returns true on success.
 func pin_evidence(evidence_id: String) -> bool:
 	if evidence_id in pinned_evidence:
-		return false
-	if pinned_evidence.size() >= MAX_PINNED:
-		push_warning("[EvidenceManager] Cannot pin — maximum %d items reached." % MAX_PINNED)
 		return false
 	if not GameManager.has_evidence(evidence_id):
 		push_error("[EvidenceManager] Cannot pin undiscovered evidence: %s" % evidence_id)
@@ -137,7 +127,7 @@ func pin_evidence(evidence_id: String) -> bool:
 	return true
 
 
-## Unpins evidence from the quick-access bar. Returns true on success.
+## Unpins evidence from the evidence archive. Returns true on success.
 func unpin_evidence(evidence_id: String) -> bool:
 	if evidence_id not in pinned_evidence:
 		return false

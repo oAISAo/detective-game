@@ -380,15 +380,23 @@ func test_pin_evidence_already_pinned_returns_false() -> void:
 	assert_false(result, "Double pin should return false")
 
 
-func test_pin_evidence_max_reached() -> void:
-	for ev_id: String in ["ev_fingerprint", "ev_camera", "ev_document", "ev_photo", "ev_phone"]:
+func test_pin_evidence_allows_more_than_five_items() -> void:
+	var evidence_ids: Array[String] = [
+		"ev_fingerprint",
+		"ev_camera",
+		"ev_document",
+		"ev_photo",
+		"ev_phone",
+		"ev_knife",
+		"ev_letter",
+	]
+	for ev_id: String in evidence_ids:
 		GameManager.discover_evidence(ev_id)
-		EvidenceManager.pin_evidence(ev_id)
-	assert_eq(EvidenceManager.get_pinned_evidence().size(), 5, "Should have 5 pinned")
-	GameManager.discover_evidence("ev_knife")
-	var result: bool = EvidenceManager.pin_evidence("ev_knife")
-	assert_false(result, "Should fail when max pinned reached")
-	assert_push_warning("[EvidenceManager] Cannot pin — maximum 5 items reached.")
+		var result: bool = EvidenceManager.pin_evidence(ev_id)
+		assert_true(result, "Pinning should stay available after five items: %s" % ev_id)
+
+	assert_eq(EvidenceManager.get_pinned_evidence().size(), evidence_ids.size(),
+		"Players should be able to pin as many discovered evidence items as they want.")
 
 
 func test_pin_undiscovered_evidence_fails() -> void:

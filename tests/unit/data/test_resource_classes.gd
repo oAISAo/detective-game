@@ -532,6 +532,8 @@ func test_lab_request_from_dict() -> void:
 		"day_submitted": 1,
 		"completion_day": 2,
 		"output_evidence_id": "ev_knife_prints",
+		"pending_status_text": "Knife submitted for fingerprint analysis. Results expected tomorrow morning.",
+		"completed_status_text": "Fingerprint analysis complete. Knife prints are ready for review.",
 	}
 	var req := LabRequestData.from_dict(data)
 	assert_eq(req.id, "lab_01")
@@ -540,6 +542,28 @@ func test_lab_request_from_dict() -> void:
 	assert_eq(req.day_submitted, 1)
 	assert_eq(req.completion_day, 2)
 	assert_eq(req.output_evidence_id, "ev_knife_prints")
+	assert_eq(req.pending_status_text,
+		"Knife submitted for fingerprint analysis. Results expected tomorrow morning.")
+	assert_eq(req.completed_status_text,
+		"Fingerprint analysis complete. Knife prints are ready for review.")
+
+
+func test_lab_request_to_dict_includes_status_texts() -> void:
+	var req := LabRequestData.from_dict({
+		"id": "lab_01",
+		"input_evidence_id": "ev_knife",
+		"analysis_type": "fingerprint",
+		"day_submitted": 1,
+		"completion_day": 2,
+		"output_evidence_id": "ev_knife_prints",
+		"pending_status_text": "Knife submitted for fingerprint analysis. Results expected tomorrow morning.",
+		"completed_status_text": "Fingerprint analysis complete. Knife prints are ready for review.",
+	})
+	var data: Dictionary = req.to_dict()
+	assert_eq(data.get("pending_status_text", ""),
+		"Knife submitted for fingerprint analysis. Results expected tomorrow morning.")
+	assert_eq(data.get("completed_status_text", ""),
+		"Fingerprint analysis complete. Knife prints are ready for review.")
 
 
 func test_lab_request_validate_invalid_days() -> void:

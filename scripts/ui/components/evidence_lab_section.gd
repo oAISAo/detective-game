@@ -9,6 +9,9 @@ const WAIT_BUTTON_SCENE_PATH: String = "res://scenes/ui/components/wait_button.t
 const BUTTON_SIDE_MARGIN: int = 8
 const BUTTON_VERTICAL_MARGIN: int = 8
 const BUTTON_GROUP_SEPARATION: int = 6
+const AVAILABLE_ANALYSES_TEXT: String = "Possible forensic analyses are available."
+const MULTIPLE_PENDING_ANALYSES_TEXT: String = "Submitted analyses are in progress."
+const DEFAULT_PENDING_RESULTS_TEXT: String = "Results pending."
 
 
 signal lab_submitted
@@ -102,21 +105,44 @@ func _get_completed_status_text(lab_req: LabRequestData, output_ev: EvidenceData
 
 
 func _build_pending_state(pending_requests: Array[LabRequestData]) -> void:
+	if pending_requests.size() == 1:
+		_add_state_label(_get_pending_status_text(pending_requests[0]))
+	else:
+		_add_state_label(MULTIPLE_PENDING_ANALYSES_TEXT)
+
 	var button_group: VBoxContainer = _create_wait_button_group()
 	for lab_req: LabRequestData in pending_requests:
 		_add_wait_button(button_group, lab_req, true)
 
 
 func _build_submit_state(available_requests: Array[LabRequestData]) -> void:
-	var desc_label := Label.new()
-	desc_label.text = "Possible forensic analyses available."
-	desc_label.add_theme_color_override("font_color", UIColors.TEXT_SECONDARY)
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(desc_label)
+	_add_state_label(AVAILABLE_ANALYSES_TEXT)
 
 	var button_group: VBoxContainer = _create_wait_button_group()
 	for lab_req: LabRequestData in available_requests:
 		_add_wait_button(button_group, lab_req)
+
+
+func _add_state_label(text: String) -> void:
+	var state_label := Label.new()
+	state_label.text = text
+	state_label.add_theme_color_override("font_color", UIColors.TEXT_PRIMARY)
+	state_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(state_label)
+
+
+func _get_pending_status_text(lab_req: LabRequestData) -> String:
+	if not lab_req.pending_status_text.is_empty():
+		return lab_req.pending_status_text
+
+	var input_ev: EvidenceData = CaseManager.get_evidence(lab_req.input_evidence_id)
+	if input_ev == null:
+		return "Submitted for %s. %s" % [_format_analysis_type_sentence(lab_req.analysis_type), DEFAULT_PENDING_RESULTS_TEXT]
+	return "%s submitted for %s. %s" % [
+		input_ev.name,
+		_format_analysis_type_sentence(lab_req.analysis_type),
+		DEFAULT_PENDING_RESULTS_TEXT,
+	]
 
 
 func _add_wait_button(
@@ -164,6 +190,10 @@ func _format_analysis_type(analysis_type: String) -> String:
 	for word: String in words:
 		formatted_words.append(word.to_upper() if word.length() <= 3 else word.capitalize())
 	return " ".join(formatted_words)
+
+
+func _format_analysis_type_sentence(analysis_type: String) -> String:
+	return analysis_type.replace("_", " ")
 
 
 func _get_completed_requests(lab_requests: Array[LabRequestData]) -> Array[LabRequestData]:

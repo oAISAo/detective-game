@@ -206,12 +206,6 @@ func _populate_info_grid(ev: EvidenceData) -> void:
 	_add_info_row("Day Found", "Day %d" % GameManager.get_evidence_discovery_day(ev.id))
 	_add_info_row("Case Relevance", UIHelper.get_importance_label(ev.importance_level))
 
-	var lab_requests: Array[LabRequestData] = CaseManager.get_lab_requests_for_evidence(ev.id)
-	if not ev.lab_result_text.is_empty():
-		_add_info_row("Lab Result", ev.lab_result_text)
-	elif not lab_requests.is_empty():
-		_add_info_row("Lab Status", UIHelper.get_lab_status_label(ev.lab_status))
-
 
 func _populate_lineage_rows(ev: EvidenceData) -> void:
 	var parent_ev: EvidenceData = CaseManager.get_parent_evidence(ev.id)
@@ -493,10 +487,13 @@ func _sync_evidence_image_square(image_width: float = -1.0) -> void:
 func _on_pin_pressed() -> void:
 	if _selected_id.is_empty():
 		return
+	var changed: bool = false
 	if EvidenceManager.is_pinned(_selected_id):
-		EvidenceManager.unpin_evidence(_selected_id)
+		changed = EvidenceManager.unpin_evidence(_selected_id)
 	else:
-		EvidenceManager.pin_evidence(_selected_id)
+		changed = EvidenceManager.pin_evidence(_selected_id)
+	if not changed:
+		return
 	_update_pin_button()
 	pin_toggled.emit(_selected_id)
 
