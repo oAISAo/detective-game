@@ -10,14 +10,9 @@
 			"related_persons": [
 				"p_victim"
 			],
-			"tags": [
-				"autopsy",
-				"cause_of_death",
-				"forensic",
-				"time_of_death"
-			],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Establishes the cause of death and narrows the murder window.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
@@ -34,13 +29,9 @@
 			"related_persons": [
 				"p_victim"
 			],
-			"tags": [
-				"crime_scene",
-				"murder_weapon",
-				"forensic"
-			],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Links the killing to a weapon found inside the apartment.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
@@ -55,14 +46,13 @@
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"crime_scene",
-				"visitor",
-				"fingerprints"
-			],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Suggests the victim had company before the murder.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
+			"lab_analysis_results": [
+				"ev_julia_fingerprint_glass"
+			],
 			"legal_categories": [
 				"PRESENCE"
 			],
@@ -75,21 +65,17 @@
 			"id": "ev_julia_fingerprint_glass",
 			"name": "Julia's Fingerprint on Wine Glass",
 			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_wine_glass.png",
-			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints. Contradicts her statement that she was not at the apartment that night.",
+			"description": "Fingerprint analysis of the wine glass reveals Julia Ross's fingerprints.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"forensic",
-				"fingerprint",
-				"contradiction",
-				"critical"
-			],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
-			"discovery_method": "LAB",
+			"evidentiary_value_text": "Places Julia inside the apartment despite her denial.",
+			"importance_level": "REQUIRED",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_wine_glasses",
 			"requires_lab_analysis": true,
 			"lab_result_text": "Fingerprint matched to Julia Ross. Clear ridge patterns confirm identity.",
 			"legal_categories": [
@@ -110,14 +96,13 @@
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"forensic",
-				"fingerprint",
-				"unanalyzed"
-			],
 			"weight": 0.2,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "May identify someone with direct access to the victim's desk.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
+			"lab_analysis_results": [
+				"ev_mark_fingerprint_desk"
+			],
 			"legal_categories": [],
 			"linked_statements": []
 		},
@@ -125,19 +110,17 @@
 			"id": "ev_mark_fingerprint_desk",
 			"name": "Mark's Fingerprint on Desk",
 			"image": "res://assets/placeholders/placeholder_evidence_fingerprint_desk.png",
-			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints. Confirms his earlier visit.",
+			"description": "Fingerprint analysis of the victim's desk reveals Mark Bennett's prints.",
 			"type": "FORENSIC",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [
 				"p_mark"
 			],
-			"tags": [
-				"forensic",
-				"fingerprint"
-			],
 			"weight": 0.4,
-			"importance_level": "SUPPORTING",
-			"discovery_method": "LAB",
+			"evidentiary_value_text": "Confirms Mark handled the victim's desk during an earlier visit.",
+			"importance_level": "MAJOR",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_desk_fingerprint_raw",
 			"requires_lab_analysis": true,
 			"lab_result_text": "Fingerprint matched to Mark Bennett.",
 			"legal_categories": [
@@ -159,13 +142,9 @@
 				"p_victim",
 				"p_julia"
 			],
-			"tags": [
-				"crime_scene",
-				"argument",
-				"relationship"
-			],
 			"weight": 0.4,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Supports the idea that a personal confrontation turned volatile.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"CONNECTION"
@@ -187,13 +166,9 @@
 				"p_julia",
 				"p_victim"
 			],
-			"tags": [
-				"digital",
-				"timeline",
-				"motive"
-			],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Shows Julia intended to meet Daniel shortly before the murder window.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE",
@@ -217,15 +192,10 @@
 				"p_victim",
 				"p_julia"
 			],
-			"tags": [
-				"digital",
-				"warrant",
-				"motive",
-				"hidden"
-			],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
-			"discovery_method": "TOOL",
+			"evidentiary_value_text": "Reveals a financial argument that strengthens Julia's motive.",
+			"importance_level": "REQUIRED",
+			"discovery_method": "WARRANT",
 			"legal_categories": [
 				"MOTIVE",
 				"CONNECTION"
@@ -248,14 +218,9 @@
 				"p_mark",
 				"p_victim"
 			],
-			"tags": [
-				"digital",
-				"phone",
-				"financial",
-				"motive"
-			],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Confirms ongoing conflict between Mark and Daniel over financial matters.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE",
@@ -279,14 +244,9 @@
 				"p_victim",
 				"p_mark"
 			],
-			"tags": [
-				"digital",
-				"email",
-				"financial",
-				"motive"
-			],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Shows Daniel was pressuring Mark about a problem that could not wait.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE",
@@ -308,13 +268,9 @@
 			"related_persons": [
 				"p_mark"
 			],
-			"tags": [
-				"financial",
-				"embezzlement",
-				"motive"
-			],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Suggests Mark had a strong financial motive to silence Daniel.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
@@ -337,13 +293,9 @@
 				"p_mark",
 				"p_victim"
 			],
-			"tags": [
-				"financial",
-				"embezzlement",
-				"motive"
-			],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Shows the embezzlement was ongoing, not isolated.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
@@ -364,13 +316,9 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"financial",
-				"debt",
-				"motive"
-			],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Gives Julia an independent financial motive for confronting Daniel.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
@@ -391,14 +339,9 @@
 			"related_persons": [
 				"p_mark"
 			],
-			"tags": [
-				"surveillance",
-				"timeline",
-				"alibi",
-				"contradiction"
-			],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Fixes Mark's departure time and tests whether his timeline is truthful.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
@@ -420,13 +363,9 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"surveillance",
-				"timeline",
-				"blurry"
-			],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Suggests a woman matching Julia entered near the murder window.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
@@ -448,14 +387,9 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"digital",
-				"timeline",
-				"access",
-				"critical"
-			],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Places Julia's key card in the building shortly before the killing.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE",
@@ -479,13 +413,9 @@
 			"related_persons": [
 				"p_lucas"
 			],
-			"tags": [
-				"alibi",
-				"work_log",
-				"contradiction"
-			],
 			"weight": 0.3,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Weakens Lucas's alibi without placing him at the apartment.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE"
@@ -503,14 +433,13 @@
 			"type": "FORENSIC",
 			"location_found": "loc_hallway",
 			"related_persons": [],
-			"tags": [
-				"forensic",
-				"shoe_print",
-				"unanalyzed"
-			],
 			"weight": 0.3,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Could identify who moved through the hallway outside the apartment.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
+			"lab_analysis_results": [
+				"ev_shoe_print"
+			],
 			"legal_categories": [],
 			"linked_statements": []
 		},
@@ -524,14 +453,11 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"forensic",
-				"shoe_print",
-				"critical"
-			],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
-			"discovery_method": "TOOL",
+			"evidentiary_value_text": "Places footwear consistent with Julia near the scene.",
+			"importance_level": "REQUIRED",
+			"discovery_method": "FORENSIC",
+			"derived_from": "ev_shoe_print_raw",
 			"requires_lab_analysis": true,
 			"lab_result_text": "Shoe print pattern matches a pair of women's shoes, size 38. Consistent with Julia Ross's shoe size.",
 			"legal_categories": [
@@ -555,14 +481,9 @@
 			"related_persons": [
 				"p_julia"
 			],
-			"tags": [
-				"forensic",
-				"shoe_match",
-				"warrant",
-				"critical"
-			],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Allows investigators to directly compare Julia’s shoes to the hallway print.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"PRESENCE",
@@ -583,12 +504,9 @@
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"crime_scene",
-				"visitor"
-			],
 			"weight": 0.2,
-			"importance_level": "OPTIONAL",
+			"evidentiary_value_text": "Reinforces that the victim was sharing a drink with a visitor before the murder.",
+			"importance_level": "MINOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [],
 			"linked_statements": []
@@ -601,12 +519,9 @@
 			"type": "OBJECT",
 			"location_found": "loc_victim_apartment",
 			"related_persons": [],
-			"tags": [
-				"crime_scene",
-				"murder_weapon"
-			],
 			"weight": 0.3,
-			"importance_level": "SUPPORTING",
+			"evidentiary_value_text": "Suggests the murder weapon likely came from inside the apartment.",
+			"importance_level": "MAJOR",
 			"discovery_method": "VISUAL",
 			"legal_categories": [],
 			"linked_statements": []
@@ -622,19 +537,14 @@
 				"p_mark",
 				"p_victim"
 			],
-			"tags": [
-				"hidden",
-				"embezzlement",
-				"motive",
-				"critical"
-			],
 			"weight": 0.85,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Exposes the full financial threat Daniel posed to Mark.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE"
 			],
-			"hint_text": "Look carefully around Daniel's office \u2014 there may be hidden compartments.",
+			"hint_text": "Look carefully around Daniel's office — there may be hidden compartments.",
 			"linked_statements": [
 				"stmt_mark_money_admission",
 				"stmt_mark_deeper_admission",
@@ -653,14 +563,9 @@
 				"p_mark",
 				"p_julia"
 			],
-			"tags": [
-				"personal",
-				"motive",
-				"critical",
-				"journal"
-			],
 			"weight": 0.85,
-			"importance_level": "CRITICAL",
+			"evidentiary_value_text": "Shows Daniel planned to confront both Mark and Julia, raising motive for each.",
+			"importance_level": "REQUIRED",
 			"discovery_method": "VISUAL",
 			"legal_categories": [
 				"MOTIVE",

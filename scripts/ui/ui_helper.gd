@@ -218,6 +218,20 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	if button == null:
 		return
 	_apply_end_day_button_theme(button)
+	apply_button_icon(button, _BACK_ICON_LIGATURE, label_text, _BACK_CONTENT_MIN_WIDTH, _BACK_CONTENT_MIN_HEIGHT)
+
+
+## Applies a Material icon + text row inside a standard button while preserving
+## the button's existing theme, stylebox, and interaction behavior.
+static func apply_button_icon(
+	button: Button,
+	icon_ligature: String,
+	label_text: String,
+	minimum_width: float = 0.0,
+	minimum_height: float = 0.0
+) -> void:
+	if button == null:
+		return
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var old_content: Node = button.get_node_or_null(_BACK_CONTENT_NODE_NAME)
@@ -257,7 +271,7 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	margin.add_child(row)
 
 	var icon_label: Label = Label.new()
-	icon_label.text = _BACK_ICON_LIGATURE
+	icon_label.text = icon_ligature
 	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_material_icon_font(icon_label)
@@ -287,12 +301,16 @@ static func apply_back_button_icon(button: Button, label_text: String = "Back") 
 	row.add_child(text_label)
 
 	var text_width: float = _measure_text_width(button_font, label_text, button_font_size)
-	var icon_width: float = _measure_text_width(_back_icon_font, _BACK_ICON_LIGATURE, button_font_size)
+	var icon_width: float = _measure_text_width(_back_icon_font, icon_ligature, button_font_size)
+	var text_height: float = _measure_font_height(button_font, button_font_size)
+	var icon_height: float = _measure_font_height(_back_icon_font, button_font_size)
 	var desired_min_width: float = margin_left + icon_width + _BACK_CONTENT_SEPARATION + text_width + margin_right
-	button.custom_minimum_size.x = maxf(button.custom_minimum_size.x, maxf(_BACK_CONTENT_MIN_WIDTH, desired_min_width))
-	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, _BACK_CONTENT_MIN_HEIGHT)
-
-
+	var desired_min_height: float = margin_top + maxf(text_height, icon_height) + margin_bottom
+	var resolved_min_height: float = minimum_height
+	if resolved_min_height <= 0.0:
+		resolved_min_height = maxf(_BACK_CONTENT_MIN_HEIGHT, desired_min_height)
+	button.custom_minimum_size.x = maxf(button.custom_minimum_size.x, maxf(minimum_width, desired_min_width))
+	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, resolved_min_height)
 static func _apply_end_day_button_theme(button: Button) -> void:
 	var theme: Theme = _get_main_theme()
 	if theme == null:
@@ -346,6 +364,12 @@ static func _measure_text_width(font: Font, text: String, font_size: int) -> flo
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 
+static func _measure_font_height(font: Font, font_size: int) -> float:
+	if font == null:
+		return 0.0
+	return font.get_height(font_size)
+
+
 static func _apply_material_icon_font(icon_label: Label) -> void:
 	if _back_icon_font == null:
 		var base_font: FontFile = load(_MATERIAL_ICON_FONT_PATH) as FontFile
@@ -366,3 +390,72 @@ static func _apply_material_icon_font(icon_label: Label) -> void:
 ## BG_SURFACE background and subtler border defined in main_theme.tres.
 static func apply_surface_style(panel: PanelContainer) -> void:
 	panel.theme_type_variation = &"SurfacePanel"
+
+
+## Returns a human-readable label for a discovery method.
+static func get_discovery_method_label(method: Enums.DiscoveryMethod) -> String:
+	match method:
+		Enums.DiscoveryMethod.VISUAL:         return "Visual Inspection"
+		Enums.DiscoveryMethod.FORENSIC:       return "Forensic Analysis"
+		Enums.DiscoveryMethod.WARRANT:        return "Search Warrant"
+		Enums.DiscoveryMethod.DIGITAL:        return "Digital Recovery"
+		Enums.DiscoveryMethod.TESTIMONY:      return "Interrogation"
+		Enums.DiscoveryMethod.ADMINISTRATIVE: return "Case File"
+	return "Unknown"
+
+
+## Returns a human-readable label for a case-role/materiality level.
+static func get_importance_label(level: Enums.ImportanceLevel) -> String:
+	match level:
+		Enums.ImportanceLevel.REQUIRED:   return "Required"
+		Enums.ImportanceLevel.KEY:        return "Key"
+		Enums.ImportanceLevel.MAJOR:      return "Major"
+		Enums.ImportanceLevel.MINOR:      return "Minor"
+	return "Unknown"
+
+
+## Returns a human-readable label for a lab status.
+static func get_lab_status_label(status: Enums.LabStatus) -> String:
+	match status:
+		Enums.LabStatus.NOT_SUBMITTED: return "Not Submitted"
+		Enums.LabStatus.PROCESSING:    return "Processing..."
+		Enums.LabStatus.COMPLETED:     return "Complete"
+	return "Unknown"
+
+
+## Returns the badge accent color for an importance level.
+static func get_importance_badge_color(level: Enums.ImportanceLevel) -> Color:
+	match level:
+		Enums.ImportanceLevel.REQUIRED:   return UIColors.RED
+		Enums.ImportanceLevel.KEY:        return UIColors.AMBER
+		Enums.ImportanceLevel.MAJOR:      return UIColors.BLUE
+		Enums.ImportanceLevel.MINOR:      return UIColors.TEXT_GREY
+	return UIColors.TEXT_GREY
+
+
+## Creates a styled badge pill (PanelContainer with a Label).
+## Shared across evidence screens for type, importance, and category badges.
+static func make_badge_pill(text: String, color: Color) -> PanelContainer:
+	var pill := PanelContainer.new()
+	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	var bg: Color = color
+	bg.a = 0.12
+	style.bg_color = bg
+	var border: Color = color
+	border.a = 0.5
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	pill.add_theme_stylebox_override("panel", style)
+	var label := Label.new()
+	label.text = text.to_upper()
+	label.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+	label.add_theme_color_override("font_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(label)
+	return pill

@@ -158,6 +158,192 @@ func test_case_data_to_dict_includes_discovery_rules() -> void:
 	assert_eq(result["discovery_rules"][0]["id"], "dr_01")
 
 
+func test_case_data_validates_missing_derived_from_parent() -> void:
+	var case_data := CaseData.from_dict({
+		"id": "case_lineage",
+		"title": "Lineage Test",
+		"persons": [{"id": "p_victim", "name": "Victim", "role": "VICTIM"}],
+		"evidence": [
+			{
+				"id": "ev_child",
+				"name": "Child Evidence",
+				"discovery_method": "FORENSIC",
+				"derived_from": "ev_missing",
+			},
+		],
+	})
+	var errors := case_data.validate()
+	assert_true(_has_error_containing(errors, "derived_from 'ev_missing' does not exist"))
+
+
+func test_case_data_validates_derived_from_cycle() -> void:
+	var case_data := CaseData.from_dict({
+		"id": "case_cycle",
+		"title": "Cycle Test",
+		"persons": [{"id": "p_victim", "name": "Victim", "role": "VICTIM"}],
+		"evidence": [
+			{
+				"id": "ev_a",
+				"name": "Evidence A",
+				"discovery_method": "VISUAL",
+				"derived_from": "ev_b",
+			},
+			{
+				"id": "ev_b",
+				"name": "Evidence B",
+				"discovery_method": "FORENSIC",
+				"derived_from": "ev_a",
+			},
+		],
+	})
+	var errors := case_data.validate()
+	assert_true(_has_error_containing(errors, "evidence lineage cycle detected"))
+
+
+func test_case_data_validates_lab_output_matches_derived_from() -> void:
+	var case_data := CaseData.from_dict({
+		"id": "case_lab_lineage",
+		"title": "Lab Lineage Test",
+		"persons": [{"id": "p_victim", "name": "Victim", "role": "VICTIM"}],
+		"evidence": [
+			{
+				"id": "ev_parent",
+				"name": "Parent Evidence",
+				"discovery_method": "VISUAL",
+			},
+			{
+				"id": "ev_child",
+				"name": "Child Evidence",
+				"discovery_method": "FORENSIC",
+				"derived_from": "ev_other",
+			},
+		],
+		"lab_requests": [
+			{
+				"id": "lab_01",
+				"input_evidence_id": "ev_parent",
+				"analysis_type": "fingerprint_analysis",
+				"output_evidence_id": "ev_child",
+			},
+		],
+	})
+	var errors := case_data.validate()
+	assert_true(_has_error_containing(errors, "lab output evidence 'ev_child' must set derived_from to 'ev_parent'"))
+
+
+func test_case_data_validates_missing_lab_analysis_result_target() -> void:
+	var case_data := CaseData.from_dict({
+		"id": "case_missing_lab_target",
+		"title": "Missing Lab Target",
+		"persons": [{"id": "p_victim", "name": "Victim", "role": "VICTIM"}],
+		"evidence": [
+			{
+				"id": "ev_parent",
+				"name": "Parent Evidence",
+				"discovery_method": "VISUAL",
+				"lab_analysis_results": ["ev_missing"],
+			},
+		],
+		"lab_requests": [
+			{
+				"id": "lab_missing",
+				"input_evidence_id": "ev_parent",
+				"analysis_type": "fingerprint_analysis",
+				"output_evidence_id": "ev_missing",
+			},
+		],
+	})
+	var errors := case_data.validate()
+	assert_true(_has_error_containing(errors, "lab_analysis_results 'ev_missing' does not exist"))
+
+
+func test_case_data_validates_lab_analysis_result_requires_matching_lab_request() -> void:
+	var case_data := CaseData.from_dict({
+		"id": "case_missing_lab_request",
+		"title": "Missing Lab Request",
+		"persons": [{"id": "p_victim", "name": "Victim", "role": "VICTIM"}],
+		"evidence": [
+			{
+				"id": "ev_parent",
+				"name": "Parent Evidence",
+				"discovery_method": "VISUAL",
+				"lab_analysis_results": ["ev_child"],
+			},
+			{
+				"id": "ev_child",
+				"name": "Child Evidence",
+				"discovery_method": "FORENSIC",
+				"derived_from": "ev_parent",
+			},
+		],
+	})
+	var errors := case_data.validate()
+	assert_true(_has_error_containing(errors, "lab_analysis_results 'ev_child' must match a lab request"))
+
+
+func test_case_data_validates_lab_request_output_declared_on_input_evidence() -> void:
+	var case_data := CaseData.from_dict({
+		"id": "case_missing_forward_link",
+		"title": "Missing Forward Link",
+		"persons": [{"id": "p_victim", "name": "Victim", "role": "VICTIM"}],
+		"evidence": [
+			{
+				"id": "ev_parent",
+				"name": "Parent Evidence",
+				"discovery_method": "VISUAL",
+			},
+			{
+				"id": "ev_child",
+				"name": "Child Evidence",
+				"discovery_method": "FORENSIC",
+				"derived_from": "ev_parent",
+			},
+		],
+		"lab_requests": [
+			{
+				"id": "lab_forward_link",
+				"input_evidence_id": "ev_parent",
+				"analysis_type": "fingerprint_analysis",
+				"output_evidence_id": "ev_child",
+			},
+		],
+	})
+	var errors := case_data.validate()
+	assert_true(_has_error_containing(errors, "must include lab output 'ev_child' in lab_analysis_results"))
+
+
+func test_riverside_lab_outputs_define_derived_from() -> void:
+	var errors: Array[String] = []
+	var case_data: CaseData = CaseLoader.load_from_folder("riverside_apartment", errors)
+	if case_data == null:
+		fail_test("Case not loaded")
+		return
+
+	var evidence_by_id: Dictionary = {}
+	for ev: EvidenceData in case_data.evidence:
+		evidence_by_id[ev.id] = ev
+
+	assert_eq((evidence_by_id["ev_julia_fingerprint_glass"] as EvidenceData).derived_from, "ev_wine_glasses")
+	assert_eq((evidence_by_id["ev_mark_fingerprint_desk"] as EvidenceData).derived_from, "ev_desk_fingerprint_raw")
+	assert_eq((evidence_by_id["ev_shoe_print"] as EvidenceData).derived_from, "ev_shoe_print_raw")
+
+
+func test_riverside_raw_lab_evidence_define_lab_analysis_results() -> void:
+	var errors: Array[String] = []
+	var case_data: CaseData = CaseLoader.load_from_folder("riverside_apartment", errors)
+	if case_data == null:
+		fail_test("Case not loaded")
+		return
+
+	var evidence_by_id: Dictionary = {}
+	for ev: EvidenceData in case_data.evidence:
+		evidence_by_id[ev.id] = ev
+
+	assert_eq((evidence_by_id["ev_wine_glasses"] as EvidenceData).lab_analysis_results, ["ev_julia_fingerprint_glass"])
+	assert_eq((evidence_by_id["ev_desk_fingerprint_raw"] as EvidenceData).lab_analysis_results, ["ev_mark_fingerprint_desk"])
+	assert_eq((evidence_by_id["ev_shoe_print_raw"] as EvidenceData).lab_analysis_results, ["ev_shoe_print"])
+
+
 # =============================================================================
 # CaseLoader Folder Loading Tests
 # =============================================================================
@@ -409,7 +595,7 @@ func test_case_manager_folder_query_evidence() -> void:
 	var fingerprint := CaseManager.get_evidence("ev_julia_fingerprint_glass")
 	assert_not_null(fingerprint)
 	assert_eq(fingerprint.type, Enums.EvidenceType.FORENSIC)
-	assert_eq(fingerprint.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(fingerprint.importance_level, Enums.ImportanceLevel.REQUIRED)
 	_reset_case_manager()
 
 

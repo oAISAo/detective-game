@@ -222,7 +222,137 @@ func validate() -> Array[String]:
 		errors.append_array(session.validate())
 	for rule: DiscoveryRuleData in discovery_rules:
 		errors.append_array(rule.validate())
+	errors.append_array(_validate_evidence_lineage())
 
+	return errors
+
+
+func _validate_evidence_lineage() -> Array[String]:
+	var errors: Array[String] = []
+	var evidence_by_id: Dictionary = _build_evidence_lookup()
+	errors.append_array(_validate_derived_from_targets(evidence_by_id))
+	errors.append_array(_validate_derived_from_cycles(evidence_by_id))
+	errors.append_array(_validate_lab_analysis_targets(evidence_by_id))
+	errors.append_array(_validate_lab_output_lineage(evidence_by_id))
+	return errors
+
+
+func _build_evidence_lookup() -> Dictionary:
+	var evidence_by_id: Dictionary = {}
+	for ev: EvidenceData in evidence:
+		evidence_by_id[ev.id] = ev
+	return evidence_by_id
+
+
+func _validate_derived_from_targets(evidence_by_id: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for ev: EvidenceData in evidence:
+		if ev.derived_from.is_empty():
+			continue
+		if evidence_by_id.has(ev.derived_from):
+			continue
+		errors.append(
+			"CaseData: evidence '%s' derived_from '%s' does not exist" % [ev.id, ev.derived_from]
+		)
+	return errors
+
+
+func _validate_derived_from_cycles(evidence_by_id: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for ev: EvidenceData in evidence:
+		if ev.derived_from.is_empty() or ev.derived_from == ev.id:
+			continue
+
+		var visited: Dictionary = {ev.id: true}
+		var next_id: String = ev.derived_from
+		while not next_id.is_empty():
+			if visited.has(next_id):
+				errors.append("CaseData: evidence lineage cycle detected for '%s'" % ev.id)
+				break
+			visited[next_id] = true
+
+			var parent: EvidenceData = evidence_by_id.get(next_id, null) as EvidenceData
+			if parent == null:
+				break
+			next_id = parent.derived_from
+	return errors
+
+
+func _validate_lab_analysis_targets(evidence_by_id: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for ev: EvidenceData in evidence:
+		for output_id: String in ev.lab_analysis_results:
+			if not evidence_by_id.has(output_id):
+				errors.append(
+					"CaseData: evidence '%s' lab_analysis_results '%s' does not exist" % [ev.id, output_id]
+				)
+				continue
+			if _count_matching_lab_requests(ev.id, output_id) == 1:
+				continue
+			errors.append(
+				"CaseData: evidence '%s' lab_analysis_results '%s' must match a lab request" % [
+					ev.id,
+					output_id,
+				]
+			)
+	return errors
+
+
+func _count_matching_lab_requests(input_evidence_id: String, output_evidence_id: String) -> int:
+	var match_count: int = 0
+	for lab_req: LabRequestData in lab_requests:
+		if lab_req.input_evidence_id != input_evidence_id:
+			continue
+		if lab_req.output_evidence_id != output_evidence_id:
+			continue
+		match_count += 1
+	return match_count
+
+
+func _validate_lab_output_lineage(evidence_by_id: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for lab_req: LabRequestData in lab_requests:
+		if lab_req.input_evidence_id.is_empty():
+			continue
+
+		var input_ev: EvidenceData = evidence_by_id.get(lab_req.input_evidence_id, null) as EvidenceData
+		if input_ev == null:
+			errors.append(
+				"CaseData: lab request '%s' input evidence '%s' does not exist" % [
+					lab_req.id,
+					lab_req.input_evidence_id,
+				]
+			)
+			continue
+
+		if lab_req.output_evidence_id.is_empty():
+			continue
+
+		var output_ev: EvidenceData = evidence_by_id.get(lab_req.output_evidence_id, null) as EvidenceData
+		if output_ev == null:
+			errors.append(
+				"CaseData: lab request '%s' output evidence '%s' does not exist" % [
+					lab_req.id,
+					lab_req.output_evidence_id,
+				]
+			)
+			continue
+		if output_ev.derived_from == lab_req.input_evidence_id:
+			if lab_req.output_evidence_id in input_ev.lab_analysis_results:
+				continue
+			errors.append(
+				"CaseData: evidence '%s' must include lab output '%s' in lab_analysis_results" % [
+					input_ev.id,
+					lab_req.output_evidence_id,
+				]
+			)
+			continue
+		errors.append(
+			"CaseData: lab output evidence '%s' must set derived_from to '%s'" % [
+				lab_req.output_evidence_id,
+				lab_req.input_evidence_id,
+			]
+		)
 	return errors
 
 

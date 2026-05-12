@@ -50,9 +50,10 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_julia"],
 			"tags": ["fingerprint", "kitchen", "forensic"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"hint_text": "Did you check the wine glasses in the kitchen?",
 			"legal_categories": ["PRESENCE"],
+			"linked_statements": ["s_julia_01"],
 		},
 		{
 			"id": "ev_camera",
@@ -63,7 +64,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark"],
 			"tags": ["camera", "parking", "video"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -75,7 +76,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_mark", "p_victim"],
 			"tags": ["financial", "money", "records"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"hint_text": "Look at the victim's financial records more closely.",
 			"legal_categories": ["MOTIVE"],
 		},
@@ -88,7 +89,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["photo", "crime scene"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_phone",
@@ -99,7 +100,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_julia", "p_victim"],
 			"tags": ["phone", "digital", "calls"],
 			"weight": 0.4,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_knife",
@@ -110,7 +111,7 @@ var _test_case_data: Dictionary = {
 			"related_persons": [],
 			"tags": ["weapon", "kitchen", "blood"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"requires_lab_analysis": true,
 			"hint_text": "The technician says there might be something hidden in the kitchen drawers.",
 			"legal_categories": ["OPPORTUNITY"],
@@ -124,7 +125,18 @@ var _test_case_data: Dictionary = {
 			"related_persons": ["p_victim"],
 			"tags": ["letter", "threat", "handwritten"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
+		},
+		{
+			"id": "ev_knife_result",
+			"name": "Blood DNA Analysis",
+			"description": "DNA extracted from blood traces on the kitchen knife.",
+			"type": "FORENSIC",
+			"location_found": "",
+			"related_persons": [],
+			"tags": ["forensic", "dna"],
+			"weight": 0.95,
+			"importance_level": "REQUIRED",
 		},
 	],
 	"statements": [
@@ -197,6 +209,17 @@ var _test_case_data: Dictionary = {
 			"description": "Mark had a motive — irregular financial transactions suggest embezzlement.",
 			"source_evidence": ["ev_document", "ev_phone"],
 			"strengthens_theory": "theory_mark",
+		},
+	],
+	"lab_requests": [
+		{
+			"id": "lab_knife_dna",
+			"input_evidence_id": "ev_knife",
+			"output_evidence_id": "ev_knife_result",
+			"analysis_type": "dna",
+			"day_submitted": 1,
+			"completion_day": 2,
+			"lab_transform": "upgrade",
 		},
 	],
 }
@@ -293,19 +316,6 @@ func test_filter_by_type_multiple_results() -> void:
 	assert_eq(result[0].id, "ev_photo")
 
 
-func test_filter_by_tag() -> void:
-	GameManager.discover_evidence("ev_fingerprint")
-	GameManager.discover_evidence("ev_knife")
-	GameManager.discover_evidence("ev_camera")
-	var result: Array[EvidenceData] = EvidenceManager.filter_by_tag("kitchen")
-	assert_eq(result.size(), 2, "Should find 2 items tagged 'kitchen'")
-	var ids: Array[String] = []
-	for ev: EvidenceData in result:
-		ids.append(ev.id)
-	assert_has(ids, "ev_fingerprint")
-	assert_has(ids, "ev_knife")
-
-
 # ============================================================
 # §5.1 — Search
 # ============================================================
@@ -325,12 +335,11 @@ func test_search_by_description() -> void:
 	assert_eq(result[0].id, "ev_document")
 
 
-func test_search_by_tag() -> void:
+func test_search_does_not_match_tag_only_query() -> void:
 	GameManager.discover_evidence("ev_knife")
 	GameManager.discover_evidence("ev_camera")
 	var result: Array[EvidenceData] = EvidenceManager.search_evidence("weapon")
-	assert_eq(result.size(), 1, "Should find by tag")
-	assert_eq(result[0].id, "ev_knife")
+	assert_eq(result.size(), 0, "Search should no longer match tag-only queries")
 
 
 func test_search_empty_query_returns_all() -> void:
@@ -371,15 +380,23 @@ func test_pin_evidence_already_pinned_returns_false() -> void:
 	assert_false(result, "Double pin should return false")
 
 
-func test_pin_evidence_max_reached() -> void:
-	for ev_id: String in ["ev_fingerprint", "ev_camera", "ev_document", "ev_photo", "ev_phone"]:
+func test_pin_evidence_allows_more_than_five_items() -> void:
+	var evidence_ids: Array[String] = [
+		"ev_fingerprint",
+		"ev_camera",
+		"ev_document",
+		"ev_photo",
+		"ev_phone",
+		"ev_knife",
+		"ev_letter",
+	]
+	for ev_id: String in evidence_ids:
 		GameManager.discover_evidence(ev_id)
-		EvidenceManager.pin_evidence(ev_id)
-	assert_eq(EvidenceManager.get_pinned_evidence().size(), 5, "Should have 5 pinned")
-	GameManager.discover_evidence("ev_knife")
-	var result: bool = EvidenceManager.pin_evidence("ev_knife")
-	assert_false(result, "Should fail when max pinned reached")
-	assert_push_warning("[EvidenceManager] Cannot pin — maximum 5 items reached.")
+		var result: bool = EvidenceManager.pin_evidence(ev_id)
+		assert_true(result, "Pinning should stay available after five items: %s" % ev_id)
+
+	assert_eq(EvidenceManager.get_pinned_evidence().size(), evidence_ids.size(),
+		"Players should be able to pin as many discovered evidence items as they want.")
 
 
 func test_pin_undiscovered_evidence_fails() -> void:
@@ -628,6 +645,21 @@ func test_request_hint_succeeds() -> void:
 	assert_eq(hint.get("target_evidence", ""), "ev_fingerprint")
 
 
+func test_request_hint_uses_importance_level_not_weight() -> void:
+	GameManager.current_day = 2
+	GameManager.visit_location("loc_apartment")
+
+	var critical_evidence: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	var supporting_evidence: EvidenceData = CaseManager.get_evidence("ev_photo")
+	critical_evidence.weight = 0.1
+	supporting_evidence.weight = 0.99
+
+	var hint: Dictionary = EvidenceManager.request_hint()
+	assert_false(hint.is_empty())
+	assert_eq(hint.get("target_evidence", ""), "ev_fingerprint",
+		"Hint selection should still follow importance_level rather than the heavier supporting clue.")
+
+
 func test_request_hint_budget_exceeded() -> void:
 	GameManager.current_day = 2
 	GameManager.visit_location("loc_apartment")
@@ -764,6 +796,7 @@ func test_serialize_returns_dictionary() -> void:
 	var data: Dictionary = EvidenceManager.serialize()
 	assert_true(data.has("pinned_evidence"))
 	assert_true(data.has("detected_contradictions"))
+	assert_false(data.has("player_tags"))
 
 
 func test_deserialize_restores_state() -> void:
@@ -790,6 +823,17 @@ func test_serialize_round_trip() -> void:
 	assert_eq(EvidenceManager.get_pinned_evidence().size(), 2)
 	assert_true(EvidenceManager.is_pinned("ev_fingerprint"))
 	assert_true(EvidenceManager.is_pinned("ev_camera"))
+
+
+func test_deserialize_ignores_legacy_player_tags_key() -> void:
+	var legacy_state: Dictionary = {
+		"player_tags": {
+			"ev_fingerprint": ["legacy_tag"],
+		}
+	}
+	EvidenceManager.deserialize(legacy_state)
+	var serialized: Dictionary = EvidenceManager.serialize()
+	assert_false(serialized.has("player_tags"), "Legacy player_tags data should be ignored on load.")
 
 
 func test_reset_clears_all_state() -> void:
@@ -824,3 +868,160 @@ func test_game_manager_deserialize_restores_evidence_manager() -> void:
 	assert_false(EvidenceManager.is_pinned("ev_fingerprint"))
 	GameManager.deserialize(data)
 	assert_true(EvidenceManager.is_pinned("ev_fingerprint"))
+
+
+# ============================================================
+# Reviewed State
+# ============================================================
+
+func test_is_reviewed_false_by_default() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"Evidence should not be reviewed until mark_reviewed is called.")
+
+
+func test_mark_reviewed_marks_and_emits_signal() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	assert_true(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"Evidence should be marked reviewed after mark_reviewed.")
+	assert_signal_emitted(EvidenceManager, "evidence_reviewed")
+	assert_signal_emitted_with_parameters(EvidenceManager, "evidence_reviewed", ["ev_fingerprint"])
+
+
+func test_mark_reviewed_again_is_no_op() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	assert_signal_emit_count(EvidenceManager, "evidence_reviewed", 0,
+		"Second mark_reviewed call must not re-emit the signal.")
+
+
+func test_reviewed_state_serializes_and_restores() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"is_reviewed should be false after reset.")
+	EvidenceManager.deserialize(data)
+	assert_true(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"is_reviewed should be restored after deserialize.")
+
+
+func test_reset_clears_reviewed_state() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_reviewed("ev_fingerprint"),
+		"reset() must clear the reviewed state.")
+
+
+# ============================================================
+# §7 — Player Notes
+# ============================================================
+
+func test_player_notes_empty_by_default() -> void:
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"get_player_notes should return empty string when no note has been set.")
+
+
+func test_set_and_get_player_notes() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "Suspicious residue visible.")
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "Suspicious residue visible.",
+		"get_player_notes should return the exact text passed to set_player_notes.")
+
+
+func test_set_empty_notes_removes_entry() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "Some note.")
+	EvidenceManager.set_player_notes("ev_fingerprint", "")
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"Setting empty notes should clear the entry — get_player_notes must return ''.")
+
+
+func test_set_player_notes_emits_signal() -> void:
+	watch_signals(EvidenceManager)
+	EvidenceManager.set_player_notes("ev_fingerprint", "Check this again.")
+	assert_signal_emitted(EvidenceManager, "player_notes_changed")
+	assert_signal_emitted_with_parameters(EvidenceManager, "player_notes_changed",
+		["ev_fingerprint"])
+
+
+func test_player_notes_serializes_and_restores() -> void:
+	EvidenceManager.set_player_notes("ev_fingerprint", "My key note.")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "",
+		"Notes should be absent after reset.")
+	EvidenceManager.deserialize(data)
+	assert_eq(EvidenceManager.get_player_notes("ev_fingerprint"), "My key note.",
+		"Notes should be restored after deserialize.")
+
+
+# ============================================================
+# §9 — Sent to Board & Superseded State
+# ============================================================
+
+func test_is_sent_to_board_false_by_default() -> void:
+	assert_false(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"Evidence should not be marked sent-to-board by default.")
+
+
+func test_mark_sent_to_board_sets_state() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	assert_true(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"Evidence should be marked sent-to-board after mark_sent_to_board.")
+
+
+func test_mark_sent_to_board_emits_signal() -> void:
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	assert_signal_emitted_with_parameters(EvidenceManager, "evidence_sent_to_board",
+		["ev_fingerprint"])
+
+
+func test_mark_sent_to_board_is_idempotent() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	watch_signals(EvidenceManager)
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	assert_signal_emit_count(EvidenceManager, "evidence_sent_to_board", 0,
+		"Second mark_sent_to_board call must not re-emit the signal.")
+
+
+func test_sent_to_board_serializes_and_restores() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	var data: Dictionary = EvidenceManager.serialize()
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"is_sent_to_board should be false after reset.")
+	EvidenceManager.deserialize(data)
+	assert_true(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"is_sent_to_board should be restored after deserialize.")
+
+
+func test_reset_clears_sent_to_board() -> void:
+	EvidenceManager.mark_sent_to_board("ev_fingerprint")
+	EvidenceManager.reset()
+	assert_false(EvidenceManager.is_sent_to_board("ev_fingerprint"),
+		"reset() must clear sent-to-board state.")
+
+
+func test_is_superseded_false_without_lab_request() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	assert_false(EvidenceManager.is_superseded("ev_fingerprint"),
+		"Evidence without a lab request should never be superseded.")
+
+
+func test_is_superseded_false_before_output_discovered() -> void:
+	GameManager.discover_evidence("ev_knife")
+	assert_false(EvidenceManager.is_superseded("ev_knife"),
+		"Evidence with an undiscovered lab result should not be superseded.")
+
+
+func test_is_superseded_true_when_output_discovered() -> void:
+	GameManager.discover_evidence("ev_knife")
+	GameManager.discover_evidence("ev_knife_result")
+	assert_true(EvidenceManager.is_superseded("ev_knife"),
+		"Evidence should be superseded when its lab result has been discovered.")

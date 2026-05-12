@@ -49,6 +49,17 @@ func test_apply_back_button_icon_rebuilds_content_without_duplicates() -> void:
 	assert_eq(content_count, 1, "Back button should only contain one generated content container")
 	button.free()
 
+
+func test_apply_button_icon_preserves_minimum_height_for_generic_buttons() -> void:
+	var button: Button = Button.new()
+	button.custom_minimum_size = Vector2.ZERO
+
+	UI_HELPER.apply_button_icon(button, "keep", "Pin")
+
+	assert_true(button.custom_minimum_size.y >= 36.0,
+		"Generic icon buttons should reserve enough height so their icon/text row is not vertically clipped.")
+	button.free()
+
 func test_set_list_button_selected_toggles_pressed_state() -> void:
 	var button: Button = Button.new()
 	UI_HELPER.apply_list_button_style(button, false)

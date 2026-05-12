@@ -1,16 +1,16 @@
 ## evidence_statements_panel.gd
 ## Displays all player-unlocked statements linked to a given evidence item.
-## Handles verdict display and reacts to verdict changes via EvidenceManager signal.
+## Handles verdict display, expand/collapse, and per-statement notes.
 ## Built programmatically — no .tscn needed.
 class_name EvidenceStatementsPanel
 extends VBoxContainer
 
 
 var _evidence_id: String = ""
+var _handwriting_font: Font = null
 
 ## Maps statement_id -> StatementItem for targeted updates.
 var _items: Dictionary = {}
-
 
 func _ready() -> void:
 	EvidenceManager.statement_verdict_changed.connect(_on_verdict_changed)
@@ -19,6 +19,12 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if EvidenceManager.statement_verdict_changed.is_connected(_on_verdict_changed):
 		EvidenceManager.statement_verdict_changed.disconnect(_on_verdict_changed)
+
+
+## Stores the handwriting font for use when creating StatementItems.
+## Call once after adding to the scene tree, before set_evidence().
+func setup(handwriting_font: Font) -> void:
+	_handwriting_font = handwriting_font
 
 
 ## Loads and renders all visible statements for the given evidence item.
@@ -35,16 +41,17 @@ func _reload() -> void:
 
 	if statements.is_empty():
 		var empty_label: Label = Label.new()
-		empty_label.text = "No relevant statements yet."
+		empty_label.text = "No statements linked yet. Interrogate suspects to gather testimony."
+		empty_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty_label.add_theme_color_override("font_color", UIColors.TEXT_GREY)
 		add_child(empty_label)
-		return
-
-	for stmt: StatementData in statements:
-		var item: StatementItem = StatementItem.new()
-		add_child(item)
-		item.setup(_evidence_id, stmt)
-		_items[stmt.id] = item
+	else:
+		for stmt: StatementData in statements:
+			var item: StatementItem = StatementItem.new()
+			add_child(item)
+			item.setup(_evidence_id, stmt, _handwriting_font)
+			_items[stmt.id] = item
 
 
 func _on_verdict_changed(evidence_id: String, statement_id: String, _verdict: String) -> void:

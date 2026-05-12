@@ -125,7 +125,7 @@ This is the most important technical foundation. Every system reads from these d
 | `ActionData`              | id, name, type (enum), time_cost (int), target, requirements[], results[] |
 | `EventTriggerData`        | id, trigger_type (enum), trigger_day, conditions[], actions[], result_events[] |
 | `InsightData`             | id, description, source_evidence[], strengthens_theory, enables_warrant, unlocks_topic |
-| `LabRequestData`          | id, input_evidence_id, analysis_type, day_submitted, completion_day, output_evidence_id |
+| `LabRequestData`          | id, input_evidence_id, analysis_type, day_submitted, completion_day, output_evidence_id, pending_status_text, completed_status_text, lab_transform |
 | `SurveillanceRequestData` | id, target_person, type (enum), day_installed, active_days (int), result_events[] |
 
 ### 1.2 — Define Enums
@@ -501,7 +501,7 @@ This prevents players from getting lost.
 - Actions remaining counter
 - Navigation buttons to all screens
 - Notification area (new evidence, lab results, story events)
-- Quick-access to pinned evidence
+- Evidence pinning remains visible inside the archive instead of using a separate quick-access bar
 
 ### Phase 4B — Advanced Systems (Added Later)
 
@@ -590,14 +590,11 @@ Referenced In:
 
 ### 5.3 — Evidence Pinning
 
-Quick-access bar for frequently referenced evidence:
+Pinned evidence stays inside the main archive grid and sorts to the top of the visible results.
 
-```
-Pinned Evidence:
-[Fingerprint] [Wine Glass] [Elevator Log]
-```
+Pinned cards use a centered `keep` marker on the polaroid instead of a separate quick-access bar.
 
-Players pin/unpin from the archive or detail view.
+Players pin/unpin from the archive detail view.
 
 ### 5.4 — Evidence Comparison System
 
@@ -657,7 +654,7 @@ Create all 25 evidence items (E1–E25) as JSON data imported into Resources:
 - Evidence checklist view showing discovery status of all 25 items
 
 ### Deliverables
-- Evidence Archive UI with filtering, search, and tags
+- Evidence Archive UI with filtering and search
 - Evidence Detail View with relationships panel
 - Evidence pinning system
 - Evidence comparison → Insight system

@@ -47,5 +47,12 @@ const SIZE_METADATA: int = 12
 ## UI-specific display sizes for iconography and stamp effects.
 const SIZE_ICON: int = 36
 const SIZE_ICON_GLOW: int = 38
+const SIZE_ICON_BUTTON: int = 26
 const SIZE_NAV_LABEL_GLOW: int = 15
 const SIZE_STAMP: int = 28
+
+
+# --- Font Assets --- #
+
+## Handwriting-style font used for polaroid labels and statement notes.
+const HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"

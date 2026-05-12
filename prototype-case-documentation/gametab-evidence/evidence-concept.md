@@ -4,9 +4,9 @@
 
 The Evidence Tab is the player's investigation workspace for all collected evidence. Where the Map tab is about *gathering* — going out and finding things — the Evidence tab is about *understanding*: reading, connecting, analyzing, and drawing conclusions from what's been found.
 
-**Core loop:** Discover evidence (via Map / Lab / Interrogation) → Review in Evidence Archive → Submit to Lab if raw → Link statements → Classify contradictions → Compare items → Build understanding
+**Core loop:** Discover evidence (via direct inspection / forensic output / warrants / interrogation / briefing) → Review in Evidence Archive → Submit raw items to Lab if needed → Follow explicit evidence lineage where relevant → Classify contradictions → Compare items for insights → Build understanding
 
-**Key principle:** The Evidence tab never interprets evidence for the player. It presents facts. The player decides what they mean. The game's job is to make analysis feel like a detective's workflow, not a database query.
+**Key principle:** The Evidence tab should not pretend certainty can be measured with fake precision. It presents facts plus authored investigative context, while leaving the final deduction to the player.
 
 ---
 
@@ -18,15 +18,16 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 │  Evidence Archive       │  Evidence Detail                                │
 │                         │                                                 │
 │  [Search bar]           │  ┌─ Header ──────────────────────────────────┐  │
-│  [Type filter]          │  │  ID · Title · Badges · Pin · Board        │  │
+│  [Type filter]          │  │  Title · Badges · Pin · Board        │  │
 │                         │  └────────────────────────────────────────────┘ │
 │  Polaroid grid of all   │  ┌─ Main col ─────────┐  ┌─ Side col ───────┐  │
-│  discovered evidence    │  │  Image              │  │  Related Persons │  │
-│                         │  │  Description        │  │  Statements /    │  │
-│  Click → loads detail   │  │  Metadata grid      │  │  Contradiction   │  │
-│                         │  │  Weight bar         │  │  Engine          │  │
-│                         │  │  Tags               │  │  Send to Board   │  │
-│                         │  │  Compare button     │  └──────────────────┘  │
+│  discovered evidence    │  │  Image              │  │  Statements      │  │
+│                         │  │  Description        │  │  / Contradiction │  │
+│  Click → loads detail   │  │  Metadata grid      │  │  Engine          │  │
+│                         │  │  Evidentiary Value  │  │  Send to Board   │  │
+│                         │  │  Related Persons    │  └──────────────────┘  │
+│                         │  │  Legal Categories   │                       │
+│                         │  │  Compare button     │                       │
 │                         │  └────────────────────────────────────────────┘  │
 └─────────────────────────┴─────────────────────────────────────────────────┘
 ```
@@ -38,14 +39,14 @@ The Evidence Tab is the player's investigation workspace for all collected evide
 ### Layout
 - A scrollable grid of polaroid-style evidence cards (same visual style as the map tab discovery cards)
 - Search bar at the top (real-time filter on name/description)
-- Type filter dropdown: All Types / Forensic / Document / Recording / Financial / Digital / Physical / Lab Result
+- Type filter dropdown: All Types / Forensic / Document / Photo / Recording / Financial / Digital / Object / Physical / Testimonial
 
 ### Evidence Cards (Polaroid Style)
 Each card shows:
 - Evidence ID code (top, monospace, small)
 - Dark image placeholder (or actual evidence image when available)
 - Evidence name (bottom caption)
-- **State badge** in top-right corner (see Evidence States below)
+- **State pills** in the top-right corner for NEW/LAB plus a centered top `keep` marker when pinned
 
 ### Card Interactions
 - **Click** → loads that evidence into the right panel
@@ -53,17 +54,17 @@ Each card shows:
 - Cards are always visible — there is no pagination
 
 ### Ordering
-- Default: discovery order (newest at top)
-- **NEW** items always float to the top until reviewed
-- Within same discovery day: critical evidence before supporting before noise
+- Pinned evidence always floats to the top of the currently visible archive results
+- Within the pinned and unpinned groups, **NEW** items float to the top until reviewed
+- Reviewed items then sort by most recent discovery, with case relevance only acting as a late tie-break
 
-### Evidence Card States (Badge)
-| Badge | Color | Meaning |
+### Evidence Card States
+| Marker | Color | Meaning |
 |-------|-------|---------|
 | **NEW** | Blue | Discovered but not yet opened |
 | **LAB** | Amber | Submitted for lab analysis, results pending |
+| **keep** icon | Amber | Pinned by player; shown at the top center of the polaroid |
 | *(none)* | — | Reviewed, no special status |
-| **PINNED** | Amber dot | Pinned by player (small dot, not a full badge) |
 
 The **NEW** badge disappears the moment the player opens the evidence detail for the first time.
 
@@ -72,43 +73,38 @@ The **NEW** badge disappears the moment the player opens the evidence detail for
 ## Right Panel — Evidence Detail
 
 ### Layout
-The detail panel is split into a header, a main content column, and a side column.
+The detail panel is split into a header and three scrollable columns.
 
 ```
-┌─ Header ────────────────────────────────────────────────────────┐
-│  [E14 — Parking Lot]  Parking Lot Camera Footage                │
-│  [CRITICAL] [Recording] [Presence]          [Pinned] [Board]    │
-└─────────────────────────────────────────────────────────────────┘
-┌─ Main Column (fills space) ──┐  ┌─ Side Column (220px) ────────┐
-│  [ Image / Placeholder ]     │  │  RELATED PERSONS             │
-│                               │  │  ○ Mark Bennett · Suspect    │
-│  DESCRIPTION                 │  │                              │
-│  Security camera footage...  │  │  ──────────────────────────  │
-│                               │  │  STATEMENTS                  │
-│  DETAILS                     │  │  [stmt item]                 │
-│  Location / Discovery /      │  │  [stmt item]                 │
-│  Day Found / Lab Status      │  │  [stmt item]                 │
-│                               │  │                              │
-│  EVIDENTIARY WEIGHT          │  │  [+ Link Statement]          │
-│  ████████░░ 70%              │  │  [Send to Board ↗]           │
-│  "Strong corroborating..."   │  └──────────────────────────────┘
-│                               │
-│  TAGS                        │
-│  [surveillance] [timeline]   │
-│                               │
-│  [◎ Compare Evidence]        │
-└──────────────────────────────┘
+┌─ Header ────────────────────────────────────────────────────────────────────┐
+│  Parking Lot Camera Footage                         [Pinned] [Compare] [Board] │
+│  [REQUIRED] [Recording] [Presence]                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌─ Column 1: Evidence View ─────┐ ┌─ Column 2: Details ───────────────────┐ ┌─ Column 3: Analysis ─────────────┐
+│  [Square Image / Placeholder] │ │  DETAILS                              │ │  REFERENCED STATEMENTS           │
+│  Security camera footage...    │ │  Location / Discovery / Day Found    │ │  [stmt item]                     │
+│                                │ │  Lab Status / Metadata                │ │  [stmt item]                     │
+│  FORENSIC ANALYSIS             │ │  RELATED PERSONS                     │ │  [stmt item]                     │
+│  [submit / pending / complete] │ │  LEGAL CATEGORIES                    │ │                                  │
+│                                │ │                                      │ │  MY NOTES                        │
+│  EVIDENTIARY VALUE             │ │                                      │ │  [always-visible TextEdit]       │
+│  Supporting                    │ │                                      │ │                                  │
+│  Suggests the victim had       │ │                                      │ └──────────────────────────────────┘
+│  company before the murder.    │ │                                      │                                    
+│  Contested by a credible       │ │                                      │                                    
+│  statement (if applicable)     │ │                                      │                                    
+└────────────────────────────────┘ └──────────────────────────────────────┘ └──────────────────────────────────┘
 ```
 
 ### Header
-- **Evidence ID** — monospace label above the title (e.g., `E14 — Parking Lot`)
 - **Title** — serif large type
-- **Badges row** — Importance badge (CRITICAL / SUPPORTING / NOISE) + Type badge + Legal Category badge(s)
+- **Badges row** — Case Relevance badge (REQUIRED / MAJOR / MINOR / KEY) + Type badge + Legal Category badge(s)
 - **Pin button** — toggles pinned state; purely a player convenience bookmark
+- **Compare button** — opens the comparison selector in the right panel header button row
 - **Board button** — sends evidence to the Detective Board (see Board tab integration below)
 
 ### Image Block
-- Shows evidence image if available
+- Shows evidence image if available, filling the first-column width while staying square
 - Placeholder pattern (diagonal hatch) with camera icon if no image
 - Bottom label bar: evidence ID + day discovered
 
@@ -116,23 +112,74 @@ The detail panel is split into a header, a main content column, and a side colum
 - Plain prose. What this item is, where it was found, what it looks like.
 - Written in case data — not generated by the player.
 
-### Metadata Grid (2×2 cells)
+### Metadata Grid (dynamic key/value rows)
 | Field | Content |
 |-------|---------|
 | Location | Where it was found |
-| Discovery | How it was found (Visual Inspection / Examine / Lab Result / Interrogation) |
+| Discovery | Original acquisition source (Visual Inspection / Forensic Analysis / Search Warrant / Digital Recovery / Interrogation / Case File) |
+| Derived From | Shown when the evidence item explicitly comes from another evidence item |
 | Day Found | Investigation day |
+| Case Relevance | Case-role materiality from `importance_level` |
 | Lab Status | Not required / Pending / Complete |
 
-### Evidentiary Weight Bar
-- Percentage drawn from evidence data (`weight` field)
-- **Color rules:**
-  - Red: `EvidenceManager.is_contradicted(evidence_id)` returns true — at least one linked statement has a player CONTRADICTION verdict and `statement.importance <= ImportanceLevel.SUPPORTING` (i.e. CRITICAL or SUPPORTING importance)
-  - Teal: evidence is supporting a strong confirmed theory (🚧 not yet implemented)
-  - Amber: default
-- One-sentence prosecutor assessment below the bar
+`discovery_method` is source-only metadata. `importance_level` is separate case-role metadata used for guidance, ordering, and evidence-detail presentation. Pending or completed lab work is represented by `lab_status`, and comparison outcomes are tracked in the insight system rather than becoming a new discovery label.
 
-The check in code:
+### Evidence Lineage
+- Evidence lineage is explicit in case data through `EvidenceData.derived_from`.
+- `derived_from` is a single parent evidence ID, not a list. It expresses authored origin, not player interpretation.
+- A child evidence detail can show **Derived From** as a navigation link when the parent is still present in the discovered archive.
+- Raw evidence declares forward lab targets through `EvidenceData.lab_analysis_results`.
+- The Forensic Analysis block uses `lab_analysis_results` plus matching `LabRequestData` templates to show available analyses, pending submissions, and completed result links.
+- For lab requests with `lab_transform: derive`, parent and child can coexist in the archive.
+- For lab requests with `lab_transform: upgrade`, the analyzed output still keeps `derived_from`, but the raw parent can be replaced in the discovered archive. In that case the child shows the parent name as plain metadata rather than an active navigation link.
+- Lineage is separate from lab state. `derived_from` answers "where did this evidence come from?" while `lab_status` answers "what is happening to this evidence right now?"
+- Evidence comparison does not create lineage. Successful comparisons unlock `InsightData`, not child evidence items.
+
+### Case Relevance
+- Case Relevance appears in the header badge row and the metadata grid.
+- It comes from `EvidenceData.importance_level`.
+- It answers: **How essential is this evidence to the case's authored guidance role?**
+- Current runtime uses are intentionally narrow: progressive hint targeting, archive ordering tie-breaks, and evidence-detail badge/metadata presentation.
+- It is not a strength meter. A required clue can still be weak or only supporting in the Evidentiary Value section if its `weight` is low.
+- `StatementData.importance` reuses the same enum family for contradiction credibility, but that is a statement-materiality rule, not evidence strength.
+- Prosecutor coverage remains a separate case-authored list through `CaseData.critical_evidence_ids`; it is not derived from every evidence item marked `REQUIRED`.
+
+### Evidentiary Value
+- This lives in the first column below the description and the forensic-analysis block.
+- It is an interpretation, not a measurement.
+- The section uses the internal `weight` field only to derive a qualitative tier.
+- Case Relevance and Evidentiary Value are independent; they are allowed to disagree.
+- The player sees three layers of information:
+  - **Qualitative tier** — the primary signal shown in the UI
+  - **Case-specific interpretation** — evidence-authored reasoning text
+  - **Optional dynamic modifier** — a subtle contested warning when the evidence is challenged by a credible contradiction
+
+Qualitative tiers are derived internally from `weight`, but the number itself is never shown:
+
+| Internal Weight | Player-Facing Label |
+|----------------|---------------------|
+| 0.85–1.0 | Airtight |
+| 0.65–0.84 | Strong |
+| 0.40–0.64 | Supporting |
+| 0.20–0.39 | Weak |
+| 0.01–0.19 | Marginal |
+
+Example presentation:
+
+```text
+Evidentiary Value
+
+Supporting
+Suggests the victim had company before the murder.
+```
+
+If the evidence is contested, the section adds a subtle warning instead of shifting into an aggressive visual alarm state:
+
+```text
+Contested by a credible statement
+```
+
+The contested modifier uses the existing contradiction check:
 ```gdscript
 # In EvidenceManager:
 func is_contradicted(evidence_id: String) -> bool:
@@ -140,34 +187,30 @@ func is_contradicted(evidence_id: String) -> bool:
         if get_statement_verdict(evidence_id, stmt_id) != "contradiction":
             continue
         var stmt: StatementData = CaseManager.get_statement(stmt_id)
-        # CRITICAL (0) and SUPPORTING (1) are material; OPTIONAL (2) and KEY (3) are not
-        if stmt.importance <= Enums.ImportanceLevel.SUPPORTING:
+        # REQUIRED (0) and MAJOR (1) are material; MINOR (2) and KEY (3) are not
+        if stmt.importance <= Enums.ImportanceLevel.MAJOR:
             return true
     return false
 ```
 
-Weight thresholds and their prose labels:
-| Weight | Label |
-|--------|-------|
-| 85–100% | Airtight. Will convict on its own. |
-| 65–84% | Strong. Holds up under cross-examination. |
-| 40–64% | Corroborating. Strengthens the case when combined with other evidence. |
-| 20–39% | Weak. Circumstantial — the defense will challenge this. |
-| 1–19% | Marginal. Context only. |
+      This contested-warning check depends on statement materiality, not evidence `weight`. It sits alongside the other two systems rather than replacing them.
 
-### Tags
-- Predefined tags from case data (e.g., `surveillance`, `timeline`, `alibi`, `contradiction`)
-- Players can add custom tags (free text, short label)
-- Tags are used as a secondary search filter in the left panel
+    The section deliberately removes:
+    - percentage display
+    - progress bars
+    - bar-color severity states
+    - generic prosecutor-style prose reused across unrelated evidence items
 
 ### Compare Evidence Button
+The compare button lives in the header button row with Pin and Send to Board. It still opens the comparison selector in the right panel.
+
 See **Evidence Comparison** section below.
 
 ---
 
-## Side Column — Related Persons
+## Second Column — Related Persons
 
-A compact list of all persons linked to this evidence in the case data.
+A compact list of all persons linked to this evidence in the case data. It sits in the second column below the forensic analysis block.
 
 Each person entry shows:
 - Avatar circle with initials (color-coded: red for suspects, blue for witnesses, grey for other)
@@ -176,9 +219,17 @@ Each person entry shows:
 
 Clicking a person navigates to their profile in the Suspects tab.
 
+## Second Column — Legal Categories
+
+A compact list of the evidence's legal categories in the case data. It appears directly below Related Persons in the second column.
+
+Each entry shows:
+- A bullet label for the legal category
+- The same case-data-driven category labels used elsewhere in the UI
+
 ---
 
-## Side Column — Statements (Contradiction Engine)
+## Third Column — Referenced Statements (Contradiction Engine)
 
 This is the most important section of the Evidence Tab. It shows all recorded statements that are linked to this evidence item — and lets the player classify whether each statement **supports**, **contradicts**, or is **unresolved** relative to this evidence.
 
@@ -202,6 +253,14 @@ This means:
 - The player sees the link because they now have both pieces of information
 
 Statements are **never automatically classified**. Showing up in the list is neutral — the player decides what the relationship means.
+
+## Third Column — My Notes
+
+The notes section sits directly below Referenced Statements in the third column.
+
+It uses a `My Notes` Section Header, keeps the text field visible at all times, and autosaves the player's writing back into evidence state.
+
+There is no collapse/expand toggle.
 
 ### Statement Data Model
 Each statement contains:
@@ -240,14 +299,8 @@ The player sets the verdict by clicking the current verdict pill and selecting f
 - Contradiction
 - Supports
 - Unresolved
-- (Remove link — hides the statement from this evidence item)
 
 **Design principle:** Classifying a contradiction is a meaningful investigative action. The game tracks which contradictions have been identified — this feeds into the Prosecutor Confidence evaluation at case submission.
-
-### "+ Link Statement" Button
-If the player wants to manually link a statement that wasn't pre-linked in the data, they can use this button to search for statements and attach them. This supports player-driven connections the data didn't anticipate.
-
-> **Decided (D2):** Manually linked statements show a small pen icon ("player-tagged" indicator) so the player can distinguish their own inference from a data-driven link. 🚧 *Not yet implemented.*
 
 ---
 
@@ -259,31 +312,36 @@ Some evidence discovered on the Map tab is raw and requires forensic laboratory 
 **Lab submission costs 0 actions** (passive activity). It represents the detective packaging up the sample and sending it off — a routine administrative step, not an investigation decision. The meaningful decision is *which evidence* to submit and *when* — submitting something wastes nothing, so the player is always incentivized to submit promptly.
 
 ### Raw Evidence
-Evidence with `requires_lab_analysis: true` in its data displays a **Submit to Lab** section in the detail panel instead of (or below) the Compare Evidence button:
+Evidence with non-empty `lab_analysis_results` in its data displays a **Forensic Analysis** block in the first column, between the Description and Evidentiary Value sections:
 
 ```
 ┌─────────────────────────────────────────┐
-│  LAB ANALYSIS AVAILABLE                 │
-│  Fingerprint analysis can be performed  │
-│  on this item. Results return next day. │
+│  FORENSIC ANALYSIS                      │
+│  Possible forensic analyses are         │
+│  available.                             │
 │                                         │
 │  [Submit to Lab — Fingerprint Analysis] │
 └─────────────────────────────────────────┘
 ```
 
+`lab_analysis_results` is the forward source of truth for lab-capable evidence. Each listed output ID must match a `LabRequestData` template for the same input evidence. The template still owns the per-analysis metadata such as `analysis_type`, `lab_transform`, `pending_status_text`, and `completed_status_text`.
+
 ### Submission Steps
 1. Player opens raw evidence (e.g., `ev_wine_glasses`)
-2. "Submit to Lab" section appears with the analysis type pre-populated from data
-3. Player clicks "Submit to Lab"
-4. Notification: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
-5. Evidence card in the archive gains **LAB** badge
-6. The "Submit to Lab" button changes to a status indicator: *"In analysis — Day 2 morning"*
+2. The Forensic Analysis block appears in the first column with one entry per currently available lab target
+3. Each entry shows a submit button labeled from the matching `LabRequestData.analysis_type`
+4. Player clicks "Submit to Lab"
+5. The Forensic Analysis banner switches to the pending status copy from `LabRequestData.pending_status_text`, for example: *"Wine glasses submitted for fingerprint analysis. Results expected tomorrow morning."*
+6. Evidence card in the archive gains **LAB** badge
+7. The lab action remains visible as a submitted wait button until the result arrives the next morning
 
 ### Lab Results Delivery
 - Results are delivered automatically at the **start of the next day's morning phase** (no player action needed)
 - A notification fires: *"Lab results in: [result evidence name]"*
-- The result is a **new, separate evidence item** that appears in the archive with a **NEW** badge
-- The original raw evidence item remains in the archive unchanged — it is not replaced
+- The result always carries explicit lineage through `derived_from`
+- For `derive` requests, the result is a **new, separate evidence item** that appears in the archive with a **NEW** badge while the parent remains discoverable
+- For `upgrade` requests, the analyzed output replaces the raw evidence in the discovered archive, but still points back to the raw input via `derived_from`
+- When both items remain discoverable, the detail panel can navigate between parent and child directly from the metadata grid
 
 ### Lab Requests in the Riverside Apartment Case
 | Lab Request | Input Evidence | Output Evidence | Analysis Type |
@@ -297,7 +355,7 @@ Evidence with `requires_lab_analysis: true` in its data displays a **Submit to L
 ## Evidence Comparison
 
 ### Overview
-Some evidence items can be compared against each other to generate a **forensic match result** — a new evidence item confirming or denying a connection between two pieces of evidence.
+Some evidence items can be compared against each other to generate an **insight** — not a new evidence item in the archive.
 
 Comparison is a passive action (0 action cost). It represents the detective placing two items side by side and drawing a conclusion.
 
@@ -306,28 +364,28 @@ Comparison is a passive action (0 action cost). It represents the detective plac
 2. Clicks "Compare Evidence"
 3. A comparison selector appears over the right panel showing all other discovered evidence as a scrollable list
 4. Player selects evidence item B (e.g., `ev_julia_shoes`)
-5. The system checks whether a valid comparison pair exists in the case data
-   - **Valid pair:** A new evidence item is generated and added to the archive. Notification fires.
+5. The system checks whether both selected items belong to the same authored `InsightData.source_evidence` set in the case data
+  - **Valid pair:** The matching insight is discovered. Notification fires.
    - **Invalid pair:** A brief message: *"No forensic connection found between these items."* Nothing is generated.
 6. The comparison selector closes
 
 ### Comparison Result
-A forensic match result is a new evidence item with:
-- Type: `forensic_match`
-- Description: e.g., *"The hallway shoe print matches the sole pattern of Julia Ross's left shoe (size 38)."*
-- Importance: typically Critical
-- Linked to both source evidence items
+A successful comparison yields an `InsightData` result with:
+- A story description tied to the selected evidence set
+- Links back to the source evidence items
+- Optional downstream effects such as strengthening a theory, enabling a warrant, or unlocking an interrogation topic
+- No new `EvidenceData` item and therefore no new `discovery_method` label in the archive
 
 ### Comparisons in the Riverside Apartment Case
-| Evidence A | Evidence B | Output | Result |
-|------------|------------|--------|--------|
-| `ev_shoe_print` | `ev_julia_shoes` | `ev_shoe_match` | Match confirmed |
-| `ev_julia_fingerprint_glass` | `ev_wine_glasses` | *(no new item — fingerprint already is the result)* | — |
-| `ev_bank_transfer` | `ev_accounting_files` | `ev_financial_link` | Financial connection confirmed |
+| Source Evidence Set | Insight | Outcome |
+|---------------------|---------|---------|
+| `ev_bank_transfer` + `ev_accounting_files` (+ broader money trail context) | `ins_embezzlement_scheme` | Unlocks the missing-money thread |
+| `ev_julia_fingerprint_glass` + `ev_elevator_logs` | `ins_julia_presence` | Supports Julia-presence reasoning and enables the Julia warrant |
+| `ev_hidden_safe` + `ev_personal_journal` | `ins_hidden_relationships` | Connects Julia and Mark's shared motive |
 
 > **Decided (D1):** Invalid comparisons produce a brief inline message only — no junk evidence is generated. This is already implemented in `EvidenceManager.compare_evidence()`.
 >
-> **Implementation note:** Comparisons are defined as `InsightData` objects stored in `data/cases/riverside_apartment/timeline.json` under the `"insights"` key. There is no separate `comparisons.json` file. Each `InsightData` specifies `source_evidence` (the two evidence IDs), `description`, and optionally `strengthens_theory`, `enables_warrant`, or `unlocks_topic`.
+> **Implementation note:** Comparisons are defined as `InsightData` objects stored in `data/cases/riverside_apartment/timeline.json` under the `"insights"` key. There is no separate `comparisons.json` file. Each `InsightData` specifies `source_evidence`, `description`, and optionally `strengthens_theory`, `enables_warrant`, or `unlocks_topic`.
 
 ---
 
@@ -339,10 +397,9 @@ Each evidence item tracks the following state:
 |-------------|--------|-------|
 | `reviewed` | bool | True once player has opened the detail panel for this item |
 | `pinned` | bool | Player bookmark — UI convenience only |
-| `lab_status` | `none` / `submitted` / `complete` | For raw evidence only |
+| `lab_status` | `none` / `submitted` / `complete` | Runtime status for evidence currently participating in the lab flow |
 | `sent_to_board` | bool | Whether "Send to Board" has been clicked |
 | `player_notes` | string | Free-text notes written by the player |
-| `player_tags` | string[] | Custom tags added by the player |
 
 ### State Transitions
 | From | To | Trigger |
@@ -370,7 +427,7 @@ When the player clicks **Send to Board**:
 
 ## Player Notes
 
-The statement expansion section includes a **free-text notes field** per statement link. The main evidence detail panel also has a **notes area** accessible via a small notes toggle icon near the bottom.
+The statement expansion section includes a **free-text notes field** per statement link. The main evidence detail panel also includes the always-open `My Notes` section in the third column, directly below Referenced Statements.
 
 Player notes are:
 - Stored per evidence item in game state
@@ -394,7 +451,6 @@ All Evidence Tab activities are **passive (0 action cost)** unless otherwise not
 | Comparing evidence | 0 |
 | Classifying statement verdict | 0 |
 | Writing notes | 0 |
-| Adding tags | 0 |
 | Pinning | 0 |
 | Sending to Board | 0 |
 
@@ -404,16 +460,18 @@ All Evidence Tab activities are **passive (0 action cost)** unless otherwise not
 
 ## Evidence Discovery Sources
 
-Evidence can arrive in the archive from multiple sources. Each source is tracked in the `discovery_method` field:
+Evidence can arrive in the archive from multiple sources. `discovery_method` records the evidence's original acquisition source only.
+
+Lab processing state is tracked separately in `lab_status`, and comparison outcomes belong to the insight system rather than the evidence archive.
 
 | Source | Method Label | Examples |
 |--------|-------------|---------|
-| Map tab target examination | Visual Inspection / Examine | ev_knife, ev_wine_glasses |
-| Lab analysis result | Lab Result | ev_julia_fingerprint_glass |
-| Morning briefing (automatic) | Case File | ev_autopsy_report |
-| Interrogation (statement-driven) | Interrogation | *(future: evidence surfaced through questioning)* |
+| Direct location examination | Visual Inspection | ev_knife, ev_wine_glasses |
+| Forensic output evidence | Forensic Analysis | ev_julia_fingerprint_glass, ev_shoe_print |
+| Morning briefing / case paperwork | Case File | ev_autopsy_report |
+| Interrogation-surfaced evidence | Interrogation | *(future: evidence surfaced through questioning)* |
 | Warrant execution | Search Warrant | ev_julia_shoes, ev_deleted_messages |
-| Surveillance result | Surveillance | *(optional: phone tap recordings)* |
+| Digital extraction / recovery | Digital Recovery | *(future device extraction outputs)* |
 
 ---
 
@@ -437,7 +495,6 @@ Evidence notifications always show:
 1. Evidence is discovered → **NEW** badge appears on card in archive
 2. Player opens the detail panel → **NEW** badge disappears
 3. If player hasn't opened it by end of day → badge persists into next day
-4. Notification bell counter (top-right nav) counts all unreviewed NEW items
 
 ---
 
@@ -461,10 +518,12 @@ Next morning
         → lab_completed signal
 
 Evidence comparison
-  → EvidenceManager.compare(evidence_id_a, evidence_id_b)
-  → Checks ComparisonsData for valid pair
-     → If valid: GameManager.discover_evidence(result_id)
-     → If invalid: comparison_no_match signal → UI message
+  → EvidenceManager.compare_evidence(evidence_id_a, evidence_id_b)
+  → Checks CaseManager.get_all_insights() for a matching source_evidence set
+    → If valid: GameManager.discover_insight(insight_id)
+      → insight_generated signal
+      → NotificationManager.notify_story("New insight: ...")
+    → If invalid: returns null → UI message
 
 Statement verdict classification
   → EvidenceManager.set_statement_verdict(evidence_id, statement_id, verdict)
@@ -486,7 +545,7 @@ Send to board
 
 ### Evidence Data Fields (from `evidence.json`)
 
-> **Note:** `weight` is stored as a float from 0.0–1.0 (not a percentage integer). Multiply by 100 for display. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
+> **Note:** `weight` is stored as a float from 0.0–1.0 and is used internally for qualitative tiering and prosecutor scoring. `importance_level` is separate case-role metadata used for guidance and evidence-detail presentation. Prosecutor coverage remains separately authored through `CaseData.critical_evidence_ids`. `evidentiary_value_text` stores the evidence-specific reasoning sentence shown to the player. All enum strings (`type`, `importance_level`, `discovery_method`, `legal_categories`) are upper-case. `discovered_day` has been removed from the data model — the day evidence was found is derived at runtime: `GameManager.get_evidence_discovery_day(id)` stores `current_day` when `discover_evidence()` is called. Discovery order is implicit in the insertion order of `GameManager.discovered_evidence`.
 
 ```json
 {
@@ -494,16 +553,16 @@ Send to board
   "name": "Parking Lot Camera Footage",
   "description": "Security camera footage from the parking lot showing Mark Bennett leaving the building at 20:40.",
   "type": "RECORDING",
-  "importance_level": "CRITICAL",
+  "importance_level": "REQUIRED",
   "weight": 0.7,
+  "evidentiary_value_text": "Fixes Mark's departure time and tests whether his timeline is truthful.",
   "location_found": "loc_parking_lot",
-  "requires_lab_analysis": false,
+  "lab_analysis_results": [],
   "discovery_method": "VISUAL",
   "related_persons": ["p_mark"],
   "legal_categories": ["PRESENCE"],
   "linked_statements": ["stmt_mark_departure_time", "stmt_mark_corrected_departure", "stmt_mark_lied_to_hide_argument"],
   "hint_text": "Check the security camera in the parking lot.",
-  "tags": ["surveillance", "timeline", "alibi", "contradiction"]
 }
 ```
 
@@ -515,7 +574,7 @@ State is split across multiple systems. Fields below show what IS currently trac
 - ✅ Discovery order is implicit in the array insertion order (newest = last appended)
 
 **`EvidenceManager.pinned_evidence`** (Array[String]):
-- ✅ Pinned evidence IDs (max 5)
+- ✅ Pinned evidence IDs; players can pin any discovered evidence item
 
 **`EvidenceManager._statement_verdicts`** (Dictionary, key: `"evidence_id:statement_id"`):
 ```json
@@ -536,7 +595,6 @@ State is split across multiple systems. Fields below show what IS currently trac
     "reviewed": true,
     "sent_to_board": true,
     "player_notes": "",
-    "player_tags": []
   }
 }
 ```
@@ -551,15 +609,13 @@ All design questions have been resolved. Decisions are final.
 
 **D1 — Invalid evidence comparisons:** Silent inline message only — no junk evidence items are generated. ✅ *Already implemented in `EvidenceManager.compare_evidence()`.*
 
-**D2 — Manually linked statements:** Manually linked statements show a small pen icon ("player-tagged" indicator) to visually distinguish them from data-driven links. Player-created links are stored separately in `EvidenceManager` state. 🚧 *Not yet implemented.*
-
 **D3 — "Send to Board" placement:** Auto-place in an inbox zone at a predefined position on the board canvas. The player repositions it in the Board tab. `BoardManager.send_to_board()` is already called from `evidence_archive.gd` — the inbox zone coordinates need to be finalized. 🚧 *Inbox zone position not yet finalized.*
 
 **D4 — Comparison from either item:** Available from either evidence item in a pair. ✅ *Already implemented — `EvidenceManager.compare_evidence(a, b)` works symmetrically.*
 
-**D5 — Raw evidence after lab result arrives:** The raw item stays in the archive. Once its lab result arrives, the raw item gets a "Superseded" visual treatment: muted appearance + a link label pointing to the processed result item. The raw item is never removed. 🚧 *Not yet implemented.*
+**D5 — Raw evidence after lab result arrives:** `derive` results keep the raw evidence discoverable and the Forensic Analysis block links to the completed result. `upgrade` results replace the raw evidence in the discovered archive, while the analyzed child still keeps `derived_from` metadata pointing back to the raw input. ✅ *Matches current runtime behavior.*
 
-**D6 — Nav badge count for unreviewed evidence:** Yes — the Evidence tab icon in the nav bar shows a count of unreviewed (NEW) items. 🚧 *Requires `reviewed` state tracking to be implemented first.*
+**D6 — Nav badge count for unreviewed evidence:** Removed — the Evidence tab nav icon does not show an unreviewed-items counter. The NEW badge on individual evidence cards in the archive is sufficient.
 
 ---
 
@@ -569,13 +625,16 @@ All design questions have been resolved. Decisions are final.
 
 | File | Purpose |
 |------|---------|
-| `scripts/ui/screens/evidence_archive.gd` | **Main evidence screen** — merged left panel (archive grid) + right panel (detail); `_populate_lab_section()` and `_populate_comparison_targets()` are built inline here |
+| `scripts/ui/screens/evidence_archive.gd` | **Main evidence screen** — owns the archive grid shell and wires the evidence detail panel |
 | `scenes/ui/evidence_archive.tscn` | Scene for the evidence screen |
+| `scripts/ui/components/evidence_detail_panel.gd` | Right-panel coordinator for the selected evidence item |
+| `scripts/ui/components/evidence_lab_section.gd` | Forensic analysis block for available / pending / completed analyses, driven by `lab_analysis_results` plus `LabRequestData` |
+| `scripts/ui/components/evidence_value_section.gd` | Evidentiary Value component showing qualitative tier, case-authored interpretation, and contested warning |
 | `scripts/ui/components/evidence_polaroid.gd` | Polaroid card used in the evidence grid (`EvidencePolaroid` class) |
 | `scripts/ui/components/evidence_statements_panel.gd` | Container component that renders all statement items for the selected evidence (`EvidenceStatementsPanel` class) |
 | `scripts/ui/components/statement_item.gd` | Single statement row with verdict cycle button (`StatementItem` class) |
 
-> **Note:** There are no separate `evidence_tab.gd`, `evidence_archive.gd` (component), `evidence_detail.gd`, `lab_submit_section.gd`, or `compare_selector.gd` files — the full screen is implemented in `scripts/ui/screens/evidence_archive.gd`. `scripts/ui/components/evidence_card.gd` has been **deleted** — `EvidencePolaroid` (`scripts/ui/components/evidence_polaroid.gd`) is the canonical evidence card component.
+> **Note:** There are no separate `evidence_tab.gd`, `evidence_archive.gd` (component), `lab_submit_section.gd`, or `compare_selector.gd` files. `scripts/ui/components/evidence_card.gd` has been **deleted** — `EvidencePolaroid` (`scripts/ui/components/evidence_polaroid.gd`) is the canonical evidence card component.
 
 ### Managers
 

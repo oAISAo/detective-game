@@ -7,10 +7,10 @@ extends BaseSubsystem
 
 # --- Signals --- #
 
-## Emitted when evidence is pinned to the quick-access bar.
+## Emitted when evidence is pinned in the evidence archive.
 signal evidence_pinned(evidence_id: String)
 
-## Emitted when evidence is unpinned from the quick-access bar.
+## Emitted when evidence is unpinned in the evidence archive.
 signal evidence_unpinned(evidence_id: String)
 
 ## Emitted when a new insight is generated from evidence comparison.
@@ -29,16 +29,18 @@ signal statement_verdict_changed(evidence_id: String, statement_id: String, verd
 ## Emitted when the player updates a note on a statement-evidence link.
 signal statement_note_changed(evidence_id: String, statement_id: String)
 
+## Emitted the first time an evidence item's detail panel is opened by the player.
+signal evidence_reviewed(evidence_id: String)
 
-# --- Constants --- #
+## Emitted when the player saves a note for an evidence item.
+signal player_notes_changed(evidence_id: String)
 
-## Maximum number of pinned evidence items.
-const MAX_PINNED: int = 5
-
+## Emitted the first time a piece of evidence is sent to the detective board.
+signal evidence_sent_to_board(evidence_id: String)
 
 # --- State --- #
 
-## IDs of evidence pinned to the quick-access bar.
+## IDs of evidence pinned by the player in the evidence archive.
 var pinned_evidence: Array[String] = []
 
 ## Detected contradictions: [{statement_id, evidence_id, statement_text, person_id}]
@@ -47,6 +49,15 @@ var detected_contradictions: Array[Dictionary] = []
 ## Player verdicts per statement-evidence pair.
 ## Key: "evidence_id:statement_id", Value: StatementVerdictData
 var _statement_verdicts: Dictionary = {}
+
+## Tracks which evidence IDs the player has reviewed (opened detail panel).
+var _reviewed_evidence: Dictionary = {}
+
+## Player-written notes per evidence item. Key: evidence_id, Value: note text.
+var _player_notes: Dictionary = {}
+
+## Tracks which evidence items have been sent to the detective board.
+var _sent_to_board: Dictionary = {}
 
 
 # --- Lifecycle --- #
@@ -85,18 +96,9 @@ func filter_by_type(type: Enums.EvidenceType) -> Array[EvidenceData]:
 	return result
 
 
-## Filters discovered evidence by tag.
-func filter_by_tag(tag: String) -> Array[EvidenceData]:
-	var result: Array[EvidenceData] = []
-	for ev: EvidenceData in get_discovered_evidence_data():
-		if tag in ev.tags:
-			result.append(ev)
-	return result
-
-
 # --- Search --- #
 
-## Searches discovered evidence by name, description, or tags (case-insensitive).
+## Searches discovered evidence by name and description (case-insensitive).
 func search_evidence(query: String) -> Array[EvidenceData]:
 	if query.is_empty():
 		return get_discovered_evidence_data()
@@ -108,27 +110,14 @@ func search_evidence(query: String) -> Array[EvidenceData]:
 			result.append(ev)
 		elif lower_query in ev.description.to_lower():
 			result.append(ev)
-		elif _matches_tags(ev, lower_query):
-			result.append(ev)
 	return result
-
-
-## Checks if any tag on the evidence matches the query.
-func _matches_tags(ev: EvidenceData, query: String) -> bool:
-	for tag: String in ev.tags:
-		if query in tag.to_lower():
-			return true
-	return false
 
 
 # --- Pinning --- #
 
-## Pins evidence to the quick-access bar. Returns true on success.
+## Pins evidence in the evidence archive. Returns true on success.
 func pin_evidence(evidence_id: String) -> bool:
 	if evidence_id in pinned_evidence:
-		return false
-	if pinned_evidence.size() >= MAX_PINNED:
-		push_warning("[EvidenceManager] Cannot pin — maximum %d items reached." % MAX_PINNED)
 		return false
 	if not GameManager.has_evidence(evidence_id):
 		push_error("[EvidenceManager] Cannot pin undiscovered evidence: %s" % evidence_id)
@@ -138,7 +127,7 @@ func pin_evidence(evidence_id: String) -> bool:
 	return true
 
 
-## Unpins evidence from the quick-access bar. Returns true on success.
+## Unpins evidence from the evidence archive. Returns true on success.
 func unpin_evidence(evidence_id: String) -> bool:
 	if evidence_id not in pinned_evidence:
 		return false
@@ -255,9 +244,10 @@ func is_statement_unlocked(statement_id: String) -> bool:
 
 
 ## Returns true if this evidence has at least one linked statement where the player
-## has set a CONTRADICTION verdict AND the statement importance is SUPPORTING or higher
-## (i.e. importance <= Enums.ImportanceLevel.SUPPORTING in enum order: CRITICAL=0, SUPPORTING=1).
-## Used to determine whether the weight bar should be shown in red.
+## has set a CONTRADICTION verdict AND the statement importance is MAJOR or higher
+## (i.e. importance <= Enums.ImportanceLevel.MAJOR in enum order: REQUIRED=0, MAJOR=1).
+## Used to determine whether the Evidentiary Value section should show a
+## contested warning for this evidence item.
 func is_contradicted(evidence_id: String) -> bool:
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
 	if ev == null:
@@ -268,25 +258,25 @@ func is_contradicted(evidence_id: String) -> bool:
 		var stmt: StatementData = CaseManager.get_statement(stmt_id)
 		if stmt == null:
 			continue
-		# CRITICAL (0) and SUPPORTING (1) are both material; OPTIONAL (2) and KEY (3) are not.
-		if stmt.importance <= Enums.ImportanceLevel.SUPPORTING:
+		# REQUIRED (0) and MAJOR (1) are both material; MINOR (2) and KEY (3) are not.
+		if stmt.importance <= Enums.ImportanceLevel.MAJOR:
 			return true
 	return false
 
 
 ## Returns StatementData items visible for a given evidence item.
-## Only returns statements that are linked to this evidence AND unlocked by the player.
+## Includes case-data linked statements only.
+## Only returns statements that are unlocked by the player.
 func get_statements_for_evidence(evidence_id: String) -> Array[StatementData]:
 	var ev: EvidenceData = CaseManager.get_evidence(evidence_id)
-	if ev == null:
-		return []
 	var result: Array[StatementData] = []
-	for stmt_id: String in ev.linked_statements:
-		if not is_statement_unlocked(stmt_id):
-			continue
-		var stmt: StatementData = CaseManager.get_statement(stmt_id)
-		if stmt != null:
-			result.append(stmt)
+	if ev != null:
+		for stmt_id: String in ev.linked_statements:
+			if not is_statement_unlocked(stmt_id):
+				continue
+			var stmt: StatementData = CaseManager.get_statement(stmt_id)
+			if stmt != null:
+				result.append(stmt)
 	return result
 
 
@@ -324,12 +314,23 @@ func set_statement_note(evidence_id: String, statement_id: String, note: String)
 	statement_note_changed.emit(evidence_id, statement_id)
 
 
+## Returns the player note for a statement-evidence link. Returns "" if not set.
+func get_statement_note(evidence_id: String, statement_id: String) -> String:
+	var key: String = "%s:%s" % [evidence_id, statement_id]
+	var vd: StatementVerdictData = _statement_verdicts.get(key, null)
+	return vd.player_note if vd != null else ""
 # --- Lab Analysis --- #
 
 ## Submits evidence for lab analysis. Returns true if the request was accepted.
 ## Delegates to LabManager, which looks up the lab recipe from CaseManager.
 func submit_to_lab(evidence_id: String) -> bool:
 	return LabManager.submit_to_lab(evidence_id)
+
+
+## Submits a specific case-authored lab request template. Returns true if accepted.
+func submit_to_lab_request(template_id: String) -> bool:
+	var result: Dictionary = LabManager.submit_template_request(template_id)
+	return not result.is_empty()
 
 
 # --- Progressive Discovery Hints --- #
@@ -352,11 +353,11 @@ func request_hint() -> Dictionary:
 	return hint
 
 
-## Finds the best available hint based on undiscovered critical evidence.
+## Finds the best available hint based on undiscovered required evidence.
 func _find_best_hint() -> Dictionary:
 	var all_evidence: Array[EvidenceData] = CaseManager.get_all_evidence()
 	for ev: EvidenceData in all_evidence:
-		if ev.importance_level != Enums.ImportanceLevel.CRITICAL:
+		if ev.importance_level != Enums.ImportanceLevel.REQUIRED:
 			continue
 		if GameManager.has_evidence(ev.id):
 			continue
@@ -402,6 +403,62 @@ func _on_evidence_discovered(_evidence_id: String) -> void:
 			contradiction_detected.emit(c.get("statement_id", ""), c.get("evidence_id", ""))
 
 
+# --- Reviewed State --- #
+
+## Marks an evidence item as reviewed the first time the player opens its detail panel.
+## Emits evidence_reviewed on the first call only (idempotent after that).
+func mark_reviewed(evidence_id: String) -> void:
+	if _reviewed_evidence.has(evidence_id):
+		return
+	_reviewed_evidence[evidence_id] = true
+	evidence_reviewed.emit(evidence_id)
+
+
+## Returns true if the player has previously opened this evidence item's detail panel.
+func is_reviewed(evidence_id: String) -> bool:
+	return _reviewed_evidence.has(evidence_id)
+
+
+## Marks evidence as sent to the detective board. Idempotent — emits signal only on first call.
+func mark_sent_to_board(evidence_id: String) -> void:
+	if _sent_to_board.has(evidence_id):
+		return
+	_sent_to_board[evidence_id] = true
+	evidence_sent_to_board.emit(evidence_id)
+
+
+## Returns true if the given evidence has been sent to the detective board.
+func is_sent_to_board(evidence_id: String) -> bool:
+	return _sent_to_board.has(evidence_id)
+
+
+## Returns true when this evidence item is superseded by a discovered lab result.
+## An item is superseded when it is the input of a lab request whose output evidence
+## the player has already discovered.
+func is_superseded(evidence_id: String) -> bool:
+	for lab_req: LabRequestData in CaseManager.get_lab_requests_for_evidence(evidence_id):
+		if lab_req.lab_transform != "upgrade":
+			continue
+		if GameManager.has_evidence(lab_req.output_evidence_id):
+			return true
+	return false
+
+
+# --- Player Notes --- #
+
+## Returns the player's private note for this evidence item, or "" if none exists.
+func get_player_notes(evidence_id: String) -> String:
+	return _player_notes.get(evidence_id, "")
+
+
+## Saves the player's private note for this evidence item and emits player_notes_changed.
+## Passing an empty string removes the stored entry.
+func set_player_notes(evidence_id: String, notes: String) -> void:
+	if notes.is_empty():
+		_player_notes.erase(evidence_id)
+	else:
+		_player_notes[evidence_id] = notes
+	player_notes_changed.emit(evidence_id)
 # --- Serialization --- #
 
 ## Returns the evidence manager state as a dictionary for saving.
@@ -410,6 +467,9 @@ func serialize() -> Dictionary:
 		"pinned_evidence": pinned_evidence.duplicate(),
 		"detected_contradictions": detected_contradictions.duplicate(true),
 		"statement_verdicts": _serialize_verdicts(),
+		"reviewed_evidence": _reviewed_evidence.duplicate(),
+		"player_notes": _player_notes.duplicate(),
+		"sent_to_board": _sent_to_board.duplicate(),
 	}
 
 
@@ -433,6 +493,9 @@ func deserialize(data: Dictionary) -> void:
 	for key: String in saved_verdicts:
 		var vd: StatementVerdictData = StatementVerdictData.from_dict(saved_verdicts[key])
 		_statement_verdicts[key] = vd
+	_reviewed_evidence = data.get("reviewed_evidence", {}).duplicate()
+	_player_notes = data.get("player_notes", {}).duplicate()
+	_sent_to_board = data.get("sent_to_board", {}).duplicate()
 	state_loaded.emit()
 
 
@@ -441,3 +504,6 @@ func reset() -> void:
 	pinned_evidence.clear()
 	detected_contradictions.clear()
 	_statement_verdicts.clear()
+	_reviewed_evidence.clear()
+	_player_notes.clear()
+	_sent_to_board.clear()

@@ -38,11 +38,11 @@ var _test_case_data: Dictionary = {
 			"name": "Bloodstain Sample",
 			"description": "A bloodstain found near the entrance.",
 			"type": "FORENSIC",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_house",
 			"related_persons": ["p_suspect_a"],
-			"tags": ["blood", "forensic", "entrance"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"hint_text": "Check near the entrance for biological traces.",
 			"legal_categories": ["PRESENCE"],
 		},
@@ -51,11 +51,11 @@ var _test_case_data: Dictionary = {
 			"name": "Hardware Store Receipt",
 			"description": "A receipt for rope and gloves from the hardware store.",
 			"type": "DOCUMENT",
+			"discovery_method": "VISUAL",
 			"location_found": "loc_store",
 			"related_persons": ["p_suspect_b"],
-			"tags": ["receipt", "purchase", "rope"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["OPPORTUNITY"],
 		},
 		{
@@ -65,9 +65,8 @@ var _test_case_data: Dictionary = {
 			"type": "RECORDING",
 			"location_found": "loc_house",
 			"related_persons": ["p_suspect_b"],
-			"tags": ["video", "surveillance", "night"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -77,9 +76,8 @@ var _test_case_data: Dictionary = {
 			"type": "DOCUMENT",
 			"location_found": "loc_house",
 			"related_persons": ["p_suspect_a"],
-			"tags": ["diary", "personal", "planning"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 	],
 	"statements": [
@@ -304,7 +302,7 @@ func test_pin_survives_serialize_deserialize() -> void:
 	GameManager.discover_evidence("ev_blood")
 	EvidenceManager.pin_evidence("ev_blood")
 
-	var em_data: Dictionary = EvidenceManager.serialize()
+	var _em_data: Dictionary = EvidenceManager.serialize()
 	var gm_data: Dictionary = GameManager.serialize()
 
 	GameManager.new_game()  # Resets EvidenceManager too

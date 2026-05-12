@@ -48,9 +48,8 @@ var _test_case_data: Dictionary = {
 			"type": "FORENSIC",
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
-			"tags": ["fingerprint", "forensic"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"requires_lab_analysis": true,
 			"legal_categories": ["PRESENCE"],
 		},
@@ -61,9 +60,8 @@ var _test_case_data: Dictionary = {
 			"type": "PHOTO",
 			"location_found": "loc_apartment",
 			"related_persons": ["p_victim"],
-			"tags": ["photo"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_processed",
@@ -72,9 +70,8 @@ var _test_case_data: Dictionary = {
 			"type": "OBJECT",
 			"location_found": "loc_apartment",
 			"related_persons": [],
-			"tags": ["weapon"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"requires_lab_analysis": true,
 			"lab_status": "COMPLETED",
 			"lab_result_text": "Blood matches the victim.",
@@ -86,9 +83,8 @@ var _test_case_data: Dictionary = {
 			"type": "FORENSIC",
 			"location_found": "loc_apartment",
 			"related_persons": [],
-			"tags": ["lab"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"requires_lab_analysis": true,
 			"lab_status": "PROCESSING",
 		},
@@ -541,6 +537,11 @@ func test_evidence_polaroid_hover_includes_image_region() -> void:
 	var image_clip: Control = polaroid.get_node("%ImageClip")
 	var image_rect: TextureRect = polaroid.get_node("%ImageRect")
 	var image_placeholder: ColorRect = polaroid.get_node("%ImagePlaceholder")
+	var pin_marker_row: Control = polaroid.get_node("%PinMarkerRow")
+	var pin_marker_chip: Control = polaroid.get_node("%PinMarkerChip")
+	var pin_marker_cap_mask: ColorRect = polaroid.get_node("%PinMarkerCapMask")
+	var pin_marker: Label = polaroid.get_node("%PinMarker")
+	var pin_marker_top: Label = polaroid.get_node("%PinMarkerTop")
 	var name_label: Label = polaroid.get_node("%NameLabel")
 
 	assert_eq(vbox.mouse_filter, Control.MOUSE_FILTER_IGNORE,
@@ -551,5 +552,99 @@ func test_evidence_polaroid_hover_includes_image_region() -> void:
 		"ImageRect should ignore mouse so clicking the image routes to the card")
 	assert_eq(image_placeholder.mouse_filter, Control.MOUSE_FILTER_IGNORE,
 		"ImagePlaceholder should ignore mouse so empty-image hover keeps card highlight active")
+	assert_eq(pin_marker_row.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"PinMarkerRow should ignore mouse so the centered keep marker never steals hover/click.")
+	assert_eq(pin_marker_chip.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"PinMarkerChip should ignore mouse so overlay styling does not intercept the card interaction.")
+	assert_eq(pin_marker_cap_mask.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"PinMarkerCapMask should ignore mouse so the red cap mask never intercepts the card interaction.")
+	assert_eq(pin_marker.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"PinMarker should ignore mouse so the overlay icon behaves like decoration, not a button.")
+	assert_eq(pin_marker_top.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"PinMarkerTop should ignore mouse so the cap overlay never steals the card interaction.")
 	assert_eq(name_label.mouse_filter, Control.MOUSE_FILTER_IGNORE,
 		"NameLabel should ignore mouse so clicking the label name routes to the card")
+
+
+# ============================================================
+# EvidencePolaroid Badge Tests
+# ============================================================
+
+func test_evidence_polaroid_new_badge_shown_when_unreviewed() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	# Do NOT call mark_reviewed — evidence is unreviewed
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	assert_true(badge_row.visible, "BadgeRow should be visible when there are active badges")
+	var has_new_label: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "NEW":
+			has_new_label = true
+	assert_true(has_new_label, "NEW badge should appear for unreviewed evidence")
+
+
+func test_evidence_polaroid_no_new_badge_after_mark_reviewed() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	var found_new: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "NEW":
+			found_new = true
+	assert_false(found_new, "NEW badge must not appear after evidence is reviewed")
+
+
+func test_evidence_polaroid_lab_badge_shown_when_processing() -> void:
+	GameManager.discover_evidence("ev_in_lab")
+	EvidenceManager.mark_reviewed("ev_in_lab")  # suppress NEW badge so only LAB is tested
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_in_lab")
+	card.setup(ev)
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	assert_true(badge_row.visible, "BadgeRow should be visible for lab-pending evidence")
+	var has_lab_label: bool = false
+	for pill in badge_row.get_children():
+		var label: Label = pill.get_child(0) as Label if pill.get_child_count() > 0 else null
+		if label != null and label.text == "LAB":
+			has_lab_label = true
+	assert_true(has_lab_label, "LAB badge should appear for evidence with PROCESSING lab status")
+
+
+func test_evidence_polaroid_keep_marker_shown_when_pinned() -> void:
+	GameManager.discover_evidence("ev_fingerprint")
+	EvidenceManager.mark_reviewed("ev_fingerprint")  # suppress NEW badge
+	EvidenceManager.pin_evidence("ev_fingerprint")
+	var card: Node = _evidence_polaroid_scene.instantiate()
+	add_child_autofree(card)
+	var ev: EvidenceData = CaseManager.get_evidence("ev_fingerprint")
+	card.setup(ev)
+	await get_tree().process_frame
+	var badge_row: HBoxContainer = card.get_node("%BadgeRow")
+	var pin_marker_row: Control = card.get_node("%PinMarkerRow")
+	var pin_marker_cap_mask: ColorRect = card.get_node("%PinMarkerCapMask")
+	var pin_marker: Label = card.get_node("%PinMarker")
+	var pin_marker_top: Label = card.get_node("%PinMarkerTop")
+	assert_false(badge_row.visible, "Pinned evidence should no longer use a text badge in BadgeRow.")
+	assert_true(pin_marker_row.visible, "Pinned evidence should show the centered keep marker overlay.")
+	assert_eq(pin_marker.text, "keep", "Pinned evidence should use the keep ligature for its top-center marker.")
+	assert_almost_eq(pin_marker_top.size.y, pin_marker.size.y, 0.5,
+		"PinMarkerTop should match the base icon height so the masked red cap aligns with the silver pin body.")
+	assert_almost_eq(pin_marker.rotation_degrees, 0.0, 0.01,
+		"PinMarker should stay unrotated so the composed icon can be tilted as a single unit by the wrapper.")
+	assert_eq(pin_marker_cap_mask.clip_children, CanvasItem.CLIP_CHILDREN_ONLY,
+		"PinMarkerCapMask should act as the alpha mask for the red cap so the split is part of the composed icon.")
+	assert_eq(pin_marker_top.material, null,
+		"PinMarkerTop should not rely on a shader mask once the cap is clipped by a dedicated alpha mask node.")
+	var pin_marker_chip: Control = card.get_node("%PinMarkerChip")
+	assert_gt(absf(pin_marker_chip.rotation_degrees), 0.01,
+		"PinMarkerChip should carry a non-zero tilt so the entire two-tone pin, including the split line, rotates together.")

@@ -48,7 +48,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_scene",
 			"related_persons": ["p_mark"],
 			"weight": 0.95,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -59,7 +59,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_house",
 			"related_persons": ["p_mark"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["MOTIVE"],
 		},
 		{
@@ -70,7 +70,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_scene",
 			"related_persons": ["p_mark"],
 			"weight": 0.85,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 			"legal_categories": ["PRESENCE"],
 		},
 		{
@@ -81,7 +81,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_street",
 			"related_persons": ["p_mark"],
 			"weight": 0.8,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["PRESENCE", "OPPORTUNITY"],
 		},
 		{
@@ -92,7 +92,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_house",
 			"related_persons": ["p_mark"],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 			"legal_categories": ["CONNECTION"],
 		},
 	],

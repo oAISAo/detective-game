@@ -34,5 +34,6 @@
 		"warrants_obtained": [],
 		"game_active": true
 	},
+	"discover_all_evidence": true,
 	"notifications": ["Debug Mode Active — Mark Bennett interrogation preset loaded"]
 }

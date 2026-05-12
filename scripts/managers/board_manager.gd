@@ -27,6 +27,16 @@ const VALID_NODE_TYPES: Array[String] = ["person", "evidence", "event"]
 const BOARD_WIDTH: float = 3840.0
 const BOARD_HEIGHT: float = 2160.0
 
+## Inbox zone — where newly sent items auto-place before the player arranges them.
+## Origin is near the top-left corner of the canvas (visible on first open).
+const INBOX_ORIGIN: Vector2 = Vector2(40.0, 40.0)
+## Horizontal distance between inbox columns (NODE_WIDTH≈160 + 20px gap).
+const INBOX_COL_STRIDE: float = 180.0
+## Vertical distance between inbox rows (NODE_HEIGHT≈80 + 20px gap).
+const INBOX_ROW_STRIDE: float = 100.0
+## Number of columns before wrapping to the next row.
+const INBOX_COLS: int = 5
+
 
 # --- State --- #
 
@@ -41,6 +51,10 @@ var _next_node_id: int = 1
 
 ## Counter for generating unique connection IDs.
 var _next_connection_id: int = 1
+
+## Tracks how many items have been sent via send_to_board() so inbox
+## staggering is independent of manual add_node() calls and node removals.
+var _inbox_cursor: int = 0
 
 
 # --- Lifecycle --- #
@@ -238,15 +252,15 @@ func get_connection_count() -> int:
 
 # --- Convenience --- #
 
-## Sends an item to the board in the visible area. Returns node data.
-## Staggers position so multiple nodes don't overlap.
+## Sends an item to the board inbox zone. Returns node data.
+## Items are staggered in a grid within the inbox zone so they do not
+## overlap; the player can then drag them to their preferred position.
 func send_to_board(type: String, ref_id: String) -> Dictionary:
-	# Place in visible area, offset each new node to avoid overlap
-	var existing: int = _nodes.size()
-	var col: int = existing % 4
-	var row: int = existing / 4
-	var x: float = 40.0 + col * 200.0
-	var y: float = 40.0 + row * 120.0
+	var col: int = _inbox_cursor % INBOX_COLS
+	var row: int = _inbox_cursor / INBOX_COLS
+	var x: float = INBOX_ORIGIN.x + col * INBOX_COL_STRIDE
+	var y: float = INBOX_ORIGIN.y + row * INBOX_ROW_STRIDE
+	_inbox_cursor += 1
 	return add_node(type, ref_id, x, y)
 
 
@@ -256,6 +270,7 @@ func clear_board() -> void:
 	_connections.clear()
 	_next_node_id = 1
 	_next_connection_id = 1
+	_inbox_cursor = 0
 	board_cleared.emit()
 
 
@@ -281,6 +296,7 @@ func serialize() -> Dictionary:
 		"board_connections": conns_array,
 		"next_node_id": _next_node_id,
 		"next_connection_id": _next_connection_id,
+		"inbox_cursor": _inbox_cursor,
 	}
 
 
@@ -304,6 +320,7 @@ func deserialize(data: Dictionary) -> void:
 
 	_next_node_id = data.get("next_node_id", _nodes.size() + 1)
 	_next_connection_id = data.get("next_connection_id", _connections.size() + 1)
+	_inbox_cursor = data.get("inbox_cursor", _nodes.size())
 	state_loaded.emit()
 
 

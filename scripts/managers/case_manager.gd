@@ -246,6 +246,22 @@ func get_case_data() -> CaseData:
 func get_evidence(evidence_id: String) -> EvidenceData:
 	return _evidence.get(evidence_id, null)
 
+
+## Returns the parent evidence ID for a derived evidence item, or "".
+func get_parent_evidence_id(evidence_id: String) -> String:
+	var ev: EvidenceData = get_evidence(evidence_id)
+	if ev == null:
+		return ""
+	return ev.derived_from
+
+
+## Returns the parent evidence for a derived evidence item, or null.
+func get_parent_evidence(evidence_id: String) -> EvidenceData:
+	var parent_id: String = get_parent_evidence_id(evidence_id)
+	if parent_id.is_empty():
+		return null
+	return get_evidence(parent_id)
+
 ## Returns person data by ID, or null if not found.
 func get_person(person_id: String) -> PersonData:
 	return _persons.get(person_id, null)
@@ -290,10 +306,28 @@ func get_discovery_rule(rule_id: String) -> DiscoveryRuleData:
 func get_lab_request(request_id: String) -> LabRequestData:
 	return _lab_requests.get(request_id, null)
 
-## Returns the lab request template for a given input evidence ID, or null.
-func get_lab_request_for_evidence(input_evidence_id: String) -> LabRequestData:
+
+## Returns all lab request templates for a given input evidence ID.
+func get_lab_requests_for_evidence(input_evidence_id: String) -> Array[LabRequestData]:
+	var result: Array[LabRequestData] = []
 	for req: LabRequestData in _lab_requests.values():
 		if req.input_evidence_id == input_evidence_id:
+			result.append(req)
+	return result
+
+
+## Returns the lab request template for a given input evidence ID when exactly one exists.
+func get_lab_request_for_evidence(input_evidence_id: String) -> LabRequestData:
+	var requests: Array[LabRequestData] = get_lab_requests_for_evidence(input_evidence_id)
+	if requests.size() != 1:
+		return null
+	return requests[0]
+
+
+## Returns the lab request template for a given output evidence ID, or null.
+func get_lab_request_for_output(output_evidence_id: String) -> LabRequestData:
+	for req: LabRequestData in _lab_requests.values():
+		if req.output_evidence_id == output_evidence_id:
 			return req
 	return null
 
@@ -330,6 +364,15 @@ func get_evidence_for_person(person_id: String) -> Array[EvidenceData]:
 	var result: Array[EvidenceData] = []
 	for ev: EvidenceData in _evidence.values():
 		if person_id in ev.related_persons:
+			result.append(ev)
+	return result
+
+
+## Returns all evidence items directly derived from the given parent evidence ID.
+func get_derived_evidence(parent_id: String) -> Array[EvidenceData]:
+	var result: Array[EvidenceData] = []
+	for ev: EvidenceData in _evidence.values():
+		if ev.derived_from == parent_id:
 			result.append(ev)
 	return result
 

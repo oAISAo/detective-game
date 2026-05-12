@@ -68,7 +68,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_parking",
 			"related_persons": ["p_mark"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_financial",
@@ -78,7 +78,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark"],
 			"weight": 0.7,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_safe",
@@ -88,7 +88,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_mark"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_hallway_camera",
@@ -98,7 +98,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_hallway",
 			"related_persons": ["p_sarah"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_shoe_print",
@@ -108,7 +108,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_sarah", "p_julia"],
 			"weight": 0.6,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_fingerprint",
@@ -118,7 +118,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.8,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_elevator_log",
@@ -128,7 +128,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_hallway",
 			"related_persons": ["p_julia"],
 			"weight": 0.7,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_journal",
@@ -138,7 +138,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_apartment",
 			"related_persons": ["p_julia"],
 			"weight": 0.9,
-			"importance_level": "CRITICAL",
+			"importance_level": "REQUIRED",
 		},
 		{
 			"id": "ev_maintenance",
@@ -148,7 +148,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_lucas"],
 			"weight": 0.4,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_key_access",
@@ -158,7 +158,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": ["p_lucas"],
 			"weight": 0.5,
-			"importance_level": "SUPPORTING",
+			"importance_level": "MAJOR",
 		},
 		{
 			"id": "ev_unlocked_clue",
@@ -168,7 +168,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": [],
 			"weight": 0.3,
-			"importance_level": "OPTIONAL",
+			"importance_level": "MINOR",
 		},
 		{
 			"id": "ev_no_trigger",
@@ -178,7 +178,7 @@ var _test_case_data: Dictionary = {
 			"location_found": "loc_office",
 			"related_persons": [],
 			"weight": 0.1,
-			"importance_level": "OPTIONAL",
+			"importance_level": "MINOR",
 		},
 	],
 	"statements": [

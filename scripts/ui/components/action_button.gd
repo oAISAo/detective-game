@@ -2,7 +2,7 @@
 ## Reusable cinematic action button with diagonal split background.
 ## Supports three visual states:
 ##   - Normal: blue border, hover effects, clickable
-##   - Completed: green accent, hourglass_check icon + "Done", not clickable
+##   - Completed: green accent, done_outline icon + "Done", not clickable
 ##   - Disabled (no actions): dimmed blue border, tooltip on hover/click
 class_name ActionButton
 extends PanelContainer
@@ -11,8 +11,8 @@ extends PanelContainer
 signal pressed
 
 const MATERIAL_ICON_FONT_PATH: String = "res://assets/fonts/MaterialSymbolsOutlined.ttf"
-const HOURGLASS_ICON_LIGATURE: String = "hourglass"
-const CHECK_ICON_LIGATURE: String = "hourglass_check"
+const BOLT_ICON_LIGATURE: String = "bolt"
+const CHECK_ICON_LIGATURE: String = "done_outline"
 const COMPLETED_LABEL_TEXT: String = "Done"
 const CORNER_RADIUS: int = 10
 const BORDER_WIDTH: int = 2
@@ -79,7 +79,7 @@ var _hover_tween: Tween
 @onready var _content_margin: MarginContainer = %ContentMargin
 @onready var _action_label: Label = %LabelActionText
 @onready var _right_content: HBoxContainer = %HBoxRight
-@onready var _hourglass_icon: Label = %HourglassIcon
+@onready var _bolt_icon: Label = %BoltIcon
 @onready var _cost_label: Label = %LabelCost
 
 
@@ -137,29 +137,30 @@ func _on_mouse_exited() -> void:
 
 
 func _refresh_labels() -> void:
-	if _action_label == null or _cost_label == null or _hourglass_icon == null:
+	if _action_label == null or _cost_label == null or _bolt_icon == null:
 		return
 
 	_action_label.text = _action_text
 
 	if _is_completed:
-		_hourglass_icon.text = CHECK_ICON_LIGATURE
+		_bolt_icon.text = CHECK_ICON_LIGATURE
 		_cost_label.text = COMPLETED_LABEL_TEXT
 	else:
-		_hourglass_icon.text = HOURGLASS_ICON_LIGATURE
+		_bolt_icon.text = BOLT_ICON_LIGATURE
 		_cost_label.text = _format_cost(_action_cost)
 
 	_update_background_split_width()
 
 
 func _update_visual_state() -> void:
-	if _background == null or _action_label == null or _cost_label == null or _hourglass_icon == null:
+	if _background == null or _action_label == null or _cost_label == null or _bolt_icon == null:
 		return
 
 	var border_color: Color = UIColors.BLUE
 	var glow_alpha: float = NORMAL_GLOW_ALPHA
 	var action_text_color: Color = UIColors.TEXT_PRIMARY
-	var meta_text_color: Color = UIColors.TEXT_GREY
+	var meta_text_color: Color = UIColors.TEXT_SECONDARY
+	var meta_icon_color: Color = UIColors.BLUE_SHADOW
 	var target_modulate: Color = Color.WHITE
 
 	if _is_completed:
@@ -169,6 +170,7 @@ func _update_visual_state() -> void:
 		glow_alpha = 0.0
 		action_text_color = UIColors.TEXT_GREY
 		meta_text_color = UIColors.GREEN.lerp(UIColors.TEXT_GREY, 0.25)
+		meta_icon_color = UIColors.GREEN.lerp(UIColors.TEXT_GREY, 0.25)
 	elif _is_disabled:
 		# No actions remaining: dimmed blue, still recognizably blue
 		border_color = UIColors.BLUE.lerp(UIColors.TEXT_GREY, DISABLED_BORDER_BLUE_LERP)
@@ -176,19 +178,21 @@ func _update_visual_state() -> void:
 		glow_alpha = DISABLED_GLOW_ALPHA
 		action_text_color = UIColors.TEXT_SECONDARY
 		meta_text_color = UIColors.TEXT_GREY
+		meta_icon_color = UIColors.TEXT_GREY
 	else:
 		if _is_hovered:
 			border_color = UIColors.BLUE.lerp(UIColors.TEXT_HOVER, 0.22)
 			glow_alpha = HOVER_GLOW_ALPHA
 			action_text_color = UIColors.TEXT_HOVER
 			meta_text_color = UIColors.TEXT_PRIMARY
+			meta_icon_color = UIColors.BLUE
 			target_modulate = HOVER_BRIGHTNESS
 
 	add_theme_stylebox_override("panel", _build_panel_style(border_color, glow_alpha))
 
 	_action_label.add_theme_color_override("font_color", action_text_color)
 	_cost_label.add_theme_color_override("font_color", meta_text_color)
-	_hourglass_icon.add_theme_color_override("font_color", meta_text_color)
+	_bolt_icon.add_theme_color_override("font_color", meta_icon_color)
 
 	var interactive: bool = not _is_disabled and not _is_completed
 	_background.set("hover_intensity", 1.0 if (_is_hovered and interactive) else 0.0)
@@ -218,7 +222,7 @@ func _build_panel_style(border_color: Color, glow_alpha: float) -> StyleBoxFlat:
 	panel_style.expand_margin_bottom = SIDE_SHADOW_EXPAND_MARGIN
 
 	if glow_alpha > 0.0:
-		var glow_color: Color = UIColors.LOCATION_CARD_HOVER_SHADOW
+		var glow_color: Color = UIColors.BLUE_SHADOW
 		glow_color.a = glow_alpha
 		panel_style.shadow_color = glow_color
 		panel_style.shadow_size = SHADOW_SIZE
@@ -239,8 +243,8 @@ func _configure_fonts() -> void:
 
 	var icon_font: FontVariation = _get_icon_font()
 	if icon_font != null:
-		_hourglass_icon.add_theme_font_override("font", icon_font)
-		_hourglass_icon.add_theme_font_size_override("font_size", UIFonts.SIZE_SECTION)
+		_bolt_icon.add_theme_font_override("font", icon_font)
+		_bolt_icon.add_theme_font_size_override("font_size", UIFonts.SIZE_ICON_BUTTON)
 
 
 func _format_cost(cost_value: int) -> String:

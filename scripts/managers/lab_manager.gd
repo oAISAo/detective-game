@@ -51,15 +51,35 @@ func _ready() -> void:
 ## Returns true if the request was accepted, false if the evidence has no lab
 ## template, is already submitted, or the concurrent limit is reached.
 func submit_to_lab(evidence_id: String) -> bool:
-	var template: LabRequestData = CaseManager.get_lab_request_for_evidence(evidence_id)
-	if template == null:
+	var templates: Array[LabRequestData] = CaseManager.get_lab_requests_for_evidence(evidence_id)
+	if templates.is_empty():
 		return false
-	var result: Dictionary = submit_request(
-		evidence_id,
+	if templates.size() > 1:
+		push_warning(
+			"[LabManager] Multiple lab templates require explicit selection for evidence: %s" %
+			evidence_id
+		)
+		return false
+	var result: Dictionary = submit_template_request(templates[0].id)
+	return not result.is_empty()
+
+
+## Submits a case-authored lab request template by template ID.
+func submit_template_request(
+	template_id: String,
+	processing_days: int = DEFAULT_PROCESSING_DAYS
+) -> Dictionary:
+	var template: LabRequestData = CaseManager.get_lab_request(template_id)
+	if template == null:
+		push_warning("[LabManager] Lab request template not found: %s" % template_id)
+		return {}
+	return _submit_request_internal(
+		template.input_evidence_id,
 		template.analysis_type,
 		template.output_evidence_id,
+		template.lab_transform,
+		processing_days,
 	)
-	return not result.is_empty()
 
 
 ## Submits a lab request for the given evidence.
@@ -69,6 +89,30 @@ func submit_request(
 	analysis_type: String,
 	output_evidence_id: String,
 	processing_days: int = DEFAULT_PROCESSING_DAYS
+) -> Dictionary:
+	var lab_transform: String = _get_lab_transform(input_evidence_id, output_evidence_id)
+	return _submit_request_internal(
+		input_evidence_id,
+		analysis_type,
+		output_evidence_id,
+		lab_transform,
+		processing_days,
+	)
+
+
+func _get_lab_transform(input_evidence_id: String, output_evidence_id: String) -> String:
+	for template: LabRequestData in CaseManager.get_lab_requests_for_evidence(input_evidence_id):
+		if template.output_evidence_id == output_evidence_id:
+			return template.lab_transform
+	return "upgrade"
+
+
+func _submit_request_internal(
+	input_evidence_id: String,
+	analysis_type: String,
+	output_evidence_id: String,
+	lab_transform: String,
+	processing_days: int
 ) -> Dictionary:
 	# Validate input evidence exists and is discovered
 	if not GameManager.has_evidence(input_evidence_id):
@@ -92,11 +136,6 @@ func submit_request(
 	var request_id: String = "lab_%d" % _next_id
 	_next_id += 1
 
-	# Read lab_transform from the case template (defaults to "upgrade" for backwards
-	# compatibility when no template exists or the field is absent).
-	var template: LabRequestData = CaseManager.get_lab_request_for_evidence(input_evidence_id)
-	var lab_transform: String = template.lab_transform if template else "upgrade"
-
 	var request: Dictionary = {
 		"id": request_id,
 		"input_evidence_id": input_evidence_id,
@@ -113,11 +152,11 @@ func submit_request(
 	# Add to GameManager for DaySystem processing
 	GameManager.active_lab_requests.append(request.duplicate())
 
-	lab_submitted.emit(request_id, input_evidence_id)
 	# Update the input evidence's lab_status to PROCESSING
 	var ev: EvidenceData = CaseManager.get_evidence(input_evidence_id)
 	if ev:
 		ev.lab_status = Enums.LabStatus.PROCESSING
+	lab_submitted.emit(request_id, input_evidence_id)
 	var ev_name: String = ev.name if ev else input_evidence_id
 	GameManager.log_action("Lab request submitted: %s (%s)" % [analysis_type, ev_name])
 	return request.duplicate()
@@ -159,6 +198,18 @@ func get_pending_requests() -> Array[Dictionary]:
 	for req: Dictionary in _requests.values():
 		if req.get("status", "") == "pending":
 			result.append(req.duplicate())
+	return result
+
+
+## Returns all pending lab requests for one input evidence item.
+func get_pending_requests_for_evidence(evidence_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for req: Dictionary in _requests.values():
+		if req.get("input_evidence_id", "") != evidence_id:
+			continue
+		if req.get("status", "") != "pending":
+			continue
+		result.append(req.duplicate())
 	return result
 
 

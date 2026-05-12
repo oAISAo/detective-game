@@ -18,11 +18,11 @@ var _test_case_data: Dictionary = {
 		{"id": "p_julia", "name": "Julia", "role": "SUSPECT", "personality_traits": [], "relationships": [], "pressure_threshold": 5},
 	],
 	"evidence": [
-		{"id": "ev_knife", "name": "Kitchen Knife", "description": "Found at scene.", "type": "OBJECT", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.8, "importance_level": "KEY", "legal_categories": ["PRESENCE"]},
-		{"id": "ev_knife_dna", "name": "Knife DNA", "description": "DNA from knife.", "type": "FORENSIC", "location_found": "lab", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "CRITICAL", "legal_categories": ["CONNECTION"]},
-		{"id": "ev_motive", "name": "Insurance Doc", "description": "Financial motive.", "type": "DOCUMENT", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "CRITICAL", "legal_categories": ["MOTIVE"]},
-		{"id": "ev_camera", "name": "Camera Footage", "description": "Security footage.", "type": "DIGITAL", "location_found": "loc_lobby", "related_persons": ["p_mark"], "weight": 0.7, "importance_level": "SUPPORTING", "legal_categories": ["PRESENCE"]},
-		{"id": "ev_phone", "name": "Phone Records", "description": "Call logs.", "type": "DIGITAL", "location_found": "loc_office", "related_persons": ["p_julia"], "weight": 0.5, "importance_level": "SUPPORTING", "legal_categories": ["CONNECTION"]},
+		{"id": "ev_knife", "name": "Kitchen Knife", "description": "Found at scene.", "type": "OBJECT", "discovery_method": "VISUAL", "location_found": "loc_scene", "related_persons": ["p_mark"], "weight": 0.8, "importance_level": "KEY", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_knife_dna", "name": "Knife DNA", "description": "DNA from knife.", "type": "FORENSIC", "discovery_method": "FORENSIC", "location_found": "lab", "related_persons": ["p_mark"], "weight": 0.9, "importance_level": "REQUIRED", "legal_categories": ["CONNECTION"]},
+		{"id": "ev_motive", "name": "Insurance Doc", "description": "Financial motive.", "type": "DOCUMENT", "discovery_method": "VISUAL", "location_found": "loc_office", "related_persons": ["p_mark"], "weight": 0.85, "importance_level": "REQUIRED", "legal_categories": ["MOTIVE"]},
+		{"id": "ev_camera", "name": "Camera Footage", "description": "Security footage.", "type": "DIGITAL", "discovery_method": "DIGITAL", "location_found": "loc_lobby", "related_persons": ["p_mark"], "weight": 0.7, "importance_level": "MAJOR", "legal_categories": ["PRESENCE"]},
+		{"id": "ev_phone", "name": "Phone Records", "description": "Call logs.", "type": "DIGITAL", "discovery_method": "DIGITAL", "location_found": "loc_office", "related_persons": ["p_julia"], "weight": 0.5, "importance_level": "MAJOR", "legal_categories": ["CONNECTION"]},
 	],
 	"locations": [
 		{"id": "loc_scene", "name": "Crime Scene", "description": "The scene.", "type": "CRIME_SCENE", "evidence_ids": ["ev_knife"]},

@@ -15,14 +15,13 @@ func test_evidence_from_dict_full() -> void:
 		"description": "A sharp knife found in the sink.",
 		"type": "FORENSIC",
 		"location_found": "loc_kitchen",
-		"discovered_day": 1,
 		"related_persons": ["p_julia", "p_mark"],
-		"tags": ["weapon", "critical"],
 		"lab_status": "NOT_SUBMITTED",
-		"requires_lab_analysis": true,
+		"lab_analysis_results": ["ev_knife_prints", "ev_knife_dna"],
 		"weight": 0.9,
-		"importance_level": "CRITICAL",
+		"importance_level": "REQUIRED",
 		"discovery_method": "VISUAL",
+		"derived_from": "ev_sink_sample",
 		"legal_categories": ["PRESENCE", "OPPORTUNITY"],
 	}
 	var ev := EvidenceData.from_dict(data)
@@ -30,15 +29,16 @@ func test_evidence_from_dict_full() -> void:
 	assert_eq(ev.name, "Kitchen Knife")
 	assert_eq(ev.type, Enums.EvidenceType.FORENSIC)
 	assert_eq(ev.location_found, "loc_kitchen")
-	assert_eq(ev.discovered_day, 1)
 	assert_eq(ev.related_persons.size(), 2)
 	assert_true("p_julia" in ev.related_persons)
-	assert_eq(ev.tags.size(), 2)
 	assert_eq(ev.lab_status, Enums.LabStatus.NOT_SUBMITTED)
-	assert_true(ev.requires_lab_analysis)
+	assert_eq(ev.lab_analysis_results.size(), 2)
+	assert_eq(ev.lab_analysis_results[0], "ev_knife_prints")
+	assert_eq(ev.lab_analysis_results[1], "ev_knife_dna")
 	assert_almost_eq(ev.weight, 0.9, 0.001)
-	assert_eq(ev.importance_level, Enums.ImportanceLevel.CRITICAL)
+	assert_eq(ev.importance_level, Enums.ImportanceLevel.REQUIRED)
 	assert_eq(ev.discovery_method, Enums.DiscoveryMethod.VISUAL)
+	assert_eq(ev.derived_from, "ev_sink_sample")
 	assert_eq(ev.legal_categories.size(), 2)
 
 
@@ -47,9 +47,21 @@ func test_evidence_from_dict_defaults() -> void:
 	assert_eq(ev.id, "")
 	assert_eq(ev.name, "")
 	assert_eq(ev.type, Enums.EvidenceType.OBJECT)
-	assert_eq(ev.importance_level, Enums.ImportanceLevel.SUPPORTING)
+	assert_eq(ev.importance_level, Enums.ImportanceLevel.MAJOR)
 	assert_almost_eq(ev.weight, 0.5, 0.001)
-	assert_false(ev.requires_lab_analysis)
+	assert_eq(ev.lab_analysis_results.size(), 0)
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "discovery_method is required"))
+
+
+func test_evidence_validate_invalid_discovery_method() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_legacy",
+		"name": "Legacy Evidence",
+		"discovery_method": "LAB",
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "invalid discovery_method 'LAB'"))
 
 
 func test_evidence_validate_missing_id() -> void:
@@ -59,11 +71,91 @@ func test_evidence_validate_missing_id() -> void:
 	assert_true(_has_error_containing(errors, "id is required"))
 
 
+func test_evidence_validate_derived_from_cannot_reference_self() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_loop",
+		"name": "Loop Evidence",
+		"discovery_method": "VISUAL",
+		"derived_from": "ev_loop",
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "derived_from cannot reference self"))
+
+
+func test_evidence_validate_lab_analysis_results_cannot_reference_self() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_self_target",
+		"name": "Self Target Evidence",
+		"discovery_method": "VISUAL",
+		"lab_analysis_results": ["ev_self_target"],
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "lab_analysis_results cannot reference self"))
+
+
+func test_evidence_validate_lab_analysis_results_cannot_duplicate_ids() -> void:
+	var ev := EvidenceData.from_dict({
+		"id": "ev_duplicate_targets",
+		"name": "Duplicate Targets Evidence",
+		"discovery_method": "VISUAL",
+		"lab_analysis_results": ["ev_output", "ev_output"],
+	})
+	var errors := ev.validate()
+	assert_true(_has_error_containing(errors, "lab_analysis_results cannot contain duplicates"))
+
+
 func test_evidence_validate_invalid_weight() -> void:
 	var ev := EvidenceData.from_dict({"id": "ev_01", "name": "Test", "weight": 1.5})
 	var errors := ev.validate()
 	assert_true(_has_error_containing(errors, "weight must be"))
 
+
+func test_evidence_weight_and_importance_level_remain_independent() -> void:
+	var plot_critical := EvidenceData.from_dict({
+		"id": "ev_plot_critical",
+		"name": "Weak But Critical",
+		"discovery_method": "VISUAL",
+		"weight": 0.2,
+		"importance_level": "REQUIRED",
+	})
+	var optional_but_strong := EvidenceData.from_dict({
+		"id": "ev_optional_strong",
+		"name": "Strong But Optional",
+		"discovery_method": "VISUAL",
+		"weight": 0.95,
+		"importance_level": "MINOR",
+	})
+
+	assert_eq(plot_critical.importance_level, Enums.ImportanceLevel.REQUIRED)
+	assert_almost_eq(plot_critical.weight, 0.2, 0.001)
+	assert_eq(plot_critical.validate(), [])
+
+	assert_eq(optional_but_strong.importance_level, Enums.ImportanceLevel.MINOR)
+	assert_almost_eq(optional_but_strong.weight, 0.95, 0.001)
+	assert_eq(optional_but_strong.validate(), [])
+
+	assert_eq(plot_critical.to_dict()["importance_level"], "REQUIRED")
+	assert_eq(optional_but_strong.to_dict()["importance_level"], "MINOR")
+
+
+func test_evidence_importance_level_legacy_names_still_parse() -> void:
+	var legacy_critical := EvidenceData.from_dict({
+		"id": "ev_legacy_required",
+		"name": "Legacy Critical",
+		"discovery_method": "VISUAL",
+		"importance_level": "REQUIRED",
+	})
+	var legacy_optional := EvidenceData.from_dict({
+		"id": "ev_legacy_minor",
+		"name": "Legacy Optional",
+		"discovery_method": "VISUAL",
+		"importance_level": "MINOR",
+	})
+
+	assert_eq(legacy_critical.importance_level, Enums.ImportanceLevel.REQUIRED)
+	assert_eq(legacy_optional.importance_level, Enums.ImportanceLevel.MINOR)
+	assert_eq(legacy_critical.to_dict()["importance_level"], "REQUIRED")
+	assert_eq(legacy_optional.to_dict()["importance_level"], "MINOR")
 
 func test_evidence_to_dict_roundtrip() -> void:
 	var original := {
@@ -72,14 +164,21 @@ func test_evidence_to_dict_roundtrip() -> void:
 		"description": "Testing roundtrip",
 		"type": "DOCUMENT",
 		"weight": 0.7,
-		"importance_level": "CRITICAL",
+		"importance_level": "REQUIRED",
+		"discovery_method": "ADMINISTRATIVE",
+		"derived_from": "ev_parent",
+		"lab_analysis_results": ["ev_rt_result"],
 	}
 	var ev := EvidenceData.from_dict(original)
 	var result := ev.to_dict()
 	assert_eq(result["id"], "ev_rt")
 	assert_eq(result["name"], "Roundtrip Evidence")
 	assert_eq(result["type"], "DOCUMENT")
-	assert_eq(result["importance_level"], "CRITICAL")
+	assert_eq(result["importance_level"], "REQUIRED")
+	assert_eq(result["discovery_method"], "ADMINISTRATIVE")
+	assert_eq(result["derived_from"], "ev_parent")
+	assert_eq(result["lab_analysis_results"], ["ev_rt_result"])
+	assert_false(result.has("tags"))
 
 
 # =============================================================================
@@ -433,6 +532,8 @@ func test_lab_request_from_dict() -> void:
 		"day_submitted": 1,
 		"completion_day": 2,
 		"output_evidence_id": "ev_knife_prints",
+		"pending_status_text": "Knife submitted for fingerprint analysis. Results expected tomorrow morning.",
+		"completed_status_text": "Fingerprint analysis complete. Knife prints are ready for review.",
 	}
 	var req := LabRequestData.from_dict(data)
 	assert_eq(req.id, "lab_01")
@@ -441,6 +542,28 @@ func test_lab_request_from_dict() -> void:
 	assert_eq(req.day_submitted, 1)
 	assert_eq(req.completion_day, 2)
 	assert_eq(req.output_evidence_id, "ev_knife_prints")
+	assert_eq(req.pending_status_text,
+		"Knife submitted for fingerprint analysis. Results expected tomorrow morning.")
+	assert_eq(req.completed_status_text,
+		"Fingerprint analysis complete. Knife prints are ready for review.")
+
+
+func test_lab_request_to_dict_includes_status_texts() -> void:
+	var req := LabRequestData.from_dict({
+		"id": "lab_01",
+		"input_evidence_id": "ev_knife",
+		"analysis_type": "fingerprint",
+		"day_submitted": 1,
+		"completion_day": 2,
+		"output_evidence_id": "ev_knife_prints",
+		"pending_status_text": "Knife submitted for fingerprint analysis. Results expected tomorrow morning.",
+		"completed_status_text": "Fingerprint analysis complete. Knife prints are ready for review.",
+	})
+	var data: Dictionary = req.to_dict()
+	assert_eq(data.get("pending_status_text", ""),
+		"Knife submitted for fingerprint analysis. Results expected tomorrow morning.")
+	assert_eq(data.get("completed_status_text", ""),
+		"Fingerprint analysis complete. Knife prints are ready for review.")
 
 
 func test_lab_request_validate_invalid_days() -> void:

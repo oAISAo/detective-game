@@ -34,7 +34,7 @@ func test_action_button_scene_has_expected_structure() -> void:
 	assert_not_null(button.get_node_or_null("ContentMargin"), "ActionButton should contain an inner content margin")
 	assert_not_null(button.get_node_or_null("ContentMargin/Content"), "ActionButton should contain a Content row")
 	assert_not_null(button.get_node_or_null("ContentMargin/Content/LabelActionText"), "ActionButton should contain left action label")
-	assert_not_null(button.get_node_or_null("ContentMargin/Content/HBoxRight/HourglassIcon"), "ActionButton should contain hourglass icon label")
+	assert_not_null(button.get_node_or_null("ContentMargin/Content/HBoxRight/BoltIcon"), "ActionButton should contain bolt icon label")
 	assert_not_null(button.get_node_or_null("ContentMargin/Content/HBoxRight/LabelCost"), "ActionButton should contain right cost label")
 
 
@@ -95,12 +95,12 @@ func test_action_button_hourglass_uses_material_ligature() -> void:
 	if button == null:
 		return
 
-	var icon_label: Label = button.get_node_or_null("ContentMargin/Content/HBoxRight/HourglassIcon") as Label
+	var icon_label: Label = button.get_node_or_null("ContentMargin/Content/HBoxRight/BoltIcon") as Label
 	assert_not_null(icon_label)
 	if icon_label == null:
 		return
 
-	assert_eq(icon_label.text, "hourglass", "Icon label should use Material ligature text")
+	assert_eq(icon_label.text, "bolt", "Icon label should use Material ligature text")
 	assert_not_null(icon_label.get_theme_font("font"), "Icon label should have a font override for icon ligatures")
 
 

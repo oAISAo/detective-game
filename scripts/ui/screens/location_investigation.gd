@@ -41,7 +41,6 @@ const _PANEL_BORDER_COLOR: Color = Color(0.7, 0.68, 0.65, 0.45)
 const _PANEL_CORNER_RADIUS: int = 14
 const _OBJECT_LIST_TOP_PADDING: int = 6
 const _DETAIL_SECTION_SPACING: int = 18
-const _HANDWRITING_FONT_PATH: String = "res://assets/fonts/Caveat-Regular.ttf"
 
 # Target reveal animation constants (for newly-unlocked conditional targets)
 const _REVEAL_SLIDE_DURATION: float = 0.4
@@ -358,13 +357,18 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 		if not LocationInvestigationManager.is_evidence_discovered(ev_id):
 			continue
 
-		var lab_req: LabRequestData = CaseManager.get_lab_request_for_evidence(ev_id)
 		var ev: EvidenceData
+		var upgraded_output_id: String = ""
+		for lab_req: LabRequestData in CaseManager.get_lab_requests_for_evidence(ev_id):
+			if lab_req.lab_transform != "upgrade":
+				continue
+			if GameManager.has_evidence(lab_req.output_evidence_id):
+				upgraded_output_id = lab_req.output_evidence_id
+				break
 
-		if lab_req != null and lab_req.lab_transform == "upgrade" \
-				and GameManager.has_evidence(lab_req.output_evidence_id):
+		if not upgraded_output_id.is_empty():
 			# Raw evidence was upgraded — show the analyzed version on the card.
-			ev = CaseManager.get_evidence(lab_req.output_evidence_id)
+			ev = CaseManager.get_evidence(upgraded_output_id)
 		else:
 			# Raw evidence still in inventory, or a "derive" transform (input stays).
 			ev = CaseManager.get_evidence(ev_id)
@@ -391,14 +395,14 @@ func _populate_discovered_clues(obj: InvestigableObjectData) -> void:
 
 ## Navigates to the evidence detail screen when a polaroid card is clicked.
 func _on_evidence_card_pressed(evidence_id: String) -> void:
-	ScreenManager.navigate_to("evidence_detail", {"evidence_id": evidence_id})
+	ScreenManager.navigate_to("evidence_archive", {"evidence_id": evidence_id})
 
 
 ## Loads the handwriting font used for polaroid clue labels.
 func _load_handwriting_font() -> Font:
-	if ResourceLoader.exists(_HANDWRITING_FONT_PATH):
-		return load(_HANDWRITING_FONT_PATH) as Font
-	push_warning("[LocationInvestigation] Handwriting font not found: %s" % _HANDWRITING_FONT_PATH)
+	if ResourceLoader.exists(UIFonts.HANDWRITING_FONT_PATH):
+		return load(UIFonts.HANDWRITING_FONT_PATH) as Font
+	push_warning("[LocationInvestigation] Handwriting font not found: %s" % UIFonts.HANDWRITING_FONT_PATH)
 	return null
 
 

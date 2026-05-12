@@ -32,7 +32,13 @@ static func get_accent_color(type: NotificationManager.NotificationType) -> Colo
 
 
 ## Builds child nodes and starts the slide-in animation.
-func setup(title: String, message: String, type: NotificationManager.NotificationType) -> void:
+## notification: Full notification dict from NotificationManager.
+func setup(notification: Dictionary) -> void:
+	var title: String = notification.get("title", "")
+	var message: String = notification.get("message", "")
+	var type: NotificationManager.NotificationType = notification.get("type", NotificationManager.NotificationType.SYSTEM)
+	var evidence_id: String = notification.get("evidence_id", "")
+
 	# Panel styling
 	custom_minimum_size.x = TOAST_WIDTH
 	size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -87,6 +93,23 @@ func setup(title: String, message: String, type: NotificationManager.Notificatio
 		msg_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		msg_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		text_col.add_child(msg_label)
+
+	# "View Evidence →" button — only shown when an evidence_id is provided.
+	if not evidence_id.is_empty():
+		var view_btn: Button = Button.new()
+		view_btn.text = "View Evidence →"
+		view_btn.flat = true
+		view_btn.add_theme_color_override("font_color", UIColors.BLUE)
+		view_btn.add_theme_font_size_override("font_size", UIFonts.SIZE_METADATA)
+		view_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		view_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		view_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		var ev_id_capture: String = evidence_id
+		view_btn.pressed.connect(func() -> void:
+			ScreenManager.navigate_to("evidence_archive", {"evidence_id": ev_id_capture})
+			queue_free()
+		)
+		text_col.add_child(view_btn)
 
 	# Start hidden off-screen, then animate in
 	modulate.a = 0.0

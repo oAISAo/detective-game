@@ -53,10 +53,65 @@ func test_notify_evidence() -> void:
 	assert_eq(notifications[0].type, NotificationManager.NotificationType.EVIDENCE)
 
 
+func test_notify_evidence_backward_compatible_no_id() -> void:
+	# Calling without evidence_id should not add evidence_id key to the dict.
+	NotificationManager.notify_evidence("Wine Glass")
+	var notif: Dictionary = NotificationManager.get_all()[0]
+	assert_false(notif.has("evidence_id"),
+		"Notification dict must not contain evidence_id when none was passed.")
+
+
+func test_notify_evidence_includes_evidence_id() -> void:
+	NotificationManager.notify_evidence("Wine Glass", "ev_wine_glass")
+	var notif: Dictionary = NotificationManager.get_all()[0]
+	assert_true(notif.has("evidence_id"),
+		"Notification dict should contain evidence_id when passed.")
+	assert_eq(notif["evidence_id"], "ev_wine_glass")
+
+
+func test_notify_evidence_includes_description() -> void:
+	NotificationManager.notify_evidence("Wine Glass", "ev_wine_glass", "Two wine glasses on the counter.")
+	var notif: Dictionary = NotificationManager.get_all()[0]
+	assert_eq(notif.get("evidence_description", ""), "Two wine glasses on the counter.")
+
+
+func test_notify_evidence_id_present_in_emitted_signal() -> void:
+	# Verify the notification dict emitted by notification_added already contains evidence_id.
+	# Use an Array so the lambda can mutate by index (GDScript lambdas capture by ref for arrays).
+	var emitted: Array = [{}]
+	NotificationManager.notification_added.connect(func(n: Dictionary) -> void: emitted[0] = n, CONNECT_ONE_SHOT)
+	NotificationManager.notify_evidence("Wine Glass", "ev_wine_glass_signal")
+	assert_eq(emitted[0].get("evidence_id", ""), "ev_wine_glass_signal",
+		"evidence_id must be in the dict at the time notification_added fires.")
+
+
 func test_notify_lab_result() -> void:
 	NotificationManager.notify_lab_result("Fingerprint Match")
 	var notifications: Array[Dictionary] = NotificationManager.get_all()
 	assert_eq(notifications[0].type, NotificationManager.NotificationType.LAB_RESULT)
+
+
+func test_notify_lab_result_backward_compatible_no_id() -> void:
+	NotificationManager.notify_lab_result("Fingerprint Match")
+	var notif: Dictionary = NotificationManager.get_all()[0]
+	assert_false(notif.has("evidence_id"),
+		"Notification dict must not contain evidence_id when none was passed.")
+
+
+func test_notify_lab_result_includes_evidence_id() -> void:
+	NotificationManager.notify_lab_result("Fingerprint Match", "ev_fingerprint_result")
+	var notif: Dictionary = NotificationManager.get_all()[0]
+	assert_true(notif.has("evidence_id"),
+		"Lab result notification should contain evidence_id when passed.")
+	assert_eq(notif["evidence_id"], "ev_fingerprint_result")
+
+
+func test_notify_with_extra_dict() -> void:
+	NotificationManager.notify("Custom", "Message", NotificationManager.NotificationType.SYSTEM,
+		{"custom_field": "hello"})
+	var notif: Dictionary = NotificationManager.get_all()[0]
+	assert_eq(notif.get("custom_field", ""), "hello",
+		"Extra dict fields should be merged into the notification.")
 
 
 func test_notify_hint() -> void:
